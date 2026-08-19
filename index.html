@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Hunt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#120d0a; --panel:#1c140f; --panel-2:#241a13;
+    --wood:#3c2c1e; --wood-light:#59422c;
+    --bone:#e9dfc6; --bone-dim:#b3a487;
+    --amber:#f2a93b; --ember:#e0692a; --blood:#9c2f1f;
+    --moss:#6f7d4f; --frost:#6fb3c9;
+    --common:#8a8577; --rare:#6fb3c9; --epic:#b07de0; --legendary:#f2a93b;
+    --line:rgba(233,223,198,0.12);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; background:#0a0705; display:flex; align-items:center; justify-content:center; font-family:'VT323', monospace; overflow:hidden; }
+
+  .device{
+    width:390px; height:844px; max-height:96vh; position:relative;
+    background: linear-gradient(180deg,#1a120c 0%, #120d0a 40%, #0c0906 100%);
+    border:3px solid #000; border-radius:28px; overflow:hidden;
+    box-shadow: 0 0 0 2px #2a1e14, 0 30px 60px rgba(0,0,0,0.6);
+  }
+  .vignette{ position:absolute; inset:0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%); pointer-events:none; z-index:50; }
+  .noise{ position:absolute; inset:0; opacity:0.05; background-image: repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 3px); pointer-events:none; z-index:49; }
+
+  .pixel-frame{
+    clip-path: polygon(0 6px,6px 6px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 6px),0 calc(100% - 6px));
+  }
+
+  /* ---------- SCREEN SWITCHING ---------- */
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    opacity:0; pointer-events:none;
+    transform: translateX(16px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    z-index:10;
+  }
+  .screen.active{ opacity:1; pointer-events:auto; transform: translateX(0); z-index:11; }
+
+  ::-webkit-scrollbar{ width:0; }
+
+  /* ================= SHARED BITS ================= */
+  .header{ padding:14px 14px 0 14px; display:flex; align-items:center; gap:10px; }
+  .back-btn{ width:34px; height:34px; background:var(--panel); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--bone-dim); font-size:16px; cursor:pointer; }
+  .header-title{ font-family:'Press Start 2P', monospace; font-size:13px; color:var(--amber); text-shadow:2px 2px 0 #000; }
+  .header-sub{ font-size:14px; color:var(--bone-dim); margin-top:2px; }
+  .chip{ display:flex; align-items:center; gap:6px; background:var(--panel); border:2px solid var(--line); padding:5px 10px; font-size:16px; color:var(--bone); }
+  .chip .icon{ color:var(--amber); font-size:13px; }
+
+  .tabs{ display:flex; gap:8px; padding:14px 14px 0 14px; }
+  .tab{ flex-shrink:0; text-align:center; font-family:'Press Start 2P', monospace; font-size:9px; padding:9px 8px; background:var(--panel); border:2px solid var(--line); color:var(--bone-dim); cursor:pointer; }
+  .tab.active{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; border-color:#000; }
+
+  .r-common{ background: var(--common); }
+  .r-rare{ background: var(--rare); }
+  .r-epic{ background: var(--epic); }
+  .r-legendary{ background: var(--legendary); }
+
+  /* ================= SCREEN 1: MAIN MENU ================= */
+  #screen-menu .topbar{ display:flex; justify-content:space-between; align-items:center; padding:14px 14px 0 14px; }
+  #screen-menu .currency{ display:flex; gap:8px; }
+  #screen-menu .settings-btn{ width:34px; height:34px; background:var(--panel); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--bone-dim); font-size:16px; }
+
+  .ribbon-wrap{ margin:12px 14px 0 14px; }
+  .ribbon{ background: linear-gradient(180deg, var(--blood), #7a2317); border:2px solid #000; padding:7px 10px; display:flex; align-items:center; gap:8px; font-family:'Press Start 2P', monospace; font-size:8px; color:var(--bone); letter-spacing:0.5px; }
+  .ribbon .dot{ width:6px; height:6px; background:var(--amber); animation: blink 1.4s infinite steps(2); flex-shrink:0; }
+  @keyframes blink{ 50%{ opacity:0.15; } }
+
+  .hero{ text-align:center; margin-top:22px; }
+  .subtitle-eyebrow{ font-size:14px; letter-spacing:4px; color:var(--bone-dim); text-transform:uppercase; }
+  .title{ font-family:'Press Start 2P', monospace; font-size:28px; color:var(--amber); margin-top:10px; line-height:1.5; text-shadow:0 0 6px rgba(242,169,59,0.7), 0 0 18px rgba(224,105,42,0.5), 3px 3px 0 #000; }
+  .title .accent{ color:var(--blood); -webkit-text-stroke:1px #000; }
+  .tagline{ margin-top:8px; font-size:19px; color:var(--bone-dim); letter-spacing:1px; }
+
+  .scene{ position:relative; height:150px; margin-top:10px; overflow:hidden; }
+  .mountains{ position:absolute; bottom:0; left:0; right:0; height:80px; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.4)), var(--panel-2); clip-path: polygon(0% 100%, 0% 60%, 10% 40%, 22% 65%, 33% 30%, 46% 58%, 58% 20%, 70% 55%, 82% 35%, 92% 62%, 100% 45%, 100% 100%); opacity:0.9; }
+  .monster-silhouette{ position:absolute; bottom:16px; right:8%; font-size:64px; filter: drop-shadow(0 0 14px rgba(224,105,42,0.25)); opacity:0.92; animation: sway 4s ease-in-out infinite; }
+  @keyframes sway{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-4px);} }
+  .campfire{ position:absolute; bottom:12px; left:12%; font-size:30px; animation: flicker 1.1s infinite steps(3); filter: drop-shadow(0 0 10px rgba(240,140,40,0.8)); }
+  @keyframes flicker{ 0%{ transform: scale(1) translateY(0);} 33%{ transform: scale(1.06) translateY(-1px);} 66%{ transform: scale(0.96) translateY(0px);} 100%{ transform: scale(1) translateY(0);} }
+  .ember-particle{ position:absolute; bottom:36px; width:3px; height:3px; background:var(--amber); box-shadow:0 0 4px var(--ember); animation: rise 3.2s linear infinite; opacity:0; }
+  @keyframes rise{ 0%{ opacity:0; transform: translate(0,0);} 10%{ opacity:1;} 100%{ opacity:0; transform: translate(var(--dx,10px), -130px);} }
+  .ground-line{ position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--line); }
+
+  #screen-menu .menu{ padding:4px 18px 0 18px; display:flex; flex-direction:column; gap:10px; }
+  .btn{ position:relative; background: linear-gradient(180deg, var(--wood-light), var(--wood)); border:2px solid #000; padding:14px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+  .btn::after{ content:""; position:absolute; inset:3px; border:1px solid rgba(233,223,198,0.15); pointer-events:none; }
+  .btn .nail{ position:absolute; width:5px; height:5px; background:#100b08; border:1px solid #4a3a28; }
+  .btn .nail.tl{ top:4px; left:4px; } .btn .nail.br{ bottom:4px; right:4px; }
+  .btn .icon{ font-size:22px; width:30px; text-align:center; flex-shrink:0; }
+  .btn .label{ font-family:'Press Start 2P', monospace; font-size:12px; color:var(--bone); letter-spacing:0.5px; }
+  .btn .sub{ font-size:15px; color:var(--bone-dim); margin-top:3px; }
+  .btn .arrow{ margin-left:auto; color:var(--amber); font-size:16px; }
+  .btn.primary{ background: linear-gradient(180deg, #f2a93b, #c9781f); padding:16px; }
+  .btn.primary .label{ color:#1a1006; font-size:14px; } .btn.primary .sub{ color:#4a2f0d; } .btn.primary .icon{ font-size:26px; } .btn.primary .arrow{ color:#1a1006; } .btn.primary::after{ border-color: rgba(0,0,0,0.15); }
+  .row2{ display:flex; gap:10px; }
+  .row2 .btn{ flex:1; flex-direction:column; align-items:flex-start; gap:6px; }
+  .row2 .btn .label{ font-size:10px; }
+
+  #screen-menu .footer{ margin-top:auto; padding:12px 18px 16px 18px; display:flex; justify-content:space-between; align-items:center; }
+  .version{ font-size:14px; color:var(--bone-dim); letter-spacing:1px; }
+  .sound-toggle{ display:flex; gap:8px; }
+  .icon-btn{ width:32px; height:32px; background:var(--panel); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--bone-dim); }
+
+  /* ================= SCREEN 2: QUEST BOARD ================= */
+  #screen-quest .header .chip{ margin-left:auto; }
+
+  .featured{ margin:14px 14px 0 14px; position:relative; background: linear-gradient(180deg, rgba(10,7,5,0.15), rgba(10,7,5,0.85)), linear-gradient(135deg, #2a1c12, #1a1109); border:2px solid #000; padding:14px; overflow:hidden; }
+  .featured .tag{ display:inline-block; font-family:'Press Start 2P', monospace; font-size:8px; color:var(--blood); background: rgba(156,47,31,0.15); border:1px solid var(--blood); padding:3px 6px; margin-bottom:8px; }
+  .featured-row{ display:flex; align-items:center; gap:12px; }
+  .featured-monster{ font-size:48px; filter: drop-shadow(0 0 10px rgba(224,105,42,0.4)); }
+  .featured-info{ flex:1; }
+  .featured-name{ font-family:'Press Start 2P', monospace; font-size:13px; color:var(--bone); }
+  .featured-elem{ font-size:16px; color:var(--ember); margin-top:4px; }
+  .stars{ margin-top:6px; font-size:15px; letter-spacing:2px; color:var(--amber); }
+  .stars .off{ color: rgba(233,223,198,0.2); }
+  .featured-go{ margin-top:12px; background: linear-gradient(180deg, var(--amber), #c9781f); border:2px solid #000; padding:10px; text-align:center; font-family:'Press Start 2P', monospace; font-size:11px; color:#1a1006; cursor:pointer; }
+
+  .list-label{ padding:14px 14px 8px 14px; font-size:15px; color:var(--bone-dim); letter-spacing:1px; display:flex; justify-content:space-between; }
+  .quest-list{ flex:1; overflow-y:auto; padding:0 14px 14px 14px; display:flex; flex-direction:column; gap:8px; }
+  .quest-card{ display:flex; align-items:center; gap:10px; background:var(--panel); border:2px solid var(--line); padding:10px; cursor:pointer; }
+  .quest-card.locked{ opacity:0.45; cursor:default; }
+  .quest-icon{ width:42px; height:42px; background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+  .quest-mid{ flex:1; min-width:0; }
+  .quest-name{ font-family:'Press Start 2P', monospace; font-size:10px; color:var(--bone); }
+  .quest-meta{ font-size:14px; color:var(--bone-dim); margin-top:4px; display:flex; gap:8px; align-items:center; }
+  .quest-meta .stars{ font-size:12px; margin-top:0; }
+  .quest-reward{ display:flex; align-items:center; gap:4px; font-size:14px; color:var(--amber); flex-shrink:0; }
+  .lock-icon{ font-size:18px; color:var(--bone-dim); }
+
+  /* ================= SCREEN 3: INVENTORY ================= */
+  #screen-inventory .header .slots-chip{ margin-left:auto; display:flex; align-items:center; gap:6px; background:var(--panel); border:2px solid var(--line); padding:5px 10px; font-size:15px; color:var(--bone-dim); }
+
+  .loadout{ margin:14px 14px 0 14px; background: linear-gradient(135deg,#2a1c12,#1a1109); border:2px solid #000; padding:12px; display:flex; gap:10px; }
+  .loadout-slot{ flex:1; background:var(--panel-2); border:1px solid var(--line); padding:8px; display:flex; flex-direction:column; align-items:center; gap:4px; position:relative; }
+  .loadout-slot .rarity-bar{ position:absolute; top:0; left:0; right:0; height:3px; }
+  .loadout-slot .icon{ font-size:26px; margin-top:2px; }
+  .loadout-slot .name{ font-size:11px; color:var(--bone); text-align:center; line-height:1.2; }
+  .loadout-slot .slot-label{ font-size:10px; color:var(--bone-dim); letter-spacing:1px; text-transform:uppercase; }
+
+  .filter-row{ display:flex; gap:8px; padding:10px 14px 0 14px; overflow-x:auto; }
+  .filter-chip{ flex-shrink:0; font-size:14px; color:var(--bone-dim); background:var(--panel); border:1px solid var(--line); padding:4px 10px; cursor:pointer; }
+  .filter-chip.active{ color:var(--amber); border-color:var(--amber); }
+
+  .grid-wrap{ flex:1; overflow-y:auto; padding:12px 14px 14px 14px; }
+  .grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; }
+  .item{ position:relative; aspect-ratio:1; background:var(--panel); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .item .rarity-bar{ position:absolute; top:0; left:0; right:0; height:3px; }
+  .item .icon{ font-size:26px; }
+  .item .new-badge{ position:absolute; top:3px; left:3px; font-family:'Press Start 2P', monospace; font-size:6px; color:#1a1006; background:var(--amber); padding:2px 3px; }
+  .item.equipped{ box-shadow: inset 0 0 0 2px var(--amber); }
+  .item.locked{ opacity:0.3; cursor:default; }
+
+  .sheet-overlay{ position:absolute; inset:0; background: rgba(0,0,0,0.6); z-index:40; display:flex; align-items:flex-end; opacity:0; pointer-events:none; transition: opacity 0.2s; }
+  .sheet-overlay.open{ opacity:1; pointer-events:auto; }
+  .sheet{ width:100%; background:var(--panel-2); border-top:2px solid #000; padding:16px 16px 20px 16px; transform: translateY(100%); transition: transform 0.25s ease; }
+  .sheet-overlay.open .sheet{ transform: translateY(0); }
+  .sheet-handle{ width:36px; height:4px; background:var(--line); margin:0 auto 14px auto; }
+  .sheet-top{ display:flex; gap:12px; align-items:center; }
+  .sheet-icon{ width:56px; height:56px; background:var(--panel); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:30px; flex-shrink:0; position:relative; }
+  .sheet-icon .rarity-bar{ position:absolute; top:0; left:0; right:0; height:3px; }
+  .sheet-name{ font-family:'Press Start 2P', monospace; font-size:12px; color:var(--bone); line-height:1.4; }
+  .sheet-type{ font-size:14px; color:var(--rare); margin-top:4px; }
+  .sheet-stats{ margin-top:14px; display:flex; flex-direction:column; gap:6px; }
+  .stat-row{ display:flex; justify-content:space-between; font-size:15px; color:var(--bone-dim); }
+  .stat-row b{ color:var(--bone); font-weight:normal; }
+  .sheet-desc{ margin-top:10px; font-size:14px; color:var(--bone-dim); line-height:1.5; border-top:1px solid var(--line); padding-top:10px; }
+  .sheet-actions{ display:flex; gap:10px; margin-top:16px; }
+  .sheet-btn{ flex:1; text-align:center; font-family:'Press Start 2P', monospace; font-size:10px; padding:12px; border:2px solid #000; cursor:pointer; }
+  .sheet-btn.equip{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
+  .sheet-btn.close{ background:var(--panel); color:var(--bone-dim); border-color: var(--line); }
+
+  /* ================= SCREEN 4: COMBAT ================= */
+  #screen-combat{
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(224,105,42,0.10), transparent 55%),
+      linear-gradient(180deg, #241a2a 0%, #161018 45%, #0e0a10 100%);
+  }
+  .combat-bg-hills{
+    position:absolute; bottom:150px; left:0; right:0; height:120px;
+    background: var(--panel-2);
+    clip-path: polygon(0% 100%,0% 55%,15% 35%,30% 60%,45% 25%,60% 55%,75% 20%,90% 50%,100% 35%,100% 100%);
+    opacity:0.7;
+  }
+  .combat-top{
+    position:relative; z-index:5;
+    padding:14px 14px 0 14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .combat-timer{
+    margin-left:auto;
+    font-family:'Press Start 2P', monospace; font-size:13px;
+    color:var(--bone); background:var(--panel); border:2px solid var(--line);
+    padding:6px 10px;
+  }
+
+  .monster-hud{ position:relative; z-index:5; margin:12px 14px 0 14px; }
+  .monster-hud-top{ display:flex; justify-content:space-between; align-items:baseline; }
+  .monster-hud-name{ font-family:'Press Start 2P', monospace; font-size:11px; color:var(--bone); }
+  .monster-hud-part{ font-size:14px; color:var(--bone-dim); }
+  .hp-bar-track{ margin-top:6px; height:14px; background:#000; border:2px solid #000; position:relative; overflow:hidden; }
+  .hp-bar-fill{ height:100%; background: linear-gradient(180deg, #e0692a, #9c2f1f); width:100%; transition: width 0.35s ease; position:relative; }
+  .hp-bar-fill::after{ content:""; position:absolute; inset:0; background: repeating-linear-gradient(90deg, transparent 0 8px, rgba(0,0,0,0.25) 8px 9px); }
+  .hp-notches{ display:flex; justify-content:space-between; margin-top:2px; }
+  .hp-notches span{ width:2px; height:4px; background: var(--line); }
+
+  .combat-arena{
+    position:relative; flex:1;
+    display:flex; align-items:center; justify-content:center;
+    z-index:3;
+  }
+  .arena-monster{
+    font-size:110px;
+    filter: drop-shadow(0 0 24px rgba(224,105,42,0.35));
+    transition: transform 0.08s ease;
+    user-select:none;
+  }
+  .arena-monster.hit{ animation: monsterHit 0.25s ease; }
+  @keyframes monsterHit{ 0%{ transform: translateX(0) scale(1);} 30%{ transform: translateX(-6px) scale(0.97);} 60%{ transform: translateX(4px);} 100%{ transform: translateX(0) scale(1);} }
+
+  .arena-monster-sprite{
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    transform: scale(1.25);
+    transform-origin: bottom center;
+    filter: drop-shadow(0 0 22px rgba(224,105,42,0.3));
+  }
+
+  .quest-icon.asset-icon{
+    background-image: url('assets/grubling_idle.png');
+    background-position: 0 0;
+    background-size: 294px 342px;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+  }
+
+  .dmg-pop{
+    position:absolute;
+    font-family:'Press Start 2P', monospace;
+    font-size:16px; color:var(--amber);
+    text-shadow: 2px 2px 0 #000;
+    pointer-events:none;
+    animation: dmgFloat 0.7s ease-out forwards;
+  }
+  .dmg-pop.crit{ color: var(--blood); font-size:20px; }
+  @keyframes dmgFloat{ 0%{ opacity:1; transform: translateY(0) scale(1);} 100%{ opacity:0; transform: translateY(-55px) scale(1.15);} }
+
+  .arena-shake{ animation: arenaShake 0.25s ease; }
+  @keyframes arenaShake{ 0%,100%{ transform: translateX(0);} 25%{ transform: translateX(-4px);} 75%{ transform: translateX(4px);} }
+
+  .dodge-flash{
+    position:absolute; inset:0; background: rgba(111,179,201,0.12); z-index:6;
+    opacity:0; pointer-events:none; transition: opacity 0.15s;
+  }
+  .dodge-flash.show{ opacity:1; }
+
+  .player-hud{ position:relative; z-index:5; margin:0 14px 8px 14px; }
+  .stamina-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .stamina-label{ font-size:13px; color:var(--bone-dim); width:56px; flex-shrink:0; }
+  .stamina-track{ flex:1; height:10px; background:#000; border:2px solid #000; overflow:hidden; }
+  .stamina-fill{ height:100%; background: linear-gradient(180deg, var(--moss), #4a5636); width:100%; transition: width 0.2s ease; }
+  .player-hp-fill{ height:100%; background: linear-gradient(180deg, #6fb3c9, #3d7f92); width:100%; transition: width 0.3s ease; }
+
+  .combat-controls{
+    position:relative; z-index:5;
+    padding: 8px 14px 18px 14px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+  }
+  .move-pad{
+    width:78px; height:78px;
+    background: rgba(28,20,15,0.7);
+    border:2px solid var(--line);
+    border-radius:50%;
+    position:relative;
+  }
+  .move-pad .stick{
+    position:absolute; top:50%; left:50%; width:32px; height:32px;
+    background: var(--panel-2); border:2px solid var(--bone-dim);
+    border-radius:50%;
+    transform: translate(-50%,-50%);
+  }
+
+  .action-cluster{ display:flex; align-items:flex-end; gap:10px; }
+  .action-btn{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .action-btn .circle{
+    width:56px; height:56px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+    border:2px solid #000;
+  }
+  .action-btn.light .circle{ background: linear-gradient(180deg, var(--wood-light), var(--wood)); color:var(--bone); width:48px; height:48px; }
+  .action-btn.heavy .circle{ background: linear-gradient(180deg, var(--blood), #6e2015); color:var(--bone); }
+  .action-btn.dodge .circle{ background: linear-gradient(180deg, var(--frost), #3d7f92); color:#0e2027; width:48px; height:48px; }
+  .action-btn .tag{ font-family:'Press Start 2P', monospace; font-size:7px; color:var(--bone-dim); }
+  .action-btn:active .circle{ transform: scale(0.92); }
+  .action-btn.on-cooldown .circle{ opacity:0.35; }
+
+  .combat-log{
+    position:absolute; top:64px; left:14px; z-index:5;
+    font-size:14px; color:var(--bone-dim);
+    display:flex; flex-direction:column; gap:2px;
+    pointer-events:none;
+  }
+
+  .victory-overlay{
+    position:absolute; inset:0; z-index:45;
+    background: rgba(6,4,3,0.88);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition: opacity 0.4s;
+  }
+  .victory-overlay.show{ opacity:1; pointer-events:auto; }
+  .victory-title{
+    font-family:'Press Start 2P', monospace; font-size:22px; color:var(--amber);
+    text-shadow: 0 0 14px rgba(242,169,59,0.7), 3px 3px 0 #000;
+    animation: victoryPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes victoryPulse{ 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.06);} }
+  .victory-sub{ margin-top:10px; font-size:17px; color:var(--bone-dim); letter-spacing:1px; }
+  .victory-go{
+    margin-top:26px;
+    font-family:'Press Start 2P', monospace; font-size:11px; color:#1a1006;
+    background: linear-gradient(180deg, var(--amber), #c9781f);
+    border:2px solid #000; padding:12px 20px; cursor:pointer;
+  }
+
+  /* ================= SCREEN 5: REWARD ================= */
+  #screen-reward{
+    align-items:center; justify-content:center; text-align:center;
+    padding: 30px 20px;
+  }
+  .reward-eyebrow{ font-size:15px; color:var(--bone-dim); letter-spacing:3px; text-transform:uppercase; }
+  .reward-title{ font-family:'Press Start 2P', monospace; font-size:16px; color:var(--bone); margin-top:8px; }
+  .reward-monster{ font-size:70px; margin-top:14px; filter: drop-shadow(0 0 16px rgba(224,105,42,0.3)); }
+
+  .reward-list{ width:100%; margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .reward-row{
+    display:flex; align-items:center; gap:10px;
+    background:var(--panel); border:1px solid var(--line);
+    padding:10px 12px;
+  }
+  .reward-row .icon{ font-size:22px; width:28px; text-align:center; }
+  .reward-row .name{ flex:1; text-align:left; font-size:16px; color:var(--bone); }
+  .reward-row .amount{ font-size:16px; color:var(--amber); }
+  .reward-row .rarity-bar{ width:4px; align-self:stretch; }
+
+  .reward-actions{ width:100%; display:flex; gap:10px; margin-top:24px; }
+  .reward-btn{
+    flex:1; text-align:center; font-family:'Press Start 2P', monospace; font-size:10px;
+    padding:14px; border:2px solid #000; cursor:pointer;
+  }
+  .reward-btn.primary{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
+  .reward-btn.secondary{ background:var(--panel); color:var(--bone-dim); border-color:var(--line); }
+
+  /* ---------- BOTTOM NAV ---------- */
+  .bottom-nav{
+    position:absolute; left:0; right:0; bottom:0; z-index:30;
+    display:flex;
+    background: var(--panel);
+    border-top: 2px solid #000;
+  }
+  .nav-item{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:10px 4px 8px 4px;
+    color: var(--bone-dim);
+    cursor:pointer;
+  }
+  .nav-item .nav-icon{ font-size:19px; }
+  .nav-item .nav-label{ font-family:'Press Start 2P', monospace; font-size:7px; letter-spacing:0.5px; }
+  .nav-item.active{ color: var(--amber); }
+  .nav-item.active .nav-icon{ filter: drop-shadow(0 0 4px rgba(242,169,59,0.6)); }
+</style>
+</head>
+<body>
+
+<div class="device pixel-frame">
+
+  <!-- ================= SCREEN: MAIN MENU ================= -->
+  <div class="screen active" id="screen-menu">
+    <div class="topbar">
+      <div class="currency">
+        <div class="chip"><span class="icon">◆</span>245</div>
+        <div class="chip"><span class="icon">✦</span>12</div>
+      </div>
+      <div class="settings-btn">⚙</div>
+    </div>
+
+    <div class="ribbon-wrap">
+      <div class="ribbon pixel-frame">
+        <span class="dot"></span>
+        EVENT: FLARECLAW MERAH MUNCUL
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="subtitle-eyebrow">huntsman's log</div>
+      <div class="title">PIXEL<br><span class="accent">HUNT</span></div>
+      <div class="tagline">Berburu. Buat. Bertahan.</div>
+    </div>
+
+    <div class="scene">
+      <div class="mountains"></div>
+      <div class="campfire">🔥</div>
+      <div class="monster-silhouette">🐉</div>
+      <div id="embers"></div>
+      <div class="ground-line"></div>
+    </div>
+
+    <div class="menu">
+      <div class="btn primary pixel-frame" data-goto="screen-quest">
+        <span class="nail tl"></span><span class="nail br"></span>
+        <span class="icon">⚔</span>
+        <div>
+          <div class="label">MULAI BERBURU</div>
+          <div class="sub">Rank 3 — Flareclaw menunggu</div>
+        </div>
+        <span class="arrow">▶</span>
+      </div>
+
+      <div class="btn pixel-frame" data-goto="screen-inventory">
+        <span class="nail tl"></span><span class="nail br"></span>
+        <span class="icon">🛡</span>
+        <div>
+          <div class="label">PERALATAN</div>
+          <div class="sub">Craft & upgrade gear</div>
+        </div>
+        <span class="arrow">▶</span>
+      </div>
+
+      <div class="row2">
+        <div class="btn pixel-frame">
+          <span class="nail tl"></span><span class="nail br"></span>
+          <span class="icon">📖</span>
+          <div class="label">BESTIARY</div>
+        </div>
+        <div class="btn pixel-frame" data-goto="screen-inventory">
+          <span class="nail tl"></span><span class="nail br"></span>
+          <span class="icon">🎒</span>
+          <div class="label">INVENTORI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="version">v0.1.0</span>
+      <div class="sound-toggle">
+        <div class="icon-btn">🔊</div>
+        <div class="icon-btn">☰</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SCREEN: QUEST BOARD ================= -->
+  <div class="screen" id="screen-quest">
+    <div class="header">
+      <div class="back-btn" data-goto="screen-menu">◀</div>
+      <div>
+        <div class="header-title">QUEST BOARD</div>
+        <div class="header-sub">Desa Emberfall</div>
+      </div>
+      <div class="chip"><span class="icon">◆</span>245</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab">RANK 1</div>
+      <div class="tab">RANK 2</div>
+      <div class="tab active">RANK 3</div>
+      <div class="tab">RANK 4</div>
+      <div class="tab">RANK 5</div>
+    </div>
+
+    <div class="featured pixel-frame">
+      <span class="tag">★ QUEST EVENT</span>
+      <div class="featured-row">
+        <div class="featured-monster">🐉</div>
+        <div class="featured-info">
+          <div class="featured-name">FLARECLAW MERAH</div>
+          <div class="featured-elem">🔥 Elemen Api</div>
+          <div class="stars">★★★<span class="off">☆☆</span></div>
+        </div>
+      </div>
+      <div class="featured-go" data-goto="screen-combat" data-monster="flareclaw">BERBURU SEKARANG</div>
+    </div>
+
+    <div class="list-label"><span>SEMUA QUEST — RANK 3</span><span>6 quest</span></div>
+
+    <div class="quest-list">
+      <div class="quest-card" data-goto="screen-combat" data-monster="rockhide">
+        <div class="quest-icon">🐗</div>
+        <div class="quest-mid"><div class="quest-name">RUNTUHKAN ROCKHIDE</div><div class="quest-meta">🪨 Tanah <span class="stars">★★★<span class="off">☆☆</span></span></div></div>
+        <div class="quest-reward">◆ 80</div>
+      </div>
+      <div class="quest-card" data-goto="screen-combat" data-monster="stormwing">
+        <div class="quest-icon">🦅</div>
+        <div class="quest-mid"><div class="quest-name">JATUHKAN STORMWING</div><div class="quest-meta">💨 Angin <span class="stars">★★★<span class="off">☆☆</span></span></div></div>
+        <div class="quest-reward">◆ 95</div>
+      </div>
+      <div class="quest-card" data-goto="screen-combat" data-monster="aquafin">
+        <div class="quest-icon">🐸</div>
+        <div class="quest-mid"><div class="quest-name">TANGKAP AQUAFIN</div><div class="quest-meta">💧 Air <span class="stars">★★<span class="off">☆☆☆</span></span></div></div>
+        <div class="quest-reward">◆ 60</div>
+      </div>
+      <div class="quest-card" data-goto="screen-combat" data-monster="flareclaw">
+        <div class="quest-icon">🔥</div>
+        <div class="quest-mid"><div class="quest-name">BURU FLARECLAW</div><div class="quest-meta">🔥 Api <span class="stars">★★<span class="off">☆☆☆</span></span></div></div>
+        <div class="quest-reward">◆ 55</div>
+      </div>
+      <div class="quest-card locked">
+        <div class="quest-icon asset-icon"></div>
+        <div class="quest-mid"><div class="quest-name">SARANG GRUBLING</div><div class="quest-meta">🪨 Tanah <span class="stars">★<span class="off">☆☆☆☆</span></span></div></div>
+        <div class="lock-icon">🔒</div>
+      </div>
+      <div class="quest-card locked">
+        <div class="quest-icon">🌑</div>
+        <div class="quest-mid"><div class="quest-name">VOIDFANG — ???</div><div class="quest-meta">Rahasia <span class="stars">★★★★★</span></div></div>
+        <div class="lock-icon">🔒</div>
+      </div>
+    </div>
+
+    <div style="height:64px; flex-shrink:0;"></div>
+  </div>
+
+  <!-- ================= SCREEN: INVENTORY ================= -->
+  <div class="screen" id="screen-inventory">
+    <div class="header">
+      <div class="back-btn" data-goto="screen-menu">◀</div>
+      <div>
+        <div class="header-title">INVENTORI</div>
+        <div class="header-sub">Pondok Pemburu</div>
+      </div>
+      <div class="slots-chip">42 / 60</div>
+    </div>
+
+    <div class="loadout">
+      <div class="loadout-slot"><div class="rarity-bar r-rare"></div><div class="slot-label">Senjata</div><div class="icon">⚔</div><div class="name">Pedang Ember</div></div>
+      <div class="loadout-slot"><div class="rarity-bar r-common"></div><div class="slot-label">Armor</div><div class="icon">🛡</div><div class="name">Zirah Kulit</div></div>
+      <div class="loadout-slot"><div class="rarity-bar r-epic"></div><div class="slot-label">Talisman</div><div class="icon">💍</div><div class="name">Jimat Tanah</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">SENJATA</div>
+      <div class="tab">ARMOR</div>
+      <div class="tab">MATERIAL</div>
+      <div class="tab">RAMUAN</div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-chip active">Semua</div>
+      <div class="filter-chip">Terpasang</div>
+      <div class="filter-chip">Baru</div>
+      <div class="filter-chip">Api</div>
+      <div class="filter-chip">Air</div>
+      <div class="filter-chip">Tanah</div>
+    </div>
+
+    <div class="grid-wrap">
+      <div class="grid">
+        <div class="item equipped" data-name="Pedang Ember" data-type="Pedang & Perisai" data-rarity="rare" data-icon="⚔" data-atk="48" data-elem="Api +12" data-desc="Ditempa dari cakar Flareclaw. Bilahnya masih menyimpan panas buruan.">
+          <div class="rarity-bar r-rare"></div><span class="icon">⚔</span>
+        </div>
+        <div class="item" data-name="Palu Batu Karang" data-type="Palu Besar" data-rarity="common" data-icon="🔨" data-atk="62" data-elem="—" data-desc="Berat dan lambat, tapi setiap pukulan membuat monster terhuyung.">
+          <div class="rarity-bar r-common"></div><span class="icon">🔨</span>
+        </div>
+        <div class="item" data-name="Belati Kembar Sungai" data-type="Dual Blade" data-rarity="rare" data-icon="🗡" data-atk="34" data-elem="Air +8" data-desc="Ringan dan cepat, cocok untuk pemburu yang mengandalkan kelincahan.">
+          <div class="rarity-bar r-rare"></div><span class="icon">🗡</span>
+        </div>
+        <div class="item" data-name="Busur Badai" data-type="Busur" data-rarity="epic" data-icon="🏹" data-atk="40" data-elem="Angin +15" data-desc="Anak panahnya melengkung mengikuti arus angin — hasil buruan Stormwing.">
+          <div class="rarity-bar r-epic"></div><span class="new-badge">BARU</span><span class="icon">🏹</span>
+        </div>
+        <div class="item locked" data-name="???" data-type="Terkunci" data-rarity="legendary" data-icon="🔒" data-atk="?" data-elem="?" data-desc="Butuh material dari Voidfang untuk membuka resep ini.">
+          <div class="rarity-bar r-legendary"></div><span class="icon">🔒</span>
+        </div>
+        <div class="item" data-name="Pedang Karang" data-type="Pedang & Perisai" data-rarity="common" data-icon="⚔" data-atk="30" data-elem="—" data-desc="Senjata dasar. Andal untuk pemburu pemula.">
+          <div class="rarity-bar r-common"></div><span class="icon">⚔</span>
+        </div>
+        <div class="item" data-name="Palu Petir" data-type="Palu Besar" data-rarity="epic" data-icon="🔨" data-atk="70" data-elem="Petir +18" data-desc="Menggetarkan tanah di sekitar dengan setiap hantaman.">
+          <div class="rarity-bar r-epic"></div><span class="icon">🔨</span>
+        </div>
+        <div class="item" data-name="Belati Bara" data-type="Dual Blade" data-rarity="common" data-icon="🗡" data-atk="26" data-elem="Api +5" data-desc="Sepasang belati ringan dengan bilah yang tetap panas.">
+          <div class="rarity-bar r-common"></div><span class="icon">🗡</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:64px; flex-shrink:0;"></div>
+  </div>
+
+  <!-- ================= SCREEN: COMBAT ================= -->
+  <div class="screen" id="screen-combat">
+    <div class="combat-bg-hills"></div>
+
+    <div class="combat-top">
+      <div class="back-btn" data-goto="screen-quest">◀</div>
+      <div class="combat-timer" id="combatTimer">02:00</div>
+    </div>
+
+    <div class="monster-hud">
+      <div class="monster-hud-top">
+        <div class="monster-hud-name" id="monsterHudName">GRUBLING</div>
+        <div class="monster-hud-part" id="monsterHudPart">🪨 Cangkang utuh</div>
+      </div>
+      <div class="hp-bar-track"><div class="hp-bar-fill" id="monsterHpFill"></div></div>
+      <div class="hp-notches"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="combat-log" id="combatLog"></div>
+
+    <div class="combat-arena" id="combatArena">
+      <div class="arena-monster" id="arenaMonster"><div class="arena-monster-sprite" id="arenaMonsterSprite"></div><span id="arenaMonsterEmoji" style="display:none;"></span></div>
+    </div>
+
+    <div class="dodge-flash" id="dodgeFlash"></div>
+
+    <div class="player-hud">
+      <div class="stamina-row">
+        <div class="stamina-label">STAMINA</div>
+        <div class="stamina-track"><div class="stamina-fill" id="staminaFill"></div></div>
+      </div>
+      <div class="stamina-row">
+        <div class="stamina-label">HP</div>
+        <div class="stamina-track"><div class="player-hp-fill" id="playerHpFill"></div></div>
+      </div>
+    </div>
+
+    <div class="combat-controls">
+      <div class="move-pad"><div class="stick"></div></div>
+      <div class="action-cluster">
+        <div class="action-btn dodge" id="btnDodge">
+          <div class="circle">💨</div>
+          <div class="tag">DODGE</div>
+        </div>
+        <div class="action-btn light" id="btnLight">
+          <div class="circle">⚔</div>
+          <div class="tag">RINGAN</div>
+        </div>
+        <div class="action-btn heavy" id="btnHeavy">
+          <div class="circle">⚔</div>
+          <div class="tag">BERAT</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="victory-overlay" id="victoryOverlay">
+      <div class="victory-title">BURUAN TUMBANG!</div>
+      <div class="victory-sub" id="victorySub">Flareclaw Merah dikalahkan</div>
+      <div class="victory-go" id="btnGoReward">LIHAT HASIL BURUAN</div>
+    </div>
+  </div>
+
+  <!-- ================= SCREEN: REWARD ================= -->
+  <div class="screen" id="screen-reward">
+    <div class="reward-eyebrow">quest selesai</div>
+    <div class="reward-title">FLARECLAW MERAH DIKALAHKAN</div>
+    <div class="reward-monster">🐉</div>
+
+    <div class="reward-list">
+      <div class="reward-row"><div class="rarity-bar r-common"></div><span class="icon">💰</span><span class="name">Gold</span><span class="amount">+80</span></div>
+      <div class="reward-row"><div class="rarity-bar r-common"></div><span class="icon">🦴</span><span class="name">Cakar Flareclaw</span><span class="amount">x3</span></div>
+      <div class="reward-row"><div class="rarity-bar r-rare"></div><span class="icon">🔥</span><span class="name">Sisik Api Murni</span><span class="amount">x1</span></div>
+      <div class="reward-row"><div class="rarity-bar r-epic"></div><span class="icon">✦</span><span class="name">Inti Ember</span><span class="amount">x1</span></div>
+    </div>
+
+    <div class="reward-actions">
+      <div class="reward-btn secondary" data-goto="screen-quest">QUEST LAGI</div>
+      <div class="reward-btn primary" data-goto="screen-inventory">BUAT GEAR</div>
+    </div>
+  </div>
+
+  <!-- ---------- DETAIL SHEET (shared, sits above inventory) ---------- -->
+  <div class="sheet-overlay" id="sheetOverlay">
+    <div class="sheet pixel-frame">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top">
+        <div class="sheet-icon" id="sheetIcon"><div class="rarity-bar" id="sheetRarityBar"></div><span id="sheetIconEmoji"></span></div>
+        <div><div class="sheet-name" id="sheetName"></div><div class="sheet-type" id="sheetType"></div></div>
+      </div>
+      <div class="sheet-stats">
+        <div class="stat-row"><span>Serangan</span><b id="sheetAtk"></b></div>
+        <div class="stat-row"><span>Elemen</span><b id="sheetElem"></b></div>
+      </div>
+      <div class="sheet-desc" id="sheetDesc"></div>
+      <div class="sheet-actions">
+        <div class="sheet-btn equip">PASANG</div>
+        <div class="sheet-btn close" id="sheetClose">TUTUP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- BOTTOM NAV ---------- -->
+  <div class="bottom-nav" id="bottomNav">
+    <div class="nav-item active" data-goto="screen-menu">
+      <span class="nav-icon">🏕</span><span class="nav-label">MARKAS</span>
+    </div>
+    <div class="nav-item" data-goto="screen-quest">
+      <span class="nav-icon">⚔</span><span class="nav-label">BERBURU</span>
+    </div>
+    <div class="nav-item" data-goto="screen-inventory">
+      <span class="nav-icon">🎒</span><span class="nav-label">ITEM</span>
+    </div>
+  </div>
+
+  <div class="noise"></div>
+  <div class="vignette"></div>
+</div>
+
+<script>
+  // ---------- navigation ----------
+  function goTo(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.toggle('active', n.dataset.goto === id);
+    });
+  }
+  document.querySelectorAll('[data-goto]').forEach(el=>{
+    el.addEventListener('click', ()=> goTo(el.dataset.goto));
+  });
+
+  // ---------- ember particles (menu screen) ----------
+  const container = document.getElementById('embers');
+  for(let i=0;i<14;i++){
+    const p = document.createElement('div');
+    p.className = 'ember-particle';
+    p.style.left = (8 + Math.random()*20) + '%';
+    p.style.setProperty('--dx', (Math.random()*20-10)+'px');
+    p.style.animationDelay = (Math.random()*3.2)+'s';
+    p.style.animationDuration = (2.4 + Math.random()*1.6)+'s';
+    container.appendChild(p);
+  }
+
+  // ---------- button press feedback ----------
+  document.querySelectorAll('.btn').forEach(btn=>{
+    ['mousedown','touchstart'].forEach(ev => btn.addEventListener(ev, ()=> btn.style.transform='translateY(2px)'));
+    ['mouseup','mouseleave','touchend'].forEach(ev => btn.addEventListener(ev, ()=> btn.style.transform='translateY(0)'));
+  });
+
+  // ---------- quest board tabs ----------
+  document.querySelectorAll('#screen-quest .tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('#screen-quest .tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // ---------- inventory tabs & filters ----------
+  document.querySelectorAll('#screen-inventory .tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('#screen-inventory .tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // ---------- item detail sheet ----------
+  const overlay = document.getElementById('sheetOverlay');
+  document.querySelectorAll('.item:not(.locked)').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      document.getElementById('sheetName').textContent = item.dataset.name;
+      document.getElementById('sheetType').textContent = item.dataset.type;
+      document.getElementById('sheetIconEmoji').textContent = item.dataset.icon;
+      document.getElementById('sheetAtk').textContent = item.dataset.atk;
+      document.getElementById('sheetElem').textContent = item.dataset.elem;
+      document.getElementById('sheetDesc').textContent = item.dataset.desc;
+      document.getElementById('sheetRarityBar').className = 'rarity-bar r-' + item.dataset.rarity;
+      overlay.classList.add('open');
+    });
+  });
+  document.getElementById('sheetClose').addEventListener('click', ()=> overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+  // ================= MONSTER REGISTRY =================
+  // Tambah monster baru cukup dengan menambah entry di sini — tidak perlu
+  // sentuh logic combat/animasi sama sekali. `positions` adalah array [x,y]
+  // per frame diambil LANGSUNG dari JSON metadata hasil export MAKKO Sprite
+  // Studio (bukan dihitung dari cols/rows), jadi tetap presisi walau ada
+  // padding/spacing tidak seragam antar frame di sprite sheet.
+  // Tiap state animasi opsional: kalau belum ada asetnya, otomatis fallback
+  // ke idle (atau ke emoji kalau idle pun belum ada).
+  const MONSTERS = {
+    grubling: {
+      name: 'GRUBLING', part: '🪨 Cangkang utuh', emojiFallback: '🐛',
+      anims: {
+        idle:   { url: 'assets/grubling_idle.png', frameW: 220, frameH: 256, total: 49, fps: 24, loop: true, positions: [[0,0],[220,0],[440,0],[660,0],[880,0],[1100,0],[1320,0],[0,256],[220,256],[440,256],[660,256],[880,256],[1100,256],[1320,256],[0,512],[220,512],[440,512],[660,512],[880,512],[1100,512],[1320,512],[0,768],[220,768],[440,768],[660,768],[880,768],[1100,768],[1320,768],[0,1024],[220,1024],[440,1024],[660,1024],[880,1024],[1100,1024],[1320,1024],[0,1280],[220,1280],[440,1280],[660,1280],[880,1280],[1100,1280],[1320,1280],[0,1536],[220,1536],[440,1536],[660,1536],[880,1536],[1100,1536],[1320,1536]] },
+        attack: { url: 'assets/grubling_attack.png', frameW: 256, frameH: 123, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,123],[256,123],[512,123],[768,123],[1024,123],[1280,123],[1536,123],[0,246],[256,246],[512,246],[768,246],[1024,246],[1280,246],[1536,246],[0,369],[256,369],[512,369],[768,369],[1024,369],[1280,369],[1536,369],[0,492],[256,492],[512,492],[768,492],[1024,492],[1280,492],[1536,492],[0,615],[256,615],[512,615],[768,615],[1024,615],[1280,615],[1536,615],[0,738],[256,738],[512,738],[768,738],[1024,738],[1280,738],[1536,738]] },
+        hit:    { url: 'assets/grubling_hit.png', frameW: 197, frameH: 256, total: 96, fps: 30, loop: false, positions: [[2,2],[203,2],[404,2],[605,2],[806,2],[1007,2],[1208,2],[1409,2],[1610,2],[1811,2],[2,262],[203,262],[404,262],[605,262],[806,262],[1007,262],[1208,262],[1409,262],[1610,262],[1811,262],[2,522],[203,522],[404,522],[605,522],[806,522],[1007,522],[1208,522],[1409,522],[1610,522],[1811,522],[2,782],[203,782],[404,782],[605,782],[806,782],[1007,782],[1208,782],[1409,782],[1610,782],[1811,782],[2,1042],[203,1042],[404,1042],[605,1042],[806,1042],[1007,1042],[1208,1042],[1409,1042],[1610,1042],[1811,1042],[2,1302],[203,1302],[404,1302],[605,1302],[806,1302],[1007,1302],[1208,1302],[1409,1302],[1610,1302],[1811,1302],[2,1562],[203,1562],[404,1562],[605,1562],[806,1562],[1007,1562],[1208,1562],[1409,1562],[1610,1562],[1811,1562],[2,1822],[203,1822],[404,1822],[605,1822],[806,1822],[1007,1822],[1208,1822],[1409,1822],[1610,1822],[1811,1822],[2,2082],[203,2082],[404,2082],[605,2082],[806,2082],[1007,2082],[1208,2082],[1409,2082],[1610,2082],[1811,2082],[2,2342],[203,2342],[404,2342],[605,2342],[806,2342],[1007,2342]] },
+        defeat: { url: 'assets/grubling_defeat.png', frameW: 241, frameH: 256, total: 96, fps: 24, loop: false, positions: [[2,2],[247,2],[492,2],[737,2],[982,2],[1227,2],[1472,2],[1717,2],[1962,2],[2207,2],[2,262],[247,262],[492,262],[737,262],[982,262],[1227,262],[1472,262],[1717,262],[1962,262],[2207,262],[2,522],[247,522],[492,522],[737,522],[982,522],[1227,522],[1472,522],[1717,522],[1962,522],[2207,522],[2,782],[247,782],[492,782],[737,782],[982,782],[1227,782],[1472,782],[1717,782],[1962,782],[2207,782],[2,1042],[247,1042],[492,1042],[737,1042],[982,1042],[1227,1042],[1472,1042],[1717,1042],[1962,1042],[2207,1042],[2,1302],[247,1302],[492,1302],[737,1302],[982,1302],[1227,1302],[1472,1302],[1717,1302],[1962,1302],[2207,1302],[2,1562],[247,1562],[492,1562],[737,1562],[982,1562],[1227,1562],[1472,1562],[1717,1562],[1962,1562],[2207,1562],[2,1822],[247,1822],[492,1822],[737,1822],[982,1822],[1227,1822],[1472,1822],[1717,1822],[1962,1822],[2207,1822],[2,2082],[247,2082],[492,2082],[737,2082],[982,2082],[1227,2082],[1472,2082],[1717,2082],[1962,2082],[2207,2082],[2,2342],[247,2342],[492,2342],[737,2342],[982,2342],[1227,2342]] }
+      }
+    },
+    flareclaw: {
+      name: 'FLARECLAW MERAH', part: '🔥 Sisik utuh', emojiFallback: '🐉',
+      anims: {
+        idle:   { url: 'assets/flareclaw_idle.png', frameW: 256, frameH: 249, total: 49, fps: 24, loop: true, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,249],[256,249],[512,249],[768,249],[1024,249],[1280,249],[1536,249],[0,498],[256,498],[512,498],[768,498],[1024,498],[1280,498],[1536,498],[0,747],[256,747],[512,747],[768,747],[1024,747],[1280,747],[1536,747],[0,996],[256,996],[512,996],[768,996],[1024,996],[1280,996],[1536,996],[0,1245],[256,1245],[512,1245],[768,1245],[1024,1245],[1280,1245],[1536,1245],[0,1494],[256,1494],[512,1494],[768,1494],[1024,1494],[1280,1494],[1536,1494]] },
+        attack: { url: 'assets/flareclaw_attack.png', frameW: 256, frameH: 167, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,167],[256,167],[512,167],[768,167],[1024,167],[1280,167],[1536,167],[0,334],[256,334],[512,334],[768,334],[1024,334],[1280,334],[1536,334],[0,501],[256,501],[512,501],[768,501],[1024,501],[1280,501],[1536,501],[0,668],[256,668],[512,668],[768,668],[1024,668],[1280,668],[1536,668],[0,835],[256,835],[512,835],[768,835],[1024,835],[1280,835],[1536,835],[0,1002],[256,1002],[512,1002],[768,1002],[1024,1002],[1280,1002],[1536,1002]] },
+        hit:    { url: 'assets/flareclaw_hit.png', frameW: 256, frameH: 169, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,169],[256,169],[512,169],[768,169],[1024,169],[1280,169],[1536,169],[0,338],[256,338],[512,338],[768,338],[1024,338],[1280,338],[1536,338],[0,507],[256,507],[512,507],[768,507],[1024,507],[1280,507],[1536,507],[0,676],[256,676],[512,676],[768,676],[1024,676],[1280,676],[1536,676],[0,845],[256,845],[512,845],[768,845],[1024,845],[1280,845],[1536,845],[0,1014],[256,1014],[512,1014],[768,1014],[1024,1014],[1280,1014],[1536,1014]] },
+        defeat: { url: 'assets/flareclaw_defeat.png', frameW: 256, frameH: 184, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,184],[256,184],[512,184],[768,184],[1024,184],[1280,184],[1536,184],[0,368],[256,368],[512,368],[768,368],[1024,368],[1280,368],[1536,368],[0,552],[256,552],[512,552],[768,552],[1024,552],[1280,552],[1536,552],[0,736],[256,736],[512,736],[768,736],[1024,736],[1280,736],[1536,736],[0,920],[256,920],[512,920],[768,920],[1024,920],[1280,920],[1536,920],[0,1104],[256,1104],[512,1104],[768,1104],[1024,1104],[1280,1104],[1536,1104]] }
+      }
+    },
+    rockhide:  { name: 'ROCKHIDE',  part: '🪨 Lapisan batu utuh', emojiFallback: '🐗', anims: {} },
+    stormwing: { name: 'STORMWING', part: '💨 Sayap utuh',        emojiFallback: '🦅', anims: {} },
+    aquafin:   { name: 'AQUAFIN',   part: '💧 Sirip utuh',        emojiFallback: '🐸', anims: {} }
+  };
+
+  // ================= SPRITE ANIMATOR (generic, dipakai semua monster) =================
+  class SpriteAnimator {
+    constructor(el, fallbackEl){
+      this.el = el;
+      this.fallbackEl = fallbackEl;
+      this.monster = null;
+      this.frame = 0;
+      this.timer = null;
+      this.onCompleteCb = null;
+    }
+    setMonster(monster){
+      this.monster = monster;
+      this.play('idle');
+    }
+    play(state, { onComplete } = {}){
+      if(!this.monster) return;
+      const anim = this.monster.anims[state] || this.monster.anims.idle;
+      clearInterval(this.timer);
+      this.onCompleteCb = onComplete || null;
+
+      if(!anim){
+        // belum ada sprite sama sekali untuk monster ini -> fallback emoji
+        this.el.style.display = 'none';
+        this.fallbackEl.textContent = this.monster.emojiFallback || '❓';
+        this.fallbackEl.style.display = '';
+        return;
+      }
+
+      this.fallbackEl.style.display = 'none';
+      this.el.style.display = '';
+      this.el.style.backgroundImage = `url('${anim.url}')`;
+      this.el.style.width = anim.frameW + 'px';
+      this.el.style.height = anim.frameH + 'px';
+      this.frame = 0;
+      const interval = 1000 / anim.fps;
+
+      this.timer = setInterval(()=>{
+        const [px, py] = anim.positions[this.frame];
+        this.el.style.backgroundPosition = `-${px}px -${py}px`;
+        this.frame++;
+        if(this.frame >= anim.total){
+          if(anim.loop){
+            this.frame = 0;
+          } else {
+            clearInterval(this.timer);
+            const cb = this.onCompleteCb;
+            this.onCompleteCb = null;
+            if(cb) cb();
+            else this.play('idle'); // default: balik ke idle kalau tidak ada callback
+          }
+        }
+      }, interval);
+    }
+  }
+
+  // ================= COMBAT LOGIC =================
+  const arenaSprite = document.getElementById('arenaMonsterSprite');
+  const arenaMonsterEmoji = document.getElementById('arenaMonsterEmoji');
+  const animator = new SpriteAnimator(arenaSprite, arenaMonsterEmoji);
+  let currentMonster = MONSTERS.grubling;
+
+  function loadMonster(id){
+    currentMonster = MONSTERS[id] || MONSTERS.grubling;
+    document.getElementById('monsterHudName').textContent = currentMonster.name;
+    document.getElementById('monsterHudPart').textContent = currentMonster.part;
+    animator.setMonster(currentMonster);
+  }
+
+  // klik quest card / tombol "berburu" -> muat monster sesuai data-monster
+  document.querySelectorAll('[data-goto="screen-combat"]').forEach(el=>{
+    el.addEventListener('click', ()=> loadMonster(el.dataset.monster || 'grubling'));
+  });
+  loadMonster('grubling'); // default sebelum user klik quest manapun
+
+  const monsterHpFill = document.getElementById('monsterHpFill');
+  const staminaFill = document.getElementById('staminaFill');
+  const playerHpFill = document.getElementById('playerHpFill');
+  const arenaMonster = document.getElementById('arenaMonster');
+  const combatArena = document.getElementById('combatArena');
+  const combatLog = document.getElementById('combatLog');
+  const dodgeFlash = document.getElementById('dodgeFlash');
+  const victoryOverlay = document.getElementById('victoryOverlay');
+  const btnLight = document.getElementById('btnLight');
+  const btnHeavy = document.getElementById('btnHeavy');
+  const btnDodge = document.getElementById('btnDodge');
+
+  let monsterHp = 100, stamina = 100, playerHp = 100, fightOver = false;
+
+  function resetCombat(){
+    monsterHp = 100; stamina = 100; playerHp = 100; fightOver = false;
+    monsterHpFill.style.width = '100%';
+    staminaFill.style.width = '100%';
+    playerHpFill.style.width = '100%';
+    victoryOverlay.classList.remove('show');
+    combatLog.innerHTML = '';
+    animator.play('idle');
+  }
+
+  function logMsg(text){
+    const line = document.createElement('div');
+    line.textContent = text;
+    combatLog.appendChild(line);
+    if(combatLog.children.length > 3) combatLog.removeChild(combatLog.children[0]);
+  }
+
+  function spawnDamage(amount, crit){
+    const pop = document.createElement('div');
+    pop.className = 'dmg-pop' + (crit ? ' crit' : '');
+    pop.textContent = '-' + amount;
+    pop.style.left = (44 + Math.random()*12) + '%';
+    pop.style.top = (36 + Math.random()*8) + '%';
+    combatArena.appendChild(pop);
+    setTimeout(()=> pop.remove(), 700);
+  }
+
+  function doAttack(min, max, cooldownMs, btn){
+    if(fightOver || stamina < 15) { logMsg('Stamina tidak cukup!'); return; }
+    const dmg = Math.floor(min + Math.random()*(max-min));
+    const crit = Math.random() < 0.18;
+    const finalDmg = crit ? Math.floor(dmg*1.5) : dmg;
+
+    stamina = Math.max(0, stamina - (max > 20 ? 30 : 15));
+    staminaFill.style.width = stamina + '%';
+
+    monsterHp = Math.max(0, monsterHp - finalDmg);
+    monsterHpFill.style.width = monsterHp + '%';
+
+    arenaMonster.classList.remove('hit'); void arenaMonster.offsetWidth; arenaMonster.classList.add('hit');
+    combatArena.classList.remove('arena-shake'); void combatArena.offsetWidth; combatArena.classList.add('arena-shake');
+    spawnDamage(finalDmg, crit);
+    logMsg(crit ? 'KRITIS! -' + finalDmg + ' HP' : 'Kena! -' + finalDmg + ' HP');
+
+    btn.classList.add('on-cooldown');
+    setTimeout(()=> btn.classList.remove('on-cooldown'), cooldownMs);
+
+    if(monsterHp <= 0 && !fightOver){
+      fightOver = true;
+      animator.play('defeat', { onComplete: ()=>{} }); // berhenti di frame terakhir, tidak balik ke idle
+      document.getElementById('victorySub').textContent = currentMonster.name + ' dikalahkan';
+      setTimeout(()=> victoryOverlay.classList.add('show'), 400);
+    } else {
+      animator.play('hit'); // otomatis balik ke idle setelah selesai
+      // simple monster counter-attack chance
+      if(Math.random() < 0.3){
+        setTimeout(()=>{
+          if(fightOver) return;
+          playerHp = Math.max(0, playerHp - (8 + Math.random()*10));
+          playerHpFill.style.width = playerHp + '%';
+          logMsg(currentMonster.name + ' menyerang balik!');
+          animator.play('attack'); // otomatis balik ke idle setelah selesai
+        }, 500);
+      }
+    }
+  }
+
+  btnLight.addEventListener('click', ()=> doAttack(8, 16, 350, btnLight));
+  btnHeavy.addEventListener('click', ()=> doAttack(20, 32, 900, btnHeavy));
+
+  btnDodge.addEventListener('click', ()=>{
+    if(fightOver || stamina < 20) { logMsg('Tidak bisa dodge!'); return; }
+    stamina = Math.max(0, stamina - 20);
+    staminaFill.style.width = stamina + '%';
+    dodgeFlash.classList.add('show');
+    logMsg('Menghindar dengan gesit!');
+    setTimeout(()=> dodgeFlash.classList.remove('show'), 150);
+  });
+
+  // stamina regen over time
+  setInterval(()=>{
+    if(fightOver) return;
+    if(stamina < 100){
+      stamina = Math.min(100, stamina + 4);
+      staminaFill.style.width = stamina + '%';
+    }
+  }, 400);
+
+  document.getElementById('btnGoReward').addEventListener('click', ()=> goTo('screen-reward'));
+
+  // reset combat state whenever entering the combat screen
+  document.querySelectorAll('[data-goto="screen-combat"]').forEach(el=>{
+    el.addEventListener('click', resetCombat);
+  });
+
+  // simple countdown timer display (visual only)
+  let timeLeft = 120;
+  const timerEl = document.getElementById('combatTimer');
+  setInterval(()=>{
+    if(document.getElementById('screen-combat').classList.contains('active') && !fightOver && timeLeft > 0){
+      timeLeft--;
+      const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
+      const s = String(timeLeft%60).padStart(2,'0');
+      timerEl.textContent = m + ':' + s;
+    }
+  }, 1000);
+</script>
+
+</body>
+</html>
