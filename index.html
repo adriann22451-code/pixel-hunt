@@ -850,7 +850,7 @@
     for(let i=0; i<keys.length; i++){
       const key = keys[i];
       const mm = MONSTERS[key];
-      entries.push({ key: key, name: mm.name, sub: mm.part, emojiFallback: mm.emojiFallback, locked: discovered.indexOf(key) === -1, goto:'screen-combat' });
+      entries.push({ key: key, name: mm.name, sub: mm.part, emojiFallback: mm.emojiFallback, img: mm.icon, locked: discovered.indexOf(key) === -1, goto:'screen-combat' });
     }
     entries.push({ key:'voidfang', name:'???', sub:'Unknown', emojiFallback:'🌑', locked:true });
     return entries;
@@ -1001,7 +1001,8 @@
     },
     rockhide:  { name: 'ROCKHIDE',  part: '🪨 Stone plating intact', emojiFallback: '🐗',
       anims: { idle: { url: 'assets/rockhide.webp', frameW: 256, frameH: 263, bgSize: '256px 263px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
-    stormwing: { name: 'STORMWING', part: '💨 Wings intact',         emojiFallback: '🦅', anims: {} },
+    stormwing: { name: 'STORMWING', part: '💨 Wings intact',         emojiFallback: '🦅', icon: 'assets/stormwing.webp',
+      anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 278, bgSize: '256px 278px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     aquafin:   { name: 'AQUAFIN',   part: '💧 Fins intact',          emojiFallback: '🐸',
       anims: { idle: { url: 'assets/aquafin.webp', frameW: 256, frameH: 194, bgSize: '256px 194px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } }
   };
