@@ -201,6 +201,7 @@
   .beast-part{ font-size:14px; color:var(--bone-dim); margin-top:4px; }
   .beast-status{ font-size:12px; color:var(--moss); }
   .beast-status.undiscovered{ color:var(--bone-dim); }
+  .beast-icon.icon-art{ background-size:80% auto; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
 
   /* ---------- SETTINGS ---------- */
   .settings-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-top:1px solid var(--line); }
@@ -471,7 +472,7 @@
         <div class="btn pixel-frame" data-goto="screen-bestiary">
           <span class="nail tl"></span><span class="nail br"></span>
           <span class="icon icon-img" style="background-image:url('assets/icon_bestiary.webp')"></span>
-          <div class="label">BESTIARY</div>
+          <div class="label">CODEX</div>
         </div>
         <div class="btn pixel-frame" data-goto="screen-inventory">
           <span class="nail tl"></span><span class="nail br"></span>
@@ -625,14 +626,20 @@
     <div style="height:64px; flex-shrink:0;"></div>
   </div>
 
-  <!-- ================= SCREEN: BESTIARY ================= -->
+  <!-- ================= SCREEN: CODEX ================= -->
   <div class="screen" id="screen-bestiary">
     <div class="header">
       <div class="back-btn" data-goto="screen-menu">◀</div>
       <div>
-        <div class="header-title">BESTIARY</div>
+        <div class="header-title">CODEX</div>
         <div class="header-sub">Hunter's Log</div>
       </div>
+    </div>
+    <div class="tabs" id="codexTabs">
+      <div class="tab active" data-category="monster">MONSTER</div>
+      <div class="tab" data-category="weapon">WEAPON</div>
+      <div class="tab" data-category="armor">ARMOR</div>
+      <div class="tab" data-category="material">MATERIAL</div>
     </div>
     <div class="bestiary-list" id="bestiaryList"></div>
   </div>
@@ -807,9 +814,35 @@
   document.getElementById('settingsClose').addEventListener('click', ()=> settingsOverlay.classList.remove('open'));
   settingsOverlay.addEventListener('click', (e)=>{ if(e.target === settingsOverlay) settingsOverlay.classList.remove('open'); });
 
-  // ---------- bestiary (built from MONSTERS registry below + secret entries) ----------
-  function renderBestiary(){
-    const list = document.getElementById('bestiaryList');
+  // ---------- codex item registry: weapon / armor / material ----------
+  // Weapons mirror the gear already craftable in the Inventory screen.
+  // Armor/materials are the pieces the hunt rewards actually drop.
+  const ITEMS = {
+    weapon: [
+      { key:'sword_ember',    name:'Ember Sword',        sub:'Sword & Shield', img:'assets/sword_ember.webp',   desc:"Forged from a Flareclaw's claw. The blade still holds the heat of the hunt.", locked:false },
+      { key:'hammer_coral',   name:'Coral Stone Hammer', sub:'Greatsword',      img:'assets/hammer_coral.webp',  desc:'Heavy and slow, but every hit staggers the monster.', locked:false },
+      { key:'dagger_river',   name:'River Twin Daggers', sub:'Dual Blade',      img:'assets/dagger_river.webp',  desc:'Light and fast, suited to hunters who rely on agility.', locked:false },
+      { key:'bow_storm',      name:'Storm Bow',          sub:'Bow',             img:'assets/bow_storm.webp',     desc:"Its arrows curve with the wind currents — a trophy from Stormwing.", locked:false },
+      { key:'sword_coral',    name:'Coral Sword',        sub:'Sword & Shield',  img:'assets/sword_coral.webp',   desc:'A basic weapon. Reliable for beginner hunters.', locked:false },
+      { key:'hammer_thunder', name:'Thunder Hammer',     sub:'Greatsword',      img:'assets/hammer_thunder.webp',desc:'Shakes the ground around it with every strike.', locked:false },
+      { key:'dagger_ember',   name:'Ember Daggers',      sub:'Dual Blade',      img:'assets/dagger_ember.webp',  desc:'A pair of light daggers whose blades stay perpetually warm.', locked:false },
+      { key:'weapon_mystery', name:'???',                sub:'Locked',          img:'assets/weapon_mystery.webp',desc:'Requires material from Voidfang to unlock this recipe.', locked:true }
+    ],
+    armor: [
+      { key:'armor_leather', name:'Leather Armor', sub:'Light Armor', img:'assets/armor_leather.webp', desc:'Simple hide armor. Every hunter starts with a set like this.', locked:false },
+      { key:'talisman_earth', name:'Earth Talisman', sub:'Talisman', img:'assets/talisman_earth.webp', desc:'A charm carved from Rockhide plating. Steadies the hand of its wearer.', locked:false }
+    ],
+    material: [
+      { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', img:'assets/material_claw.webp',       desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
+      { key:'material_scale',      name:'Pure Fire Scale', sub:'Rare Material',    img:'assets/material_scale.webp',      desc:'A scale that never cools. Only the toughest Flareclaws carry these.', locked:false },
+      { key:'material_ember_core', name:'Ember Core',      sub:'Epic Material',    img:'assets/material_ember_core.webp', desc:"A Flareclaw's inner core, still glowing faintly with heat.", locked:false }
+    ]
+  };
+
+  // ---------- codex (built from MONSTERS + ITEMS registries) ----------
+  let codexCategory = 'monster';
+
+  function buildMonsterEntries(){
     // Monsters already reachable from the quest board are "discovered".
     const discovered = ['flareclaw', 'rockhide', 'stormwing', 'aquafin'];
     const keys = Object.keys(MONSTERS);
@@ -817,31 +850,54 @@
     for(let i=0; i<keys.length; i++){
       const key = keys[i];
       const mm = MONSTERS[key];
-      entries.push({ key: key, name: mm.name, part: mm.part, emojiFallback: mm.emojiFallback, locked: discovered.indexOf(key) === -1 });
+      entries.push({ key: key, name: mm.name, sub: mm.part, emojiFallback: mm.emojiFallback, locked: discovered.indexOf(key) === -1, goto:'screen-combat' });
     }
-    entries.push({ key:'voidfang', name:'???', part:'Unknown', emojiFallback:'🌑', locked:true });
+    entries.push({ key:'voidfang', name:'???', sub:'Unknown', emojiFallback:'🌑', locked:true });
+    return entries;
+  }
+
+  function renderCodex(category){
+    codexCategory = category || codexCategory;
+    const list = document.getElementById('bestiaryList');
+    const entries = codexCategory === 'monster' ? buildMonsterEntries() : (ITEMS[codexCategory] || []);
 
     let html = '';
     for(let i=0; i<entries.length; i++){
       const m = entries[i];
-      const goAttr = m.locked ? '' : (' data-goto="screen-combat" data-monster="' + m.key + '"');
+      const goAttr = (!m.locked && m.goto) ? (' data-goto="' + m.goto + '" data-monster="' + m.key + '"') : '';
+      const iconInner = m.locked
+        ? '🔒'
+        : (m.img ? '' : (m.emojiFallback || '❔'));
+      const iconStyle = (!m.locked && m.img) ? (' style="background-image:url(\'' + m.img + '\')"') : '';
+      const iconClass = 'beast-icon' + (!m.locked && m.img ? ' icon-art' : '');
       html += '<div class="beast-card ' + (m.locked ? 'locked' : '') + '"' + goAttr + '>'
-        + '<div class="beast-icon">' + (m.locked ? '🔒' : m.emojiFallback) + '</div>'
+        + '<div class="' + iconClass + '"' + iconStyle + '>' + iconInner + '</div>'
         + '<div class="beast-mid">'
         + '<div class="beast-name">' + (m.locked ? '???' : m.name) + '</div>'
-        + '<div class="beast-part">' + (m.locked ? 'Not yet encountered' : m.part) + '</div>'
+        + '<div class="beast-part">' + (m.locked ? 'Not yet encountered' : m.sub) + '</div>'
         + '</div>'
         + '<div class="beast-status ' + (m.locked ? 'undiscovered' : '') + '">' + (m.locked ? 'LOCKED' : 'FOUND') + '</div>'
         + '</div>';
     }
     list.innerHTML = html;
 
-    // wire up the unlocked cards so tapping one jumps straight into that hunt
+    // wire up the unlocked monster cards so tapping one jumps straight into that hunt
     list.querySelectorAll('[data-goto]').forEach(function(el){
       el.addEventListener('click', function(){ loadMonster(el.dataset.monster || 'grubling'); });
       el.addEventListener('click', function(){ goTo(el.dataset.goto); });
     });
   }
+
+  // kept for backward compatibility with the initial call further down
+  function renderBestiary(){ renderCodex('monster'); }
+
+  document.querySelectorAll('#codexTabs .tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('#codexTabs .tab').forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      renderCodex(tab.dataset.category);
+    });
+  });
 
   // ---------- ember particles (menu screen) ----------
   const container = document.getElementById('embers');
