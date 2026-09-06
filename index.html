@@ -578,11 +578,11 @@
       <div class="loadout-slot slot-art"><div class="rarity-bar r-epic"></div><div class="slot-label">Talisman</div><div class="icon" style="background-image:url('assets/talisman_earth.webp')"></div><div class="name">Earth Talisman</div></div>
     </div>
 
-    <div class="tabs">
-      <div class="tab active">WEAPONS</div>
-      <div class="tab">ARMOR</div>
-      <div class="tab">MATERIALS</div>
-      <div class="tab">POTIONS</div>
+    <div class="tabs" id="inventoryTabs">
+      <div class="tab active" data-category="weapon">WEAPONS</div>
+      <div class="tab" data-category="armor">ARMOR</div>
+      <div class="tab" data-category="material">MATERIALS</div>
+      <div class="tab" data-category="potion">POTIONS</div>
     </div>
 
     <div class="filter-row">
@@ -595,32 +595,7 @@
     </div>
 
     <div class="grid-wrap">
-      <div class="grid">
-        <div class="item item-art equipped" data-name="Ember Sword" data-type="Sword & Shield" data-rarity="rare" data-icon="⚔" data-img="assets/sword_ember.webp" data-atk="48" data-elem="Fire +12" data-desc="Forged from a Flareclaw's claw. The blade still holds the heat of the hunt.">
-          <div class="rarity-bar r-rare"></div>
-        </div>
-        <div class="item item-art" data-name="Coral Stone Hammer" data-type="Greatsword" data-rarity="common" data-icon="🔨" data-img="assets/hammer_coral.webp" data-atk="62" data-elem="—" data-desc="Heavy and slow, but every hit staggers the monster.">
-          <div class="rarity-bar r-common"></div>
-        </div>
-        <div class="item item-art" data-name="River Twin Daggers" data-type="Dual Blade" data-rarity="rare" data-icon="🗡" data-img="assets/dagger_river.webp" data-atk="34" data-elem="Water +8" data-desc="Light and fast, suited to hunters who rely on agility.">
-          <div class="rarity-bar r-rare"></div>
-        </div>
-        <div class="item item-art" data-name="Storm Bow" data-type="Bow" data-rarity="epic" data-icon="🏹" data-img="assets/bow_storm.webp" data-atk="40" data-elem="Wind +15" data-desc="Its arrows curve with the wind currents — a trophy from Stormwing.">
-          <div class="rarity-bar r-epic"></div><span class="new-badge">NEW</span>
-        </div>
-        <div class="item item-art locked" data-name="???" data-type="Locked" data-rarity="legendary" data-icon="🔒" data-img="assets/weapon_mystery.webp" data-atk="?" data-elem="?" data-desc="Requires material from Voidfang to unlock this recipe.">
-          <div class="rarity-bar r-legendary"></div>
-        </div>
-        <div class="item item-art" data-name="Coral Sword" data-type="Sword & Shield" data-rarity="common" data-icon="⚔" data-img="assets/sword_coral.webp" data-atk="30" data-elem="—" data-desc="A basic weapon. Reliable for beginner hunters.">
-          <div class="rarity-bar r-common"></div>
-        </div>
-        <div class="item item-art" data-name="Thunder Hammer" data-type="Greatsword" data-rarity="epic" data-icon="🔨" data-img="assets/hammer_thunder.webp" data-atk="70" data-elem="Lightning +18" data-desc="Shakes the ground around it with every strike.">
-          <div class="rarity-bar r-epic"></div>
-        </div>
-        <div class="item item-art" data-name="Ember Daggers" data-type="Dual Blade" data-rarity="common" data-icon="🗡" data-img="assets/dagger_ember.webp" data-atk="26" data-elem="Fire +5" data-desc="A pair of light daggers whose blades stay perpetually warm.">
-          <div class="rarity-bar r-common"></div>
-        </div>
-      </div>
+      <div class="grid" id="inventoryGrid"></div>
     </div>
 
     <div style="height:64px; flex-shrink:0;"></div>
@@ -819,24 +794,25 @@
   // Armor/materials are the pieces the hunt rewards actually drop.
   const ITEMS = {
     weapon: [
-      { key:'sword_ember',    name:'Ember Sword',        sub:'Sword & Shield', img:'assets/sword_ember.webp',   desc:"Forged from a Flareclaw's claw. The blade still holds the heat of the hunt.", locked:false },
-      { key:'hammer_coral',   name:'Coral Stone Hammer', sub:'Greatsword',      img:'assets/hammer_coral.webp',  desc:'Heavy and slow, but every hit staggers the monster.', locked:false },
-      { key:'dagger_river',   name:'River Twin Daggers', sub:'Dual Blade',      img:'assets/dagger_river.webp',  desc:'Light and fast, suited to hunters who rely on agility.', locked:false },
-      { key:'bow_storm',      name:'Storm Bow',          sub:'Bow',             img:'assets/bow_storm.webp',     desc:"Its arrows curve with the wind currents — a trophy from Stormwing.", locked:false },
-      { key:'sword_coral',    name:'Coral Sword',        sub:'Sword & Shield',  img:'assets/sword_coral.webp',   desc:'A basic weapon. Reliable for beginner hunters.', locked:false },
-      { key:'hammer_thunder', name:'Thunder Hammer',     sub:'Greatsword',      img:'assets/hammer_thunder.webp',desc:'Shakes the ground around it with every strike.', locked:false },
-      { key:'dagger_ember',   name:'Ember Daggers',      sub:'Dual Blade',      img:'assets/dagger_ember.webp',  desc:'A pair of light daggers whose blades stay perpetually warm.', locked:false },
-      { key:'weapon_mystery', name:'???',                sub:'Locked',          img:'assets/weapon_mystery.webp',desc:'Requires material from Voidfang to unlock this recipe.', locked:true }
+      { key:'sword_ember',    name:'Ember Sword',        sub:'Sword & Shield', icon:'⚔', img:'assets/sword_ember.webp',   rarity:'rare',      atk:48, elem:'Fire +12',     desc:"Forged from a Flareclaw's claw. The blade still holds the heat of the hunt.", equipped:true,  locked:false },
+      { key:'hammer_coral',   name:'Coral Stone Hammer', sub:'Greatsword',      icon:'🔨', img:'assets/hammer_coral.webp',  rarity:'common',    atk:62, elem:'—',            desc:'Heavy and slow, but every hit staggers the monster.', locked:false },
+      { key:'dagger_river',   name:'River Twin Daggers', sub:'Dual Blade',      icon:'🗡', img:'assets/dagger_river.webp',  rarity:'rare',      atk:34, elem:'Water +8',     desc:'Light and fast, suited to hunters who rely on agility.', locked:false },
+      { key:'bow_storm',      name:'Storm Bow',          sub:'Bow',             icon:'🏹', img:'assets/bow_storm.webp',     rarity:'epic',      atk:40, elem:'Wind +15',     desc:"Its arrows curve with the wind currents — a trophy from Stormwing.", isNew:true, locked:false },
+      { key:'weapon_mystery', name:'???',                sub:'Locked',          icon:'🔒', img:'assets/weapon_mystery.webp',rarity:'legendary', atk:'?', elem:'?',          desc:'Requires material from Voidfang to unlock this recipe.', locked:true },
+      { key:'sword_coral',    name:'Coral Sword',        sub:'Sword & Shield',  icon:'⚔', img:'assets/sword_coral.webp',   rarity:'common',    atk:30, elem:'—',            desc:'A basic weapon. Reliable for beginner hunters.', locked:false },
+      { key:'hammer_thunder', name:'Thunder Hammer',     sub:'Greatsword',      icon:'🔨', img:'assets/hammer_thunder.webp',rarity:'epic',      atk:70, elem:'Lightning +18',desc:'Shakes the ground around it with every strike.', locked:false },
+      { key:'dagger_ember',   name:'Ember Daggers',      sub:'Dual Blade',      icon:'🗡', img:'assets/dagger_ember.webp',  rarity:'common',    atk:26, elem:'Fire +5',      desc:'A pair of light daggers whose blades stay perpetually warm.', locked:false }
     ],
     armor: [
-      { key:'armor_leather', name:'Leather Armor', sub:'Light Armor', img:'assets/armor_leather.webp', desc:'Simple hide armor. Every hunter starts with a set like this.', locked:false },
-      { key:'talisman_earth', name:'Earth Talisman', sub:'Talisman', img:'assets/talisman_earth.webp', desc:'A charm carved from Rockhide plating. Steadies the hand of its wearer.', locked:false }
+      { key:'armor_leather',  name:'Leather Armor', sub:'Light Armor', icon:'🛡', img:'assets/armor_leather.webp', rarity:'common', atk:'—', elem:'DEF +18',       desc:'Simple hide armor. Every hunter starts with a set like this.', equipped:true, locked:false },
+      { key:'talisman_earth', name:'Earth Talisman', sub:'Talisman',   icon:'🧿', img:'assets/talisman_earth.webp',rarity:'epic',   atk:'—', elem:'Earth Res +20', desc:'A charm carved from Rockhide plating. Steadies the hand of its wearer.', equipped:true, locked:false }
     ],
     material: [
-      { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', img:'assets/material_claw.webp',       desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
-      { key:'material_scale',      name:'Pure Fire Scale', sub:'Rare Material',    img:'assets/material_scale.webp',      desc:'A scale that never cools. Only the toughest Flareclaws carry these.', locked:false },
-      { key:'material_ember_core', name:'Ember Core',      sub:'Epic Material',    img:'assets/material_ember_core.webp', desc:"A Flareclaw's inner core, still glowing faintly with heat.", locked:false }
-    ]
+      { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', icon:'🦴', img:'assets/material_claw.webp',       rarity:'common', atk:'—', elem:'—', desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
+      { key:'material_scale',      name:'Pure Fire Scale', sub:'Rare Material',    icon:'🔥', img:'assets/material_scale.webp',      rarity:'rare',   atk:'—', elem:'—', desc:'A scale that never cools. Only the toughest Flareclaws carry these.', locked:false },
+      { key:'material_ember_core', name:'Ember Core',      sub:'Epic Material',    icon:'💠', img:'assets/material_ember_core.webp', rarity:'epic',   atk:'—', elem:'—', desc:"A Flareclaw's inner core, still glowing faintly with heat.", locked:false }
+    ],
+    potion: []
   };
 
   // ---------- codex (built from MONSTERS + ITEMS registries) ----------
@@ -926,12 +902,6 @@
   });
 
   // ---------- inventory tabs & filters ----------
-  document.querySelectorAll('#screen-inventory .tab').forEach(tab=>{
-    tab.addEventListener('click', ()=>{
-      document.querySelectorAll('#screen-inventory .tab').forEach(t=>t.classList.remove('active'));
-      tab.classList.add('active');
-    });
-  });
   document.querySelectorAll('.filter-chip').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
@@ -939,38 +909,74 @@
     });
   });
 
-  // ---------- apply real artwork to item grid cells that have data-img ----------
-  document.querySelectorAll('[data-img]').forEach(el=>{
-    el.style.backgroundImage = `url('${el.dataset.img}')`;
-  });
-
-  // ---------- item detail sheet ----------
+  // ---------- item detail sheet (elements shared by every rendered item card) ----------
   const overlay = document.getElementById('sheetOverlay');
   const sheetIconEl = document.getElementById('sheetIcon');
   const sheetIconEmoji = document.getElementById('sheetIconEmoji');
-  document.querySelectorAll('.item:not(.locked)').forEach(item=>{
-    item.addEventListener('click', ()=>{
-      document.getElementById('sheetName').textContent = item.dataset.name;
-      document.getElementById('sheetType').textContent = item.dataset.type;
-      if(item.dataset.img){
-        sheetIconEmoji.textContent = '';
-        sheetIconEl.style.backgroundImage = `url('${item.dataset.img}')`;
-        sheetIconEl.style.backgroundSize = '70% auto';
-        sheetIconEl.style.backgroundPosition = 'center';
-        sheetIconEl.style.backgroundRepeat = 'no-repeat';
-      } else {
-        sheetIconEl.style.backgroundImage = '';
-        sheetIconEmoji.textContent = item.dataset.icon;
-      }
-      document.getElementById('sheetAtk').textContent = item.dataset.atk;
-      document.getElementById('sheetElem').textContent = item.dataset.elem;
-      document.getElementById('sheetDesc').textContent = item.dataset.desc;
-      document.getElementById('sheetRarityBar').className = 'rarity-bar r-' + item.dataset.rarity;
-      overlay.classList.add('open');
-    });
-  });
+
+  function openItemSheet(item){
+    document.getElementById('sheetName').textContent = item.dataset.name;
+    document.getElementById('sheetType').textContent = item.dataset.type;
+    if(item.dataset.img){
+      sheetIconEmoji.textContent = '';
+      sheetIconEl.style.backgroundImage = `url('${item.dataset.img}')`;
+      sheetIconEl.style.backgroundSize = '70% auto';
+      sheetIconEl.style.backgroundPosition = 'center';
+      sheetIconEl.style.backgroundRepeat = 'no-repeat';
+    } else {
+      sheetIconEl.style.backgroundImage = '';
+      sheetIconEmoji.textContent = item.dataset.icon;
+    }
+    document.getElementById('sheetAtk').textContent = item.dataset.atk;
+    document.getElementById('sheetElem').textContent = item.dataset.elem;
+    document.getElementById('sheetDesc').textContent = item.dataset.desc;
+    document.getElementById('sheetRarityBar').className = 'rarity-bar r-' + item.dataset.rarity;
+    overlay.classList.add('open');
+  }
   document.getElementById('sheetClose').addEventListener('click', ()=> overlay.classList.remove('open'));
   overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+  // ---------- inventory grid: render items for the active category (WEAPONS/ARMOR/MATERIALS/POTIONS) ----------
+  function renderInventory(category){
+    const grid = document.getElementById('inventoryGrid');
+    const items = ITEMS[category] || [];
+
+    if(items.length === 0){
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--bone-dim); font-size:14px; padding:30px 10px;">No items yet in this category.</div>';
+      return;
+    }
+
+    let html = '';
+    for(let i=0; i<items.length; i++){
+      const it = items[i];
+      const classes = 'item item-art' + (it.equipped ? ' equipped' : '') + (it.locked ? ' locked' : '');
+      html += '<div class="' + classes + '" data-name="' + it.name + '" data-type="' + it.sub + '" data-rarity="' + it.rarity
+        + '" data-icon="' + it.icon + '" data-img="' + it.img + '" data-atk="' + it.atk + '" data-elem="' + it.elem
+        + '" data-desc="' + it.desc.replace(/"/g, '&quot;') + '">'
+        + '<div class="rarity-bar r-' + it.rarity + '"></div>'
+        + (it.isNew ? '<span class="new-badge">NEW</span>' : '')
+        + '</div>';
+    }
+    grid.innerHTML = html;
+
+    // apply artwork backgrounds
+    grid.querySelectorAll('[data-img]').forEach(el=>{
+      el.style.backgroundImage = `url('${el.dataset.img}')`;
+    });
+    // wire up detail sheet taps
+    grid.querySelectorAll('.item:not(.locked)').forEach(item=>{
+      item.addEventListener('click', ()=> openItemSheet(item));
+    });
+  }
+
+  document.querySelectorAll('#inventoryTabs .tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('#inventoryTabs .tab').forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      renderInventory(tab.dataset.category);
+    });
+  });
+  renderInventory('weapon');
 
   // ================= MONSTER REGISTRY =================
   // Adding a new monster just means adding an entry here — no need to
