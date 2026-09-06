@@ -592,12 +592,12 @@
     </div>
 
     <div class="filter-row">
-      <div class="filter-chip active">All</div>
-      <div class="filter-chip">Equipped</div>
-      <div class="filter-chip">New</div>
-      <div class="filter-chip">Fire</div>
-      <div class="filter-chip">Water</div>
-      <div class="filter-chip">Earth</div>
+      <div class="filter-chip active" data-filter="all">All</div>
+      <div class="filter-chip" data-filter="equipped">Equipped</div>
+      <div class="filter-chip" data-filter="wind">Wind</div>
+      <div class="filter-chip" data-filter="fire">Fire</div>
+      <div class="filter-chip" data-filter="water">Water</div>
+      <div class="filter-chip" data-filter="earth">Earth</div>
     </div>
 
     <div class="grid-wrap">
@@ -907,14 +907,6 @@
     });
   });
 
-  // ---------- inventory tabs & filters ----------
-  document.querySelectorAll('.filter-chip').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active');
-    });
-  });
-
   // ---------- item detail sheet (elements shared by every rendered item card) ----------
   const overlay = document.getElementById('sheetOverlay');
   const sheetIconEl = document.getElementById('sheetIcon');
@@ -1029,12 +1021,31 @@
   }
 
   // ---------- inventory grid: render items for the active category (WEAPONS/ARMOR/MATERIALS/POTIONS) ----------
-  function renderInventory(category){
-    const grid = document.getElementById('inventoryGrid');
-    const items = ITEMS[category] || [];
+  // currentCategory/currentFilter are tracked so a filter chip tap can
+  // re-render whichever tab is currently open, and switching tabs keeps
+  // whatever filter was already selected.
+  let currentCategory = 'weapon';
+  let currentFilter = 'all';
 
-    if(items.length === 0){
+  function matchesFilter(it, filter){
+    if(filter === 'all') return true;
+    if(filter === 'equipped') return !!it.equipped;
+    // element filters (fire/water/earth/wind) check the item's "elem" text, e.g. "Wind +15"
+    return !!it.elem && it.elem.toLowerCase().indexOf(filter) !== -1;
+  }
+
+  function renderInventory(category){
+    currentCategory = category;
+    const grid = document.getElementById('inventoryGrid');
+    const allItems = ITEMS[category] || [];
+    const items = allItems.filter(it => matchesFilter(it, currentFilter));
+
+    if(allItems.length === 0){
       grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--bone-dim); font-size:14px; padding:30px 10px;">No items yet in this category.</div>';
+      return;
+    }
+    if(items.length === 0){
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--bone-dim); font-size:14px; padding:30px 10px;">No items match this filter.</div>';
       return;
     }
 
@@ -1070,6 +1081,17 @@
       renderInventory(tab.dataset.category);
     });
   });
+
+  // ---------- inventory filter chips (All / Equipped / Wind / Fire / Water / Earth) ----------
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter || 'all';
+      renderInventory(currentCategory);
+    });
+  });
+
   renderLoadout();
   renderInventory('weapon');
 
