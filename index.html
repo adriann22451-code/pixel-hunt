@@ -191,6 +191,26 @@
   .sheet-btn.equip{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
   .sheet-btn.close{ background:var(--panel); color:var(--bone-dim); border-color: var(--line); }
 
+  /* ---------- BESTIARY ---------- */
+  .bestiary-list{ padding:14px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+  .beast-card{ display:flex; align-items:center; gap:12px; background:var(--panel); border:2px solid var(--line); padding:10px 12px; cursor:pointer; }
+  .beast-card.locked{ opacity:0.55; cursor:default; }
+  .beast-icon{ width:48px; height:48px; background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+  .beast-mid{ flex:1; min-width:0; }
+  .beast-name{ font-family:'Press Start 2P', monospace; font-size:11px; color:var(--bone); }
+  .beast-part{ font-size:14px; color:var(--bone-dim); margin-top:4px; }
+  .beast-status{ font-size:12px; color:var(--moss); }
+  .beast-status.undiscovered{ color:var(--bone-dim); }
+
+  /* ---------- SETTINGS ---------- */
+  .settings-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-top:1px solid var(--line); }
+  .settings-row:first-child{ border-top:none; }
+  .settings-label{ font-size:16px; color:var(--bone); }
+  .toggle-switch{ width:44px; height:24px; background:var(--panel); border:2px solid var(--line); position:relative; cursor:pointer; flex-shrink:0; }
+  .toggle-switch .knob{ position:absolute; top:2px; left:2px; width:16px; height:16px; background:var(--bone-dim); transition: transform 0.15s ease, background 0.15s ease; }
+  .toggle-switch.on{ border-color:#000; background: linear-gradient(180deg, var(--amber), #c9781f); }
+  .toggle-switch.on .knob{ transform: translateX(20px); background:#1a1006; }
+
   /* ================= SCREEN 4: COMBAT ================= */
   #screen-combat{
     background:
@@ -406,7 +426,7 @@
         <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span>245</div>
         <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span>12</div>
       </div>
-      <div class="settings-btn">⚙</div>
+      <div class="settings-btn" id="settingsBtn">⚙</div>
     </div>
 
     <div class="ribbon-wrap">
@@ -448,7 +468,7 @@
       </div>
 
       <div class="row2">
-        <div class="btn pixel-frame">
+        <div class="btn pixel-frame" data-goto="screen-bestiary">
           <span class="nail tl"></span><span class="nail br"></span>
           <span class="icon icon-img" style="background-image:url('assets/icon_bestiary.webp')"></span>
           <div class="label">BESTIARY</div>
@@ -464,8 +484,8 @@
     <div class="footer">
       <span class="version">v0.1.0</span>
       <div class="sound-toggle">
-        <div class="icon-btn">🔊</div>
-        <div class="icon-btn">☰</div>
+        <div class="icon-btn" id="soundToggleBtn">🔊</div>
+        <div class="icon-btn" id="menuToggleBtn">☰</div>
       </div>
     </div>
   </div>
@@ -605,6 +625,18 @@
     <div style="height:64px; flex-shrink:0;"></div>
   </div>
 
+  <!-- ================= SCREEN: BESTIARY ================= -->
+  <div class="screen" id="screen-bestiary">
+    <div class="header">
+      <div class="back-btn" data-goto="screen-menu">◀</div>
+      <div>
+        <div class="header-title">BESTIARY</div>
+        <div class="header-sub">Hunter's Log</div>
+      </div>
+    </div>
+    <div class="bestiary-list" id="bestiaryList"></div>
+  </div>
+
   <!-- ================= SCREEN: COMBAT ================= -->
   <div class="screen" id="screen-combat">
     <div class="combat-bg-hills"></div>
@@ -706,6 +738,21 @@
     </div>
   </div>
 
+  <!-- ---------- SETTINGS SHEET ---------- -->
+  <div class="sheet-overlay" id="settingsOverlay">
+    <div class="sheet pixel-frame">
+      <div class="sheet-handle"></div>
+      <div class="sheet-name" style="margin-bottom:6px;">SETTINGS</div>
+      <div class="settings-row">
+        <span class="settings-label">Sound Effects</span>
+        <div class="toggle-switch" id="settingsSoundToggle"><div class="knob"></div></div>
+      </div>
+      <div class="sheet-actions">
+        <div class="sheet-btn close" id="settingsClose">CLOSE</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ---------- BOTTOM NAV ---------- -->
   <div class="bottom-nav" id="bottomNav">
     <div class="nav-item active" data-goto="screen-menu">
@@ -735,6 +782,66 @@
   document.querySelectorAll('[data-goto]').forEach(el=>{
     el.addEventListener('click', ()=> goTo(el.dataset.goto));
   });
+
+  // ---------- sound setting (persisted) ----------
+  let soundOn = localStorage.getItem('pixelhunt_sound') !== 'off';
+  const soundToggleBtn = document.getElementById('soundToggleBtn');
+  const settingsSoundToggle = document.getElementById('settingsSoundToggle');
+  function renderSoundState(){
+    soundToggleBtn.textContent = soundOn ? '🔊' : '🔇';
+    settingsSoundToggle.classList.toggle('on', soundOn);
+  }
+  function setSound(on){
+    soundOn = on;
+    localStorage.setItem('pixelhunt_sound', soundOn ? 'on' : 'off');
+    renderSoundState();
+  }
+  soundToggleBtn.addEventListener('click', ()=> setSound(!soundOn));
+  settingsSoundToggle.addEventListener('click', ()=> setSound(!soundOn));
+  renderSoundState();
+
+  // ---------- settings sheet ----------
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  document.getElementById('settingsBtn').addEventListener('click', ()=> settingsOverlay.classList.add('open'));
+  document.getElementById('menuToggleBtn').addEventListener('click', ()=> settingsOverlay.classList.add('open'));
+  document.getElementById('settingsClose').addEventListener('click', ()=> settingsOverlay.classList.remove('open'));
+  settingsOverlay.addEventListener('click', (e)=>{ if(e.target === settingsOverlay) settingsOverlay.classList.remove('open'); });
+
+  // ---------- bestiary (built from MONSTERS registry below + secret entries) ----------
+  function renderBestiary(){
+    const list = document.getElementById('bestiaryList');
+    // Monsters already reachable from the quest board are "discovered".
+    const discovered = ['flareclaw', 'rockhide', 'stormwing', 'aquafin'];
+    const keys = Object.keys(MONSTERS);
+    const entries = [];
+    for(let i=0; i<keys.length; i++){
+      const key = keys[i];
+      const mm = MONSTERS[key];
+      entries.push({ key: key, name: mm.name, part: mm.part, emojiFallback: mm.emojiFallback, locked: discovered.indexOf(key) === -1 });
+    }
+    entries.push({ key:'voidfang', name:'???', part:'Unknown', emojiFallback:'🌑', locked:true });
+
+    let html = '';
+    for(let i=0; i<entries.length; i++){
+      const m = entries[i];
+      const goAttr = m.locked ? '' : (' data-goto="screen-combat" data-monster="' + m.key + '"');
+      html += '<div class="beast-card ' + (m.locked ? 'locked' : '') + '"' + goAttr + '>'
+        + '<div class="beast-icon">' + (m.locked ? '🔒' : m.emojiFallback) + '</div>'
+        + '<div class="beast-mid">'
+        + '<div class="beast-name">' + (m.locked ? '???' : m.name) + '</div>'
+        + '<div class="beast-part">' + (m.locked ? 'Not yet encountered' : m.part) + '</div>'
+        + '</div>'
+        + '<div class="beast-status ' + (m.locked ? 'undiscovered' : '') + '">' + (m.locked ? 'LOCKED' : 'FOUND') + '</div>'
+        + '</div>';
+    }
+    list.innerHTML = html;
+
+    // wire up the unlocked cards so tapping one jumps straight into that hunt
+    list.querySelectorAll('[data-goto]').forEach(function(el){
+      el.addEventListener('click', function(){ loadMonster(el.dataset.monster || 'grubling'); });
+      el.addEventListener('click', function(){ goTo(el.dataset.goto); });
+    });
+  }
 
   // ---------- ember particles (menu screen) ----------
   const container = document.getElementById('embers');
@@ -917,6 +1024,7 @@
     el.addEventListener('click', ()=> loadMonster(el.dataset.monster || 'grubling'));
   });
   loadMonster('grubling'); // default before the user clicks any quest
+  renderBestiary();
 
   const monsterHpFill = document.getElementById('monsterHpFill');
   const staminaFill = document.getElementById('staminaFill');
