@@ -919,28 +919,89 @@
   const overlay = document.getElementById('sheetOverlay');
   const sheetIconEl = document.getElementById('sheetIcon');
   const sheetIconEmoji = document.getElementById('sheetIconEmoji');
+  const sheetEquipBtn = document.querySelector('.sheet-btn.equip');
 
-  function openItemSheet(item){
-    document.getElementById('sheetName').textContent = item.dataset.name;
-    document.getElementById('sheetType').textContent = item.dataset.type;
-    if(item.dataset.img){
+  // tracks which item (category + key) the sheet is currently showing,
+  // so the EQUIP button knows exactly which object in ITEMS to mutate
+  let currentSheetItem = null;
+
+  // only weapon/armor have equip "slots" — materials & potions are just held, not worn
+  function isEquippableCategory(category){
+    return category === 'weapon' || category === 'armor';
+  }
+
+  function updateSheetEquipButton(item, category){
+    if(!isEquippableCategory(category)){
+      sheetEquipBtn.style.display = 'none';
+      return;
+    }
+    sheetEquipBtn.style.display = '';
+    sheetEquipBtn.textContent = item.equipped ? 'UNEQUIP' : 'EQUIP';
+  }
+
+  function openItemSheet(itemEl){
+    const category = itemEl.dataset.category;
+    const key = itemEl.dataset.key;
+    const item = (ITEMS[category] || []).find(i => i.key === key);
+    currentSheetItem = item ? { category: category, key: key } : null;
+
+    document.getElementById('sheetName').textContent = itemEl.dataset.name;
+    document.getElementById('sheetType').textContent = itemEl.dataset.type;
+    if(itemEl.dataset.img){
       sheetIconEmoji.textContent = '';
-      sheetIconEl.style.backgroundImage = `url('${item.dataset.img}')`;
+      sheetIconEl.style.backgroundImage = `url('${itemEl.dataset.img}')`;
       sheetIconEl.style.backgroundSize = '70% auto';
       sheetIconEl.style.backgroundPosition = 'center';
       sheetIconEl.style.backgroundRepeat = 'no-repeat';
     } else {
       sheetIconEl.style.backgroundImage = '';
-      sheetIconEmoji.textContent = item.dataset.icon;
+      sheetIconEmoji.textContent = itemEl.dataset.icon;
     }
-    document.getElementById('sheetAtk').textContent = item.dataset.atk;
-    document.getElementById('sheetElem').textContent = item.dataset.elem;
-    document.getElementById('sheetDesc').textContent = item.dataset.desc;
-    document.getElementById('sheetRarityBar').className = 'rarity-bar r-' + item.dataset.rarity;
+    document.getElementById('sheetAtk').textContent = itemEl.dataset.atk;
+    document.getElementById('sheetElem').textContent = itemEl.dataset.elem;
+    document.getElementById('sheetDesc').textContent = itemEl.dataset.desc;
+    document.getElementById('sheetRarityBar').className = 'rarity-bar r-' + itemEl.dataset.rarity;
+
+    if(item) updateSheetEquipButton(item, category);
+
     overlay.classList.add('open');
   }
   document.getElementById('sheetClose').addEventListener('click', ()=> overlay.classList.remove('open'));
   overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+  // ---------- equip / unequip logic ----------
+  // weapons: only one can be equipped at a time.
+  // armor: "Talisman" items and non-Talisman items are separate slots,
+  // so equipping a talisman doesn't unequip the body armor and vice versa.
+  function toggleEquip(){
+    if(!currentSheetItem) return;
+    const { category, key } = currentSheetItem;
+    const items = ITEMS[category] || [];
+    const item = items.find(i => i.key === key);
+    if(!item || item.locked) return;
+
+    if(item.equipped){
+      // simply unequip — leaves that slot empty
+      item.equipped = false;
+    } else {
+      // unequip whatever else currently occupies the same slot
+      items.forEach(other => {
+        if(other === item) return;
+        if(category === 'weapon'){
+          other.equipped = false;
+        } else if(category === 'armor'){
+          const sameSlot = (other.sub === 'Talisman') === (item.sub === 'Talisman');
+          if(sameSlot) other.equipped = false;
+        }
+      });
+      item.equipped = true;
+    }
+
+    renderLoadout();
+    renderInventory(category);
+    updateSheetEquipButton(item, category);
+  }
+  sheetEquipBtn.addEventListener('click', toggleEquip);
 
   // ---------- equipped loadout panel (Weapon / Armor / Talisman) ----------
   function renderLoadout(){
@@ -981,7 +1042,7 @@
     for(let i=0; i<items.length; i++){
       const it = items[i];
       const classes = 'item item-art' + (it.locked ? '' : ' rar-' + it.rarity) + (it.equipped ? ' equipped' : '') + (it.locked ? ' locked' : '');
-      html += '<div class="' + classes + '" data-name="' + it.name + '" data-type="' + it.sub + '" data-rarity="' + it.rarity
+      html += '<div class="' + classes + '" data-key="' + it.key + '" data-category="' + category + '" data-name="' + it.name + '" data-type="' + it.sub + '" data-rarity="' + it.rarity
         + '" data-icon="' + it.icon + '" data-img="' + it.img + '" data-atk="' + it.atk + '" data-elem="' + it.elem
         + '" data-desc="' + it.desc.replace(/"/g, '&quot;') + '">'
         + (it.isNew ? '<span class="new-badge">NEW</span>' : '')
