@@ -434,8 +434,10 @@
   .resist-row b{ font-weight:normal; color:var(--bone-dim); }
   .resist-row b.pos{ color:var(--moss); }
   .resist-row b.neg{ color:var(--blood); }
-  .monster-hud-stats{ display:flex; gap:10px; margin-top:4px; font-size:12px; color:var(--bone-dim); }
+  .monster-hud-stats{ display:flex; gap:10px; margin-top:4px; font-size:12px; color:var(--bone-dim); align-items:center; }
   .monster-hud-stats b{ color:var(--bone); font-weight:normal; }
+  .monster-hud-stats .hp-number{ margin-left:auto; font-family:'Press Start 2P', monospace; font-size:9px; color:var(--bone); }
+  .stamina-number{ font-family:'Press Start 2P', monospace; font-size:9px; color:var(--bone); width:64px; flex-shrink:0; text-align:right; }
   .beast-part-stats{ font-size:12px; color:var(--bone-dim); margin-top:2px; }
   .craft-gold-row{ display:flex; align-items:center; gap:8px; font-size:14px; color:var(--bone-dim); }
   .craft-gold-row .mat-count{ font-family:'Press Start 2P', monospace; font-size:10px; }
@@ -692,7 +694,7 @@
         <div class="monster-hud-name" id="monsterHudName">GRUBLING</div>
         <div class="monster-hud-part" id="monsterHudPart">🪨 Cangkang utuh</div>
       </div>
-      <div class="monster-hud-stats"><span>ATK <b id="monsterHudAtk">—</b></span><span>DEF <b id="monsterHudDef">—</b></span></div>
+      <div class="monster-hud-stats"><span>ATK <b id="monsterHudAtk">—</b></span><span>DEF <b id="monsterHudDef">—</b></span><span class="hp-number" id="monsterHpNumber">100/100</span></div>
       <div class="hp-bar-track"><div class="hp-bar-fill" id="monsterHpFill"></div></div>
       <div class="hp-notches"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
     </div>
@@ -709,10 +711,12 @@
       <div class="stamina-row">
         <div class="stamina-label">STAMINA</div>
         <div class="stamina-track"><div class="stamina-fill" id="staminaFill"></div></div>
+        <div class="stamina-number" id="staminaNumber">100/100</div>
       </div>
       <div class="stamina-row">
         <div class="stamina-label">HP</div>
         <div class="stamina-track"><div class="player-hp-fill" id="playerHpFill"></div></div>
+        <div class="stamina-number" id="playerHpNumber">100/100</div>
       </div>
     </div>
 
@@ -847,12 +851,15 @@
 
 <script>
   // ---------- navigation ----------
+  const FULLSCREEN_IDS = ['screen-combat', 'screen-reward']; // these hide the bottom nav (immersive, own controls)
   function goTo(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => {
       n.classList.toggle('active', n.dataset.goto === id);
     });
+    const bottomNavEl = document.getElementById('bottomNav');
+    if(bottomNavEl) bottomNavEl.style.display = FULLSCREEN_IDS.indexOf(id) === -1 ? '' : 'none';
   }
   document.querySelectorAll('[data-goto]').forEach(el=>{
     el.addEventListener('click', ()=> goTo(el.dataset.goto));
@@ -1537,6 +1544,9 @@
   const monsterHpFill = document.getElementById('monsterHpFill');
   const staminaFill = document.getElementById('staminaFill');
   const playerHpFill = document.getElementById('playerHpFill');
+  const monsterHpNumber = document.getElementById('monsterHpNumber');
+  const staminaNumber = document.getElementById('staminaNumber');
+  const playerHpNumber = document.getElementById('playerHpNumber');
   const arenaMonster = document.getElementById('arenaMonster');
   const combatArena = document.getElementById('combatArena');
   const combatLog = document.getElementById('combatLog');
@@ -1623,6 +1633,9 @@
     monsterHpFill.style.width = '100%';
     staminaFill.style.width = '100%';
     playerHpFill.style.width = '100%';
+    monsterHpNumber.textContent = monsterMaxHp + '/' + monsterMaxHp;
+    staminaNumber.textContent = playerMaxStamina + '/' + playerMaxStamina;
+    playerHpNumber.textContent = playerMaxHp + '/' + playerMaxHp;
     victoryOverlay.classList.remove('show');
     combatLog.innerHTML = '';
     animator.play('idle');
@@ -1671,9 +1684,11 @@
 
     stamina = Math.max(0, stamina - staminaCost);
     staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
+    staminaNumber.textContent = stamina + '/' + playerMaxStamina;
 
     monsterHp = Math.max(0, monsterHp - finalDmg);
     monsterHpFill.style.width = (monsterHp / monsterMaxHp * 100) + '%';
+    monsterHpNumber.textContent = monsterHp + '/' + monsterMaxHp;
 
     arenaMonster.classList.remove('hit'); void arenaMonster.offsetWidth; arenaMonster.classList.add('hit');
     combatArena.classList.remove('arena-shake'); void combatArena.offsetWidth; combatArena.classList.add('arena-shake');
@@ -1710,6 +1725,7 @@
 
           playerHp = Math.max(0, playerHp - mDmg);
           playerHpFill.style.width = (playerHp / playerMaxHp * 100) + '%';
+          playerHpNumber.textContent = playerHp + '/' + playerMaxHp;
           logMsg(currentMonster.name + ' counterattacks! -' + mDmg + ' HP');
           animator.play('attack'); // automatically returns to idle when finished
         }, 500);
@@ -1724,6 +1740,7 @@
     if(fightOver || stamina < 20) { logMsg("Can't dodge right now!"); return; }
     stamina = Math.max(0, stamina - 20);
     staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
+    staminaNumber.textContent = stamina + '/' + playerMaxStamina;
     dodgeFlash.classList.add('show');
     logMsg('Nimble dodge!');
     setTimeout(()=> dodgeFlash.classList.remove('show'), 150);
@@ -1735,6 +1752,7 @@
     if(stamina < playerMaxStamina){
       stamina = Math.min(playerMaxStamina, stamina + 4);
       staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
+      staminaNumber.textContent = stamina + '/' + playerMaxStamina;
     }
   }, 400);
 
