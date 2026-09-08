@@ -13,7 +13,7 @@
     --bone:#e9dfc6; --bone-dim:#b3a487;
     --amber:#f2a93b; --ember:#e0692a; --blood:#9c2f1f;
     --moss:#6f7d4f; --frost:#6fb3c9;
-    --common:#8a8577; --rare:#6fb3c9; --epic:#b07de0; --legendary:#f2a93b;
+    --common:#8a8577; --uncommon:#7fae5c; --rare:#6fb3c9; --epic:#b07de0; --legendary:#f2a93b;
     --line:rgba(233,223,198,0.12);
   }
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -58,6 +58,7 @@
   .tab.active{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; border-color:#000; }
 
   .r-common{ background: var(--common); }
+  .r-uncommon{ background: var(--uncommon); }
   .r-rare{ background: var(--rare); }
   .r-epic{ background: var(--epic); }
   .r-legendary{ background: var(--legendary); }
@@ -153,6 +154,7 @@
 
   /* rarity -> color lookup, reused by loadout ring + grid card frame */
   .rar-common{ --rc: var(--common); }
+  .rar-uncommon{ --rc: var(--uncommon); }
   .rar-rare{ --rc: var(--rare); }
   .rar-epic{ --rc: var(--epic); }
   .rar-legendary{ --rc: var(--legendary); }
@@ -950,14 +952,37 @@
   // Armor/materials are the pieces the hunt rewards actually drop.
   const ITEMS = {
     weapon: [
-      { key:'sword_ember',    name:'Ember Sword',        sub:'Sword & Shield', icon:'⚔', img:'assets/sword_ember.webp',   rarity:'rare',      atk:48, elem:'Fire +12',     desc:"Forged from a Flareclaw's claw. The blade still holds the heat of the hunt.", equipped:true,  locked:false },
-      { key:'hammer_coral',   name:'Coral Stone Hammer', sub:'Greatsword',      icon:'🔨', img:'assets/hammer_coral.webp',  rarity:'common',    atk:62, elem:'—',            desc:'Heavy and slow, but every hit staggers the monster.', locked:false },
-      { key:'dagger_river',   name:'River Twin Daggers', sub:'Dual Blade',      icon:'🗡', img:'assets/dagger_river.webp',  rarity:'rare',      atk:34, elem:'Water +8',     desc:'Light and fast, suited to hunters who rely on agility.', locked:false },
-      { key:'bow_storm',      name:'Storm Bow',          sub:'Bow',             icon:'🏹', img:'assets/bow_storm.webp',     rarity:'epic',      atk:40, elem:'Wind +15',     desc:"Its arrows curve with the wind currents — a trophy from Stormwing.", isNew:true, locked:false },
-      { key:'weapon_mystery', name:'???',                sub:'Locked',          icon:'🔒', img:'assets/weapon_mystery.webp',rarity:'legendary', atk:'?', elem:'?',          desc:'Requires material from Voidfang to unlock this recipe.', locked:true },
-      { key:'sword_coral',    name:'Coral Sword',        sub:'Sword & Shield',  icon:'⚔', img:'assets/sword_coral.webp',   rarity:'common',    atk:30, elem:'—',            desc:'A basic weapon. Reliable for beginner hunters.', locked:false },
-      { key:'hammer_thunder', name:'Thunder Hammer',     sub:'Greatsword',      icon:'🔨', img:'assets/hammer_thunder.webp',rarity:'epic',      atk:70, elem:'Lightning +18',desc:'Shakes the ground around it with every strike.', locked:false },
-      { key:'dagger_ember',   name:'Ember Daggers',      sub:'Dual Blade',      icon:'🗡', img:'assets/dagger_ember.webp',  rarity:'common',    atk:26, elem:'Fire +5',      desc:'A pair of light daggers whose blades stay perpetually warm.', locked:false }
+      { key:'weapon_fire_common', name:'Ember Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_fire_common.webp', rarity:'common', atk:24, elem:'Fire +5', equipped:true, desc:'A dagger warmed at a Flareclaw campfire. Never quite cools down.', locked:false },
+      { key:'weapon_fire_uncommon', name:'Ember Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_fire_uncommon.webp', rarity:'uncommon', atk:34, elem:'Fire +8', desc:'Steel tempered in embers, with a single garnet that never stops glowing.', locked:false },
+      { key:'weapon_fire_rare', name:'Ember Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_fire_rare.webp', rarity:'rare', atk:46, elem:'Fire +12', desc:"A matched pair pulled from the ashes of a Flareclaw's den — still smoldering.", locked:false },
+      { key:'weapon_fire_epic', name:'Ember Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_fire_epic.webp', rarity:'epic', atk:60, elem:'Fire +17', desc:"Strung with a Flareclaw's sinew; the arrowhead nocks itself in flame.", locked:false },
+      { key:'weapon_fire_legendary', name:'Infernus, the Cinderfall Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_fire_legendary.webp', rarity:'legendary', atk:78, elem:'Fire +24', desc:'Said to be the last claw of the first Flareclaw ever slain — the fire never went out.', locked:false },
+      { key:'weapon_water_common', name:'Tide Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_water_common.webp', rarity:'common', atk:24, elem:'Water +5', desc:"A worn dagger that never seems to rust, no matter how long it's been at sea.", locked:false },
+      { key:'weapon_water_uncommon', name:'Tide Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_water_uncommon.webp', rarity:'uncommon', atk:34, elem:'Water +8', desc:"Scale-wrapped grip, a pearl set in the guard — a diver's favorite sidearm.", locked:false },
+      { key:'weapon_water_rare', name:'Tide Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_water_rare.webp', rarity:'rare', atk:46, elem:'Water +12', desc:'Twin blades carved to mimic breaking waves, always beaded with cold water.', locked:false },
+      { key:'weapon_water_epic', name:'Tide Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_water_epic.webp', rarity:'epic', atk:60, elem:'Water +17', desc:'A ceremonial bow carved from coral, its draw shimmering like deep current.', locked:false },
+      { key:'weapon_water_legendary', name:'Leviathan’s Maw, the Tidal Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_water_legendary.webp', rarity:'legendary', atk:78, elem:'Water +24', desc:'Forged from the fang of something no hunter has ever seen whole and lived to describe.', locked:false },
+      { key:'weapon_wind_common', name:'Gale Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_wind_common.webp', rarity:'common', atk:24, elem:'Wind +5', desc:'Light as a feather and just as easy to lose in tall grass.', locked:false },
+      { key:'weapon_wind_uncommon', name:'Gale Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_wind_uncommon.webp', rarity:'uncommon', atk:34, elem:'Wind +8', desc:'Balanced to a fault; hunters say it practically swings itself.', locked:false },
+      { key:'weapon_wind_rare', name:'Gale Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_wind_rare.webp', rarity:'rare', atk:46, elem:'Wind +12', desc:'Twin blades so light they hum in open air, feathers trailing off the crossguard.', locked:false },
+      { key:'weapon_wind_epic', name:'Gale Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_wind_epic.webp', rarity:'epic', atk:60, elem:'Wind +17', desc:'A Stormwing trophy bow — loose an arrow and the wind aims it for you.', locked:false },
+      { key:'weapon_wind_legendary', name:'Zephyrion, the Stormcaller Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_wind_legendary.webp', rarity:'legendary', atk:78, elem:'Wind +24', desc:"A greatsword that never touches the ground — it's said to still be falling from where Stormwing dropped it.", locked:false },
+      { key:'weapon_earth_common', name:'Terra Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_earth_common.webp', rarity:'common', atk:24, elem:'Earth +5', desc:'Chipped from quarry stone. What it lacks in finesse it makes up for in weight.', locked:false },
+      { key:'weapon_earth_uncommon', name:'Terra Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_earth_uncommon.webp', rarity:'uncommon', atk:34, elem:'Earth +8', desc:'Reinforced with old stone plating bound in vine and iron wire.', locked:false },
+      { key:'weapon_earth_rare', name:'Terra Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_earth_rare.webp', rarity:'rare', atk:46, elem:'Earth +12', desc:'A dual-wield set laced with living moss and glowing mineral veins.', locked:false },
+      { key:'weapon_earth_epic', name:'Terra Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_earth_epic.webp', rarity:'epic', atk:60, elem:'Earth +17', desc:'A greatbow of living stone and root, heavy to draw but devastating to loose.', locked:false },
+      { key:'weapon_earth_legendary', name:'Terragnor, the Mountainbreaker Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_earth_legendary.webp', rarity:'legendary', atk:78, elem:'Earth +24', desc:'Carved from the core of a mountain that Rockhide once called home.', locked:false },
+      { key:'weapon_dark_common', name:'Umbra Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_dark_common.webp', rarity:'common', atk:24, elem:'Dark +5', desc:'A plain blade that drank in shadow the moment it was forged.', locked:false },
+      { key:'weapon_dark_uncommon', name:'Umbra Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_dark_uncommon.webp', rarity:'uncommon', atk:34, elem:'Dark +8', desc:"Etched with a faint eye-shaped rune that seems to track the wielder's grip.", locked:false },
+      { key:'weapon_dark_rare', name:'Umbra Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_dark_rare.webp', rarity:'rare', atk:46, elem:'Dark +12', desc:'A pair of fanged blades that seem to drink the light around their edge.', locked:false },
+      { key:'weapon_dark_epic', name:'Umbra Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_dark_epic.webp', rarity:'epic', atk:60, elem:'Dark +17', desc:"A bow strung with something that isn't quite string. It never runs out of arrows to imagine.", locked:false },
+      { key:'weapon_dark_legendary', name:'Nyxbane, the Hollow Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_dark_legendary.webp', rarity:'legendary', atk:78, elem:'Dark +24', desc:"A blade said to be a sliver of the Voidfang's own hollow heart, given an edge.", locked:false },
+      { key:'weapon_light_common', name:'Solis Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_light_common.webp', rarity:'common', atk:24, elem:'Light +5', desc:'A humble blade that always seems to catch the sun, even indoors.', locked:false },
+      { key:'weapon_light_uncommon', name:'Solis Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_light_uncommon.webp', rarity:'uncommon', atk:34, elem:'Light +8', desc:'Gold filigree along the fuller, said to never dull in sunlight.', locked:false },
+      { key:'weapon_light_rare', name:'Solis Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_light_rare.webp', rarity:'rare', atk:46, elem:'Light +12', desc:'Twin blades that ring like glass and never cast a shadow of their own.', locked:false },
+      { key:'weapon_light_epic', name:'Solis Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_light_epic.webp', rarity:'epic', atk:60, elem:'Light +17', desc:'A bow that draws its own arrow from pure radiance when the string is pulled taut.', locked:false },
+      { key:'weapon_light_legendary', name:'Solvarion, the Dawnbreaker Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_light_legendary.webp', rarity:'legendary', atk:78, elem:'Light +24', desc:'Legends call it the first sword ever raised against the dark — it has never stopped shining.', locked:false },
+      { key:'weapon_mystery', name:'???',                sub:'Locked',          icon:'🔒', img:'assets/weapon_mystery.webp',rarity:'legendary', atk:'?', elem:'?',          desc:'Requires material from Voidfang to unlock this recipe.', locked:true }
     ],
     armor: [
       { key:'armor_leather',  name:'Leather Armor', sub:'Light Armor', icon:'🛡', img:'assets/armor_leather.webp', rarity:'common', atk:'—', elem:'DEF +18',       desc:'Simple hide armor. Every hunter starts with a set like this.', equipped:true, locked:false },
@@ -965,17 +990,17 @@
       { key:'armor_coral_plate',     name:'Coral Plate Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_coral_plate.webp',     rarity:'rare',      atk:'—', elem:'Water +14',    desc:"Smooth living coral shaped into plating. Matches the Coral weapons.", locked:true },
       { key:'armor_stormwing_mail',  name:'Stormwing Mail',       sub:'Light Armor', icon:'🛡', img:'assets/armor_stormwing_mail.webp',  rarity:'epic',      atk:'—', elem:'Wind +20',     desc:'Woven from Stormwing feathers. Light enough to barely feel.', locked:true },
       { key:'armor_rockhide_plate',  name:'Rockhide Plate Armor', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_rockhide_plate.webp',  rarity:'epic',      atk:'—', elem:'Earth +20',    desc:"Slabs of Rockhide stone bound in leather. Stops almost anything.", locked:true },
-      { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Void +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:true }
+      { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Dark +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:true }
     ],
     accessory: [
       { key:'talisman_earth',    name:'Earth Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_earth.webp',    rarity:'epic',      atk:'—', elem:'Earth Res +20',     desc:'A charm carved from Rockhide plating. Steadies the hand of its wearer.', equipped:true, locked:false },
       { key:'talisman_fire',     name:'Fire Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_fire.webp',     rarity:'rare',      atk:'—', elem:'Fire Res +15',      desc:'A warm stone charm that never quite cools down.', locked:true },
       { key:'talisman_water',    name:'Water Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_water.webp',    rarity:'rare',      atk:'—', elem:'Water Res +15',     desc:'Carved with wave patterns. Always feels faintly damp.', locked:true },
       { key:'talisman_wind',     name:'Wind Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_wind.webp',     rarity:'rare',      atk:'—', elem:'Wind Res +15',      desc:'Light as a feather. Hums softly when the wind picks up.', locked:true },
-      { key:'talisman_lightning',name:'Lightning Talisman',sub:'Talisman', icon:'🧿', img:'assets/talisman_lightning.webp',rarity:'epic',      atk:'—', elem:'Lightning Res +18', desc:'Sparks faintly whenever thunder rolls in the distance.', locked:true },
+      { key:'talisman_lightning',name:'Radiant Talisman',sub:'Talisman', icon:'🧿', img:'assets/talisman_lightning.webp',rarity:'epic',      atk:'—', elem:'Light Res +18', desc:'Glows faintly, as if holding back the sun itself.', locked:true },
       { key:'accessory_hunters_ring', name:"Hunter's Ring", sub:'Ring', icon:'💍', img:'assets/accessory_hunters_ring.webp', rarity:'common', atk:'—', elem:'—', desc:'A worn bronze ring passed down between hunters. Nothing special, but reliable.', locked:false },
       { key:'accessory_lucky_charm', name:'Lucky Charm Pendant', sub:'Pendant', icon:'🍀', img:'assets/accessory_lucky_charm.webp', rarity:'rare', atk:'—', elem:'Luck +10', desc:'A carved wooden clover on a leather cord. Hunters swear it works.', locked:true },
-      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Amulet', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'Void +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:true }
+      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Amulet', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'Dark +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:true }
     ],
     material: [
       { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', icon:'🦴', img:'assets/material_claw.webp',       rarity:'common', atk:'—', elem:'—', qty:12, desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
@@ -1125,7 +1150,7 @@
   // Base numbers a hunter has with nothing equipped. Everything else is
   // layered on top from whatever is currently equipped in ITEMS.
   const HERO_BASE = { hp: 100, stamina: 100, atk: 10, def: 0, luck: 0 };
-  const ELEMENT_LABELS = { fire:'🔥 Fire', water:'💧 Water', wind:'💨 Wind', earth:'🪨 Earth', lightning:'⚡ Lightning', void:'🌑 Void' };
+  const ELEMENT_LABELS = { fire:'🔥 Fire', water:'💧 Water', wind:'💨 Wind', earth:'🪨 Earth', dark:'🌑 Dark', light:'✨ Light' };
 
   // Reads an item's "elem" display string (e.g. "Fire +12", "DEF +18",
   // "Fire Res +15", "Luck +10") and pulls out a structured stat from it.
@@ -1135,7 +1160,7 @@
     if(m) return { type:'def', amount: parseInt(m[1], 10) };
     m = str.match(/^Luck\s*\+(\d+)/i);
     if(m) return { type:'luck', amount: parseInt(m[1], 10) };
-    m = str.match(/^(Fire|Water|Wind|Earth|Lightning|Void)\s*(?:Res)?\s*\+(\d+)/i);
+    m = str.match(/^(Fire|Water|Wind|Earth|Dark|Light)\s*(?:Res)?\s*\+(\d+)/i);
     if(m) return { type:'elem', element: m[1].toLowerCase(), amount: parseInt(m[2], 10) };
     return null;
   }
@@ -1159,7 +1184,7 @@
       armorName: armor ? armor.name : null,
       weaponElement: null,
       weaponElementAmount: 0,
-      resist: { fire:0, water:0, wind:0, earth:0, lightning:0, void:0 }
+      resist: { fire:0, water:0, wind:0, earth:0, dark:0, light:0 }
     };
 
     if(weapon && weapon.elem){
@@ -1543,7 +1568,7 @@
     },
     rockhide:  { name: 'ROCKHIDE',  part: '🪨 Stone plating intact', emojiFallback: '🐗', icon: 'assets/rockhide.webp',
       hp: 520, atk: { min:13, max:21 }, def: 25, element: 'earth',
-      resist: { earth:35, lightning:-20 },
+      resist: { earth:35, light:-20 },
       goldMin: 70, goldMax: 100,
       loot: [
         { key:'material_rockhide_plating', chance:1,    min:2, max:4 },
@@ -1563,7 +1588,7 @@
       anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 278, bgSize: '256px 278px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     aquafin:   { name: 'AQUAFIN',   part: '💧 Fins intact',          emojiFallback: '🐸', icon: 'assets/aquafin.webp',
       hp: 320, atk: { min:10, max:16 }, def: 9, element: 'water', poisonChance: 0.18,
-      resist: { water:35, lightning:-25 },
+      resist: { water:35, light:-25 },
       goldMin: 65, goldMax: 95,
       loot: [
         { key:'material_aquafin_scale',    chance:1,    min:2, max:4 },
@@ -1662,7 +1687,8 @@
     fire:      { emoji:'🔥', label:'Fire' },
     water:     { emoji:'💧', label:'Water' },
     wind:      { emoji:'💨', label:'Wind' },
-    lightning: { emoji:'⚡', label:'Lightning' }
+    dark:      { emoji:'🌑', label:'Dark' },
+    light:     { emoji:'✨', label:'Light' }
   };
 
   // one entry per rank tab. "featured" is the highlighted event at the top;
