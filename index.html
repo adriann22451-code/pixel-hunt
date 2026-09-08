@@ -53,7 +53,7 @@
   .chip{ display:flex; align-items:center; gap:6px; background:var(--panel); border:2px solid var(--line); padding:5px 10px; font-size:16px; color:var(--bone); }
   .chip .icon{ color:var(--amber); font-size:13px; }
 
-  .tabs{ display:flex; gap:8px; padding:14px 14px 0 14px; }
+  .tabs{ display:flex; gap:8px; padding:14px 14px 0 14px; overflow-x:auto; }
   .tab{ flex-shrink:0; text-align:center; font-family:'Press Start 2P', monospace; font-size:9px; padding:9px 8px; background:var(--panel); border:2px solid var(--line); color:var(--bone-dim); cursor:pointer; }
   .tab.active{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; border-color:#000; }
 
@@ -587,6 +587,7 @@
     <div class="tabs" id="inventoryTabs">
       <div class="tab active" data-category="weapon">WEAPONS</div>
       <div class="tab" data-category="armor">ARMOR</div>
+      <div class="tab" data-category="accessory">ACCESSORIES</div>
       <div class="tab" data-category="material">MATERIALS</div>
       <div class="tab" data-category="potion">POTIONS</div>
     </div>
@@ -815,15 +816,17 @@
       { key:'armor_coral_plate',     name:'Coral Plate Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_coral_plate.webp',     rarity:'rare',      atk:'—', elem:'Water +14',    desc:"Smooth living coral shaped into plating. Matches the Coral weapons.", locked:false },
       { key:'armor_stormwing_mail',  name:'Stormwing Mail',       sub:'Light Armor', icon:'🛡', img:'assets/armor_stormwing_mail.webp',  rarity:'epic',      atk:'—', elem:'Wind +20',     desc:'Woven from Stormwing feathers. Light enough to barely feel.', locked:false },
       { key:'armor_rockhide_plate',  name:'Rockhide Plate Armor', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_rockhide_plate.webp',  rarity:'epic',      atk:'—', elem:'Earth +20',    desc:"Slabs of Rockhide stone bound in leather. Stops almost anything.", locked:false },
-      { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Void +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:false },
+      { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Void +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:false }
+    ],
+    accessory: [
       { key:'talisman_earth',    name:'Earth Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_earth.webp',    rarity:'epic',      atk:'—', elem:'Earth Res +20',     desc:'A charm carved from Rockhide plating. Steadies the hand of its wearer.', equipped:true, locked:false },
       { key:'talisman_fire',     name:'Fire Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_fire.webp',     rarity:'rare',      atk:'—', elem:'Fire Res +15',      desc:'A warm stone charm that never quite cools down.', locked:false },
       { key:'talisman_water',    name:'Water Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_water.webp',    rarity:'rare',      atk:'—', elem:'Water Res +15',     desc:'Carved with wave patterns. Always feels faintly damp.', locked:false },
       { key:'talisman_wind',     name:'Wind Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_wind.webp',     rarity:'rare',      atk:'—', elem:'Wind Res +15',      desc:'Light as a feather. Hums softly when the wind picks up.', locked:false },
       { key:'talisman_lightning',name:'Lightning Talisman',sub:'Talisman', icon:'🧿', img:'assets/talisman_lightning.webp',rarity:'epic',      atk:'—', elem:'Lightning Res +18', desc:'Sparks faintly whenever thunder rolls in the distance.', locked:false },
-      { key:'accessory_hunters_ring', name:"Hunter's Ring", sub:'Accessory', icon:'💍', img:'assets/accessory_hunters_ring.webp', rarity:'common', atk:'—', elem:'—', desc:'A worn bronze ring passed down between hunters. Nothing special, but reliable.', locked:false },
-      { key:'accessory_lucky_charm', name:'Lucky Charm Pendant', sub:'Accessory', icon:'🍀', img:'assets/accessory_lucky_charm.webp', rarity:'rare', atk:'—', elem:'Luck +10', desc:'A carved wooden clover on a leather cord. Hunters swear it works.', locked:false },
-      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Accessory', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'Void +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:false }
+      { key:'accessory_hunters_ring', name:"Hunter's Ring", sub:'Ring', icon:'💍', img:'assets/accessory_hunters_ring.webp', rarity:'common', atk:'—', elem:'—', desc:'A worn bronze ring passed down between hunters. Nothing special, but reliable.', locked:false },
+      { key:'accessory_lucky_charm', name:'Lucky Charm Pendant', sub:'Pendant', icon:'🍀', img:'assets/accessory_lucky_charm.webp', rarity:'rare', atk:'—', elem:'Luck +10', desc:'A carved wooden clover on a leather cord. Hunters swear it works.', locked:false },
+      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Amulet', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'Void +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:false }
     ],
     material: [
       { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', icon:'🦴', img:'assets/material_claw.webp',       rarity:'common', atk:'—', elem:'—', qty:12, desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
@@ -948,7 +951,7 @@
 
   // only weapon/armor have equip "slots" — materials & potions are just held, not worn
   function isEquippableCategory(category){
-    return category === 'weapon' || category === 'armor';
+    return category === 'weapon' || category === 'armor' || category === 'accessory';
   }
 
   function updateSheetEquipButton(item, category){
@@ -1008,13 +1011,13 @@
       // unequip whatever else currently occupies the same slot
       items.forEach(other => {
         if(other === item) return;
-        if(category === 'weapon'){
+        if(category === 'weapon' || category === 'armor'){
+          // single slot: equipping one unequips any other in the same array
           other.equipped = false;
-        } else if(category === 'armor'){
-          // three independent slots live in the "armor" array: plain armor,
-          // talisman, and accessory — only unequip within the same slot group
-          const slotOf = i => i.sub === 'Talisman' ? 'talisman' : (i.sub === 'Accessory' ? 'accessory' : 'armor');
-          if(slotOf(other) === slotOf(item)) other.equipped = false;
+        } else if(category === 'accessory'){
+          // two independent slots share the "accessory" array: talismans and other accessories (ring/pendant/amulet)
+          const sameSlot = (other.sub === 'Talisman') === (item.sub === 'Talisman');
+          if(sameSlot) other.equipped = false;
         }
       });
       item.equipped = true;
@@ -1030,9 +1033,9 @@
   function renderLoadout(){
     const panel = document.getElementById('loadoutPanel');
     const weapon    = ITEMS.weapon.find(i => i.equipped);
-    const armor     = ITEMS.armor.find(i => i.equipped && i.sub !== 'Talisman' && i.sub !== 'Accessory');
-    const talisman  = ITEMS.armor.find(i => i.equipped && i.sub === 'Talisman');
-    const accessory = ITEMS.armor.find(i => i.equipped && i.sub === 'Accessory');
+    const armor     = ITEMS.armor.find(i => i.equipped);
+    const talisman  = ITEMS.accessory.find(i => i.equipped && i.sub === 'Talisman');
+    const accessory = ITEMS.accessory.find(i => i.equipped && i.sub !== 'Talisman');
 
     function slotHtml(label, it, statText){
       if(!it){
