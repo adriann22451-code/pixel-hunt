@@ -968,6 +968,61 @@
     ]
   };
 
+  // ---------- save / load progress (localStorage) ----------
+  // ITEMS above is just hardcoded starting data — without this, every refresh
+  // wipes equip state, unlocks, material/potion counts, and gold back to
+  // those defaults. That's why equipped accessories kept reverting.
+  const SAVE_KEY = 'pixelhunt_save_v1';
+
+  function saveGame(){
+    try {
+      const data = { gold: playerGold, items: {} };
+      Object.keys(ITEMS).forEach(cat => {
+        data.items[cat] = ITEMS[cat].map(i => ({
+          key: i.key,
+          equipped: !!i.equipped,
+          locked: !!i.locked,
+          qty: i.qty
+        }));
+      });
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    } catch(e){
+      console.warn('pixelhunt: failed to save progress', e);
+    }
+  }
+
+  function loadGame(){
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+
+      if(data.items){
+        Object.keys(data.items).forEach(cat => {
+          if(!ITEMS[cat]) return;
+          data.items[cat].forEach(saved => {
+            const item = ITEMS[cat].find(i => i.key === saved.key);
+            if(!item) return;
+            item.equipped = !!saved.equipped;
+            item.locked = !!saved.locked;
+            if(typeof saved.qty === 'number') item.qty = saved.qty;
+          });
+        });
+      }
+
+      // playerGold (defined further below) reads its starting value from this
+      // DOM text, so updating it here is enough to restore the saved amount.
+      if(typeof data.gold === 'number'){
+        const goldEl = document.getElementById('goldAmount');
+        if(goldEl) goldEl.textContent = data.gold;
+      }
+    } catch(e){
+      console.warn('pixelhunt: failed to load progress', e);
+    }
+  }
+
+  loadGame();
+
   // ---------- crafting recipes ----------
   // each entry: which category the crafted item lives in, its material cost, and a gold cost.
   // craft() below checks these against ITEMS[category] stock before it lets you build anything.
@@ -1297,6 +1352,7 @@
     renderInventory(category);
     updateSheetEquipButton(item, category);
     renderHeroStats();
+    saveGame();
   }
   sheetEquipBtn.addEventListener('click', toggleEquip);
 
@@ -1632,6 +1688,7 @@
     });
     playerGold += loot.gold;
     updateGoldChip();
+    saveGame();
   }
 
   function renderReward(monsterKey, loot){
@@ -1944,6 +2001,7 @@
     renderCraftList();
     // refresh whichever inventory tab is open so consumed materials / the new item show up right away
     renderInventory(currentCategory);
+    saveGame();
   }
 
   document.querySelectorAll('[data-goto="screen-craft"]').forEach(el=>{
