@@ -407,6 +407,26 @@
   .reward-btn.primary{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
   .reward-btn.secondary{ background:var(--panel); color:var(--bone-dim); border-color:var(--line); }
 
+  /* ---------- CRAFT SCREEN ---------- */
+  .craft-list{ flex:1; overflow-y:auto; padding:12px 14px 14px 14px; display:flex; flex-direction:column; gap:10px; }
+  .craft-card{ background:var(--panel-2); border:2px solid var(--rc, var(--line)); box-shadow:0 0 8px -2px var(--rc, transparent); padding:10px; display:flex; flex-direction:column; gap:8px; }
+  .craft-card-head{ display:flex; align-items:center; gap:10px; }
+  .craft-icon{ width:46px; height:46px; flex-shrink:0; background:var(--void); border:2px solid var(--rc, var(--common)); background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
+  .craft-name{ font-size:16px; color:var(--bone); line-height:1.2; }
+  .craft-sub{ font-size:12px; color:var(--rc, var(--bone-dim)); text-transform:uppercase; letter-spacing:0.5px; }
+  .craft-mats{ display:flex; flex-direction:column; gap:4px; }
+  .craft-mat-row{ display:flex; align-items:center; gap:8px; font-size:14px; }
+  .craft-mat-row .mat-icon{ width:20px; height:20px; flex-shrink:0; background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
+  .craft-mat-row .mat-name{ flex:1; color:var(--bone-dim); }
+  .craft-mat-row .mat-count{ font-family:'Press Start 2P', monospace; font-size:10px; }
+  .craft-mat-row .mat-count.ok{ color:var(--moss); }
+  .craft-mat-row .mat-count.short{ color:var(--blood); }
+  .craft-gold-row{ display:flex; align-items:center; gap:8px; font-size:14px; color:var(--bone-dim); }
+  .craft-gold-row .mat-count{ font-family:'Press Start 2P', monospace; font-size:10px; }
+  .craft-btn{ text-align:center; font-family:'Press Start 2P', monospace; font-size:11px; padding:11px; border:2px solid #000; cursor:pointer; background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
+  .craft-btn.disabled{ background:var(--panel); color:var(--bone-dim); border-color:var(--line); cursor:not-allowed; opacity:0.6; }
+  .craft-btn.crafted{ background:var(--panel); color:var(--moss); border-color:var(--line); cursor:default; }
+
   /* ---------- BOTTOM NAV ---------- */
   .bottom-nav{
     position:absolute; left:0; right:0; bottom:0; z-index:30;
@@ -608,6 +628,22 @@
     <div style="height:64px; flex-shrink:0;"></div>
   </div>
 
+  <!-- ================= SCREEN: CRAFT GEAR ================= -->
+  <div class="screen" id="screen-craft">
+    <div class="header">
+      <div class="back-btn" data-goto="screen-menu">◀</div>
+      <div>
+        <div class="header-title">CRAFT GEAR</div>
+        <div class="header-sub">Blacksmith's Bench</div>
+      </div>
+      <div class="slots-chip" id="craftGoldChip">0◆</div>
+    </div>
+
+    <div class="craft-list" id="craftList"></div>
+
+    <div style="height:64px; flex-shrink:0;"></div>
+  </div>
+
   <!-- ================= SCREEN: CODEX ================= -->
   <div class="screen" id="screen-bestiary">
     <div class="header">
@@ -703,7 +739,7 @@
 
     <div class="reward-actions">
       <div class="reward-btn secondary" data-goto="screen-quest">MORE QUESTS</div>
-      <div class="reward-btn primary" data-goto="screen-inventory">CRAFT GEAR</div>
+      <div class="reward-btn primary" data-goto="screen-craft">CRAFT GEAR</div>
     </div>
   </div>
 
@@ -752,6 +788,9 @@
     </div>
     <div class="nav-item" data-goto="screen-inventory">
       <span class="nav-icon icon-img" style="background-image:url('assets/icon_inventory.webp')"></span><span class="nav-label">ITEMS</span>
+    </div>
+    <div class="nav-item" data-goto="screen-craft">
+      <span class="nav-icon icon-img" style="background-image:url('assets/icon_armor.webp')"></span><span class="nav-label">CRAFT</span>
     </div>
   </div>
 
@@ -812,21 +851,21 @@
     ],
     armor: [
       { key:'armor_leather',  name:'Leather Armor', sub:'Light Armor', icon:'🛡', img:'assets/armor_leather.webp', rarity:'common', atk:'—', elem:'DEF +18',       desc:'Simple hide armor. Every hunter starts with a set like this.', equipped:true, locked:false },
-      { key:'armor_ember_scale',     name:'Ember Scale Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_ember_scale.webp',     rarity:'rare',      atk:'—', elem:'Fire +14',     desc:"Scaled plating cut from a Flareclaw's hide. Matches the Ember Sword.", locked:false },
-      { key:'armor_coral_plate',     name:'Coral Plate Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_coral_plate.webp',     rarity:'rare',      atk:'—', elem:'Water +14',    desc:"Smooth living coral shaped into plating. Matches the Coral weapons.", locked:false },
-      { key:'armor_stormwing_mail',  name:'Stormwing Mail',       sub:'Light Armor', icon:'🛡', img:'assets/armor_stormwing_mail.webp',  rarity:'epic',      atk:'—', elem:'Wind +20',     desc:'Woven from Stormwing feathers. Light enough to barely feel.', locked:false },
-      { key:'armor_rockhide_plate',  name:'Rockhide Plate Armor', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_rockhide_plate.webp',  rarity:'epic',      atk:'—', elem:'Earth +20',    desc:"Slabs of Rockhide stone bound in leather. Stops almost anything.", locked:false },
-      { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Void +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:false }
+      { key:'armor_ember_scale',     name:'Ember Scale Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_ember_scale.webp',     rarity:'rare',      atk:'—', elem:'Fire +14',     desc:"Scaled plating cut from a Flareclaw's hide. Matches the Ember Sword.", locked:true },
+      { key:'armor_coral_plate',     name:'Coral Plate Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_coral_plate.webp',     rarity:'rare',      atk:'—', elem:'Water +14',    desc:"Smooth living coral shaped into plating. Matches the Coral weapons.", locked:true },
+      { key:'armor_stormwing_mail',  name:'Stormwing Mail',       sub:'Light Armor', icon:'🛡', img:'assets/armor_stormwing_mail.webp',  rarity:'epic',      atk:'—', elem:'Wind +20',     desc:'Woven from Stormwing feathers. Light enough to barely feel.', locked:true },
+      { key:'armor_rockhide_plate',  name:'Rockhide Plate Armor', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_rockhide_plate.webp',  rarity:'epic',      atk:'—', elem:'Earth +20',    desc:"Slabs of Rockhide stone bound in leather. Stops almost anything.", locked:true },
+      { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Void +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:true }
     ],
     accessory: [
       { key:'talisman_earth',    name:'Earth Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_earth.webp',    rarity:'epic',      atk:'—', elem:'Earth Res +20',     desc:'A charm carved from Rockhide plating. Steadies the hand of its wearer.', equipped:true, locked:false },
-      { key:'talisman_fire',     name:'Fire Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_fire.webp',     rarity:'rare',      atk:'—', elem:'Fire Res +15',      desc:'A warm stone charm that never quite cools down.', locked:false },
-      { key:'talisman_water',    name:'Water Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_water.webp',    rarity:'rare',      atk:'—', elem:'Water Res +15',     desc:'Carved with wave patterns. Always feels faintly damp.', locked:false },
-      { key:'talisman_wind',     name:'Wind Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_wind.webp',     rarity:'rare',      atk:'—', elem:'Wind Res +15',      desc:'Light as a feather. Hums softly when the wind picks up.', locked:false },
-      { key:'talisman_lightning',name:'Lightning Talisman',sub:'Talisman', icon:'🧿', img:'assets/talisman_lightning.webp',rarity:'epic',      atk:'—', elem:'Lightning Res +18', desc:'Sparks faintly whenever thunder rolls in the distance.', locked:false },
+      { key:'talisman_fire',     name:'Fire Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_fire.webp',     rarity:'rare',      atk:'—', elem:'Fire Res +15',      desc:'A warm stone charm that never quite cools down.', locked:true },
+      { key:'talisman_water',    name:'Water Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_water.webp',    rarity:'rare',      atk:'—', elem:'Water Res +15',     desc:'Carved with wave patterns. Always feels faintly damp.', locked:true },
+      { key:'talisman_wind',     name:'Wind Talisman',     sub:'Talisman', icon:'🧿', img:'assets/talisman_wind.webp',     rarity:'rare',      atk:'—', elem:'Wind Res +15',      desc:'Light as a feather. Hums softly when the wind picks up.', locked:true },
+      { key:'talisman_lightning',name:'Lightning Talisman',sub:'Talisman', icon:'🧿', img:'assets/talisman_lightning.webp',rarity:'epic',      atk:'—', elem:'Lightning Res +18', desc:'Sparks faintly whenever thunder rolls in the distance.', locked:true },
       { key:'accessory_hunters_ring', name:"Hunter's Ring", sub:'Ring', icon:'💍', img:'assets/accessory_hunters_ring.webp', rarity:'common', atk:'—', elem:'—', desc:'A worn bronze ring passed down between hunters. Nothing special, but reliable.', locked:false },
-      { key:'accessory_lucky_charm', name:'Lucky Charm Pendant', sub:'Pendant', icon:'🍀', img:'assets/accessory_lucky_charm.webp', rarity:'rare', atk:'—', elem:'Luck +10', desc:'A carved wooden clover on a leather cord. Hunters swear it works.', locked:false },
-      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Amulet', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'Void +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:false }
+      { key:'accessory_lucky_charm', name:'Lucky Charm Pendant', sub:'Pendant', icon:'🍀', img:'assets/accessory_lucky_charm.webp', rarity:'rare', atk:'—', elem:'Luck +10', desc:'A carved wooden clover on a leather cord. Hunters swear it works.', locked:true },
+      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Amulet', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'Void +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:true }
     ],
     material: [
       { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', icon:'🦴', img:'assets/material_claw.webp',       rarity:'common', atk:'—', elem:'—', qty:12, desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
@@ -853,8 +892,66 @@
     ]
   };
 
-  // ---------- codex (built from MONSTERS + ITEMS registries) ----------
-  let codexCategory = 'monster';
+  // ---------- crafting recipes ----------
+  // each entry: which category the crafted item lives in, its material cost, and a gold cost.
+  // craft() below checks these against ITEMS[category] stock before it lets you build anything.
+  const RECIPES = {
+    weapon_mystery: { category:'weapon', gold:500, materials:[
+      { key:'material_singularity_shard', qty:5 },
+      { key:'material_ember_core',        qty:1 },
+      { key:'material_rockhide_core',     qty:1 },
+      { key:'material_stormwing_crystal', qty:1 },
+      { key:'material_aquafin_membrane',  qty:1 }
+    ]},
+    armor_ember_scale: { category:'armor', gold:150, materials:[
+      { key:'material_claw',       qty:5 },
+      { key:'material_scale',      qty:2 },
+      { key:'material_ember_core', qty:1 }
+    ]},
+    armor_coral_plate: { category:'armor', gold:150, materials:[
+      { key:'material_aquafin_scale',    qty:5 },
+      { key:'material_aquafin_membrane', qty:2 }
+    ]},
+    armor_stormwing_mail: { category:'armor', gold:180, materials:[
+      { key:'material_stormwing_feather', qty:5 },
+      { key:'material_stormwing_crystal', qty:2 }
+    ]},
+    armor_rockhide_plate: { category:'armor', gold:180, materials:[
+      { key:'material_rockhide_plating', qty:5 },
+      { key:'material_rockhide_core',    qty:2 }
+    ]},
+    armor_voidfang_carapace: { category:'armor', gold:600, materials:[
+      { key:'material_singularity_shard', qty:3 },
+      { key:'material_monster_bone',      qty:5 },
+      { key:'material_beast_hide',        qty:5 }
+    ]},
+    talisman_fire: { category:'accessory', gold:80, materials:[
+      { key:'material_claw',  qty:3 },
+      { key:'material_scale', qty:1 }
+    ]},
+    talisman_water: { category:'accessory', gold:80, materials:[
+      { key:'material_aquafin_scale',    qty:3 },
+      { key:'material_aquafin_membrane', qty:1 }
+    ]},
+    talisman_wind: { category:'accessory', gold:80, materials:[
+      { key:'material_stormwing_feather', qty:3 },
+      { key:'material_stormwing_crystal', qty:1 }
+    ]},
+    talisman_lightning: { category:'accessory', gold:120, materials:[
+      { key:'material_stormwing_feather', qty:4 },
+      { key:'material_stormwing_crystal', qty:2 }
+    ]},
+    accessory_lucky_charm: { category:'accessory', gold:60, materials:[
+      { key:'material_monster_bone', qty:3 },
+      { key:'material_beast_hide',   qty:2 }
+    ]},
+    accessory_void_amulet: { category:'accessory', gold:400, materials:[
+      { key:'material_singularity_shard', qty:2 },
+      { key:'material_monster_bone',      qty:5 }
+    ]}
+  };
+
+
 
   function buildMonsterEntries(){
     // Monsters already reachable from the quest board are "discovered".
@@ -1463,6 +1560,91 @@
       timerEl.textContent = m + ':' + s;
     }
   }, 1000);
+
+  // ---------- craft gear screen ----------
+  // builds a card per recipe: shows what it needs, how much of that you currently
+  // own (green if enough, red if short), and locks the CRAFT button until you have both
+  // the materials and the gold for it.
+  function renderCraftList(){
+    const goldChip = document.getElementById('craftGoldChip');
+    if(goldChip) goldChip.textContent = playerGold + '◆';
+
+    const list = document.getElementById('craftList');
+    let html = '';
+
+    Object.keys(RECIPES).forEach(key => {
+      const recipe = RECIPES[key];
+      const item = (ITEMS[recipe.category] || []).find(i => i.key === key);
+      if(!item) return;
+
+      const alreadyCrafted = !item.locked;
+      let canCraft = playerGold >= recipe.gold;
+
+      let matsHtml = '';
+      recipe.materials.forEach(m => {
+        const matItem = ITEMS.material.find(i => i.key === m.key);
+        const owned = matItem ? (matItem.qty || 0) : 0;
+        const ok = owned >= m.qty;
+        if(!ok) canCraft = false;
+        matsHtml += '<div class="craft-mat-row">'
+          + '<div class="mat-icon" style="background-image:url(\'' + (matItem ? matItem.img : '') + '\')"></div>'
+          + '<div class="mat-name">' + (matItem ? matItem.name : m.key) + '</div>'
+          + '<div class="mat-count ' + (ok ? 'ok' : 'short') + '">' + owned + '/' + m.qty + '</div>'
+          + '</div>';
+      });
+
+      const btnHtml = alreadyCrafted
+        ? '<div class="craft-btn crafted">CRAFTED ✓</div>'
+        : '<div class="craft-btn' + (canCraft ? '' : ' disabled') + '" data-craft-key="' + key + '">CRAFT — ' + recipe.gold + '◆</div>';
+
+      html += '<div class="craft-card rar-' + item.rarity + '">'
+        + '<div class="craft-card-head">'
+        +   '<div class="craft-icon" style="background-image:url(\'' + item.img + '\')"></div>'
+        +   '<div><div class="craft-name">' + item.name + '</div><div class="craft-sub">' + item.sub + ' &middot; ' + item.rarity + '</div></div>'
+        + '</div>'
+        + '<div class="craft-mats">' + matsHtml + '</div>'
+        + btnHtml
+        + '</div>';
+    });
+
+    list.innerHTML = html;
+
+    list.querySelectorAll('[data-craft-key]:not(.disabled)').forEach(btn=>{
+      btn.addEventListener('click', ()=> craftItem(btn.dataset.craftKey));
+    });
+  }
+
+  // spends the gold + materials and flips the item's locked flag off — only
+  // runs if every requirement in the recipe is actually met (checked again here,
+  // not just trusted from the disabled-button state, in case anything changed)
+  function craftItem(key){
+    const recipe = RECIPES[key];
+    if(!recipe) return;
+    const item = (ITEMS[recipe.category] || []).find(i => i.key === key);
+    if(!item || !item.locked) return;
+    if(playerGold < recipe.gold) return;
+    for(let i=0; i<recipe.materials.length; i++){
+      const m = recipe.materials[i];
+      const matItem = ITEMS.material.find(x => x.key === m.key);
+      if(!matItem || (matItem.qty || 0) < m.qty) return;
+    }
+
+    playerGold -= recipe.gold;
+    recipe.materials.forEach(m => {
+      const matItem = ITEMS.material.find(x => x.key === m.key);
+      matItem.qty -= m.qty;
+    });
+    item.locked = false;
+
+    updateGoldChip();
+    renderCraftList();
+    // refresh whichever inventory tab is open so consumed materials / the new item show up right away
+    renderInventory(currentCategory);
+  }
+
+  document.querySelectorAll('[data-goto="screen-craft"]').forEach(el=>{
+    el.addEventListener('click', renderCraftList);
+  });
 </script>
 
 </body>
