@@ -421,6 +421,22 @@
   .craft-mat-row .mat-count{ font-family:'Press Start 2P', monospace; font-size:10px; }
   .craft-mat-row .mat-count.ok{ color:var(--moss); }
   .craft-mat-row .mat-count.short{ color:var(--blood); }
+
+  /* ================= SCREEN: HERO STATS ================= */
+  .hero-stats-grid{ margin:14px 14px 0 14px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .hero-stat-card{ background:var(--panel); border:2px solid var(--line); padding:10px 12px; }
+  .hero-stat-label{ font-size:10px; letter-spacing:1px; color:var(--bone-dim); font-family:'Press Start 2P', monospace; }
+  .hero-stat-value{ font-size:22px; color:var(--amber); margin-top:4px; }
+  .hero-stat-value.small{ font-size:15px; color:var(--bone); }
+  .resist-list{ margin:8px 14px 0 14px; background:var(--panel); border:2px solid var(--line); padding:6px 12px; display:flex; flex-direction:column; }
+  .resist-row{ display:flex; justify-content:space-between; align-items:center; font-size:15px; color:var(--bone-dim); padding:6px 0; border-bottom:1px solid var(--line); }
+  .resist-row:last-child{ border-bottom:none; }
+  .resist-row b{ font-weight:normal; color:var(--bone-dim); }
+  .resist-row b.pos{ color:var(--moss); }
+  .resist-row b.neg{ color:var(--blood); }
+  .monster-hud-stats{ display:flex; gap:10px; margin-top:4px; font-size:12px; color:var(--bone-dim); }
+  .monster-hud-stats b{ color:var(--bone); font-weight:normal; }
+  .beast-part-stats{ font-size:12px; color:var(--bone-dim); margin-top:2px; }
   .craft-gold-row{ display:flex; align-items:center; gap:8px; font-size:14px; color:var(--bone-dim); }
   .craft-gold-row .mat-count{ font-family:'Press Start 2P', monospace; font-size:10px; }
   .craft-btn{ text-align:center; font-family:'Press Start 2P', monospace; font-size:11px; padding:11px; border:2px solid #000; cursor:pointer; background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
@@ -676,6 +692,7 @@
         <div class="monster-hud-name" id="monsterHudName">GRUBLING</div>
         <div class="monster-hud-part" id="monsterHudPart">🪨 Cangkang utuh</div>
       </div>
+      <div class="monster-hud-stats"><span>ATK <b id="monsterHudAtk">—</b></span><span>DEF <b id="monsterHudDef">—</b></span></div>
       <div class="hp-bar-track"><div class="hp-bar-fill" id="monsterHpFill"></div></div>
       <div class="hp-notches"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
     </div>
@@ -743,6 +760,33 @@
     </div>
   </div>
 
+  <!-- ================= SCREEN: HERO STATS ================= -->
+  <div class="screen" id="screen-hero">
+    <div class="header">
+      <div class="back-btn" data-goto="screen-menu">◀</div>
+      <div>
+        <div class="header-title">HERO STATS</div>
+        <div class="header-sub">Your hunter, unarmed and armored alike</div>
+      </div>
+    </div>
+
+    <div class="loadout" id="heroLoadoutPanel"></div>
+
+    <div class="hero-stats-grid">
+      <div class="hero-stat-card"><div class="hero-stat-label">MAX HP</div><div class="hero-stat-value" id="heroHp">100</div></div>
+      <div class="hero-stat-card"><div class="hero-stat-label">STAMINA</div><div class="hero-stat-value" id="heroStamina">100</div></div>
+      <div class="hero-stat-card"><div class="hero-stat-label">ATTACK</div><div class="hero-stat-value" id="heroAtk">10</div></div>
+      <div class="hero-stat-card"><div class="hero-stat-label">DEFENSE</div><div class="hero-stat-value" id="heroDef">0</div></div>
+      <div class="hero-stat-card"><div class="hero-stat-label">LUCK</div><div class="hero-stat-value" id="heroLuck">0</div></div>
+      <div class="hero-stat-card"><div class="hero-stat-label">WEAPON ELEMENT</div><div class="hero-stat-value small" id="heroWeaponElem">—</div></div>
+    </div>
+
+    <div class="list-label"><span>ELEMENTAL RESISTANCE</span></div>
+    <div class="resist-list" id="heroResistList"></div>
+
+    <div style="height:76px; flex-shrink:0;"></div>
+  </div>
+
   <!-- ---------- DETAIL SHEET (shared, sits above inventory) ---------- -->
   <div class="sheet-overlay" id="sheetOverlay">
     <div class="sheet pixel-frame">
@@ -791,6 +835,9 @@
     </div>
     <div class="nav-item" data-goto="screen-craft">
       <span class="nav-icon icon-img" style="background-image:url('assets/icon_armor.webp')"></span><span class="nav-label">CRAFT</span>
+    </div>
+    <div class="nav-item" data-goto="screen-hero">
+      <span class="nav-icon">🧙</span><span class="nav-label">HERO</span>
     </div>
   </div>
 
@@ -953,6 +1000,100 @@
 
 
 
+  // ================= HERO STATS (derived from equipped gear) =================
+  // Base numbers a hunter has with nothing equipped. Everything else is
+  // layered on top from whatever is currently equipped in ITEMS.
+  const HERO_BASE = { hp: 100, stamina: 100, atk: 10, def: 0, luck: 0 };
+  const ELEMENT_LABELS = { fire:'🔥 Fire', water:'💧 Water', wind:'💨 Wind', earth:'🪨 Earth', lightning:'⚡ Lightning', void:'🌑 Void' };
+
+  // Reads an item's "elem" display string (e.g. "Fire +12", "DEF +18",
+  // "Fire Res +15", "Luck +10") and pulls out a structured stat from it.
+  function parseStatString(str){
+    if(!str || str === '—') return null;
+    let m = str.match(/^DEF\s*\+(\d+)/i);
+    if(m) return { type:'def', amount: parseInt(m[1], 10) };
+    m = str.match(/^Luck\s*\+(\d+)/i);
+    if(m) return { type:'luck', amount: parseInt(m[1], 10) };
+    m = str.match(/^(Fire|Water|Wind|Earth|Lightning|Void)\s*(?:Res)?\s*\+(\d+)/i);
+    if(m) return { type:'elem', element: m[1].toLowerCase(), amount: parseInt(m[2], 10) };
+    return null;
+  }
+
+  // Weapon's elem string is offensive (bonus elemental damage on hit).
+  // Armor/talisman/accessory elem strings are defensive (resistance),
+  // even though armor writes them the same way weapons do ("Fire +14").
+  function computeHeroStats(){
+    const weapon    = ITEMS.weapon.find(i => i.equipped);
+    const armor     = ITEMS.armor.find(i => i.equipped);
+    const talisman  = ITEMS.accessory.find(i => i.equipped && i.sub === 'Talisman');
+    const accessory = ITEMS.accessory.find(i => i.equipped && i.sub !== 'Talisman');
+
+    const stats = {
+      maxHp: HERO_BASE.hp,
+      maxStamina: HERO_BASE.stamina,
+      atk: HERO_BASE.atk + (weapon && typeof weapon.atk === 'number' ? weapon.atk : 0),
+      def: HERO_BASE.def,
+      luck: HERO_BASE.luck,
+      weaponName: weapon ? weapon.name : null,
+      armorName: armor ? armor.name : null,
+      weaponElement: null,
+      weaponElementAmount: 0,
+      resist: { fire:0, water:0, wind:0, earth:0, lightning:0, void:0 }
+    };
+
+    if(weapon && weapon.elem){
+      const parsed = parseStatString(weapon.elem);
+      if(parsed && parsed.type === 'elem'){
+        stats.weaponElement = parsed.element;
+        stats.weaponElementAmount = parsed.amount;
+      }
+    }
+
+    [armor, talisman, accessory].forEach(it => {
+      if(!it || !it.elem) return;
+      const parsed = parseStatString(it.elem);
+      if(!parsed) return;
+      if(parsed.type === 'def') stats.def += parsed.amount;
+      else if(parsed.type === 'luck') stats.luck += parsed.amount;
+      else if(parsed.type === 'elem') stats.resist[parsed.element] = (stats.resist[parsed.element] || 0) + parsed.amount;
+    });
+
+    return stats;
+  }
+
+  // ---------- Hero screen render ----------
+  function renderHeroStats(){
+    const s = computeHeroStats();
+    const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+
+    set('heroHp', s.maxHp);
+    set('heroStamina', s.maxStamina);
+    set('heroAtk', s.atk);
+    set('heroDef', s.def);
+    set('heroLuck', s.luck);
+
+    const weaponElemEl = document.getElementById('heroWeaponElem');
+    if(weaponElemEl){
+      weaponElemEl.textContent = s.weaponElement
+        ? (ELEMENT_LABELS[s.weaponElement] + ' +' + s.weaponElementAmount)
+        : '— none equipped —';
+    }
+
+    const resistList = document.getElementById('heroResistList');
+    if(resistList){
+      let html = '';
+      Object.keys(ELEMENT_LABELS).forEach(elKey => {
+        const amount = s.resist[elKey] || 0;
+        const cls = amount > 0 ? 'pos' : (amount < 0 ? 'neg' : '');
+        html += '<div class="resist-row"><span>' + ELEMENT_LABELS[elKey] + '</span>'
+          + '<b class="' + cls + '">' + (amount > 0 ? '+' : '') + amount + '%</b></div>';
+      });
+      resistList.innerHTML = html;
+    }
+
+    renderLoadout('heroLoadoutPanel');
+  }
+
   function buildMonsterEntries(){
     // Monsters already reachable from the quest board are "discovered".
     const discovered = ['flareclaw', 'rockhide', 'stormwing', 'aquafin'];
@@ -961,7 +1102,10 @@
     for(let i=0; i<keys.length; i++){
       const key = keys[i];
       const mm = MONSTERS[key];
-      entries.push({ key: key, name: mm.name, sub: mm.part, emojiFallback: mm.emojiFallback, img: mm.icon, locked: discovered.indexOf(key) === -1, goto:'screen-combat' });
+      const statSub = (typeof mm.hp === 'number')
+        ? (mm.part + ' · HP ' + mm.hp + ' · ATK ' + mm.atk.min + '-' + mm.atk.max + ' · DEF ' + mm.def)
+        : mm.part;
+      entries.push({ key: key, name: mm.name, sub: statSub, emojiFallback: mm.emojiFallback, img: mm.icon, locked: discovered.indexOf(key) === -1, goto:'screen-combat' });
     }
     entries.push({ key:'voidfang', name:'???', sub:'Unknown', emojiFallback:'🌑', locked:true });
     return entries;
@@ -1123,12 +1267,14 @@
     renderLoadout();
     renderInventory(category);
     updateSheetEquipButton(item, category);
+    renderHeroStats();
   }
   sheetEquipBtn.addEventListener('click', toggleEquip);
 
   // ---------- equipped loadout panel (Weapon / Armor / Talisman) ----------
-  function renderLoadout(){
-    const panel = document.getElementById('loadoutPanel');
+  function renderLoadout(panelId){
+    const panel = document.getElementById(panelId || 'loadoutPanel');
+    if(!panel) return;
     const weapon    = ITEMS.weapon.find(i => i.equipped);
     const armor     = ITEMS.armor.find(i => i.equipped);
     const talisman  = ITEMS.accessory.find(i => i.equipped && i.sub === 'Talisman');
@@ -1227,6 +1373,11 @@
 
   renderLoadout();
   renderInventory('weapon');
+  renderHeroStats();
+
+  document.querySelectorAll('[data-goto="screen-hero"]').forEach(el=>{
+    el.addEventListener('click', renderHeroStats);
+  });
 
   // ================= MONSTER REGISTRY =================
   // Adding a new monster just means adding an entry here — no need to
@@ -1239,6 +1390,8 @@
   const MONSTERS = {
     grubling: {
       name: 'GRUBLING', part: '🪨 Shell intact', emojiFallback: '🐛',
+      hp: 70, atk: { min:4, max:9 }, def: 5, element: 'earth',
+      resist: { fire:-20, earth:25 },
       goldMin: 18, goldMax: 32,
       loot: [
         { key:'material_grubling_shell', chance:1,    min:2, max:4 },
@@ -1253,6 +1406,8 @@
     },
     flareclaw: {
       name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw_idle.webp',
+      hp: 150, atk: { min:10, max:18 }, def: 12, element: 'fire',
+      resist: { fire:40, water:-25 },
       goldMin: 60, goldMax: 95,
       loot: [
         { key:'material_claw',       chance:1,    min:2, max:3 },
@@ -1268,6 +1423,8 @@
       }
     },
     rockhide:  { name: 'ROCKHIDE',  part: '🪨 Stone plating intact', emojiFallback: '🐗', icon: 'assets/rockhide.webp',
+      hp: 170, atk: { min:9, max:16 }, def: 20, element: 'earth',
+      resist: { earth:35, lightning:-20 },
       goldMin: 55, goldMax: 80,
       loot: [
         { key:'material_rockhide_plating', chance:1,    min:2, max:4 },
@@ -1276,6 +1433,8 @@
       ],
       anims: { idle: { url: 'assets/rockhide.webp', frameW: 256, frameH: 263, bgSize: '256px 263px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     stormwing: { name: 'STORMWING', part: '💨 Wings intact',         emojiFallback: '🦅', icon: 'assets/stormwing.webp',
+      hp: 120, atk: { min:8, max:15 }, def: 8, element: 'wind',
+      resist: { wind:35, fire:-20 },
       goldMin: 55, goldMax: 85,
       loot: [
         { key:'material_stormwing_feather', chance:1,    min:2, max:4 },
@@ -1284,6 +1443,8 @@
       ],
       anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 278, bgSize: '256px 278px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     aquafin:   { name: 'AQUAFIN',   part: '💧 Fins intact',          emojiFallback: '🐸', icon: 'assets/aquafin.webp',
+      hp: 100, atk: { min:7, max:13 }, def: 7, element: 'water',
+      resist: { water:35, lightning:-25 },
       goldMin: 50, goldMax: 75,
       loot: [
         { key:'material_aquafin_scale',    chance:1,    min:2, max:4 },
@@ -1361,6 +1522,8 @@
     currentMonster = MONSTERS[currentMonsterKey] || MONSTERS.grubling;
     document.getElementById('monsterHudName').textContent = currentMonster.name;
     document.getElementById('monsterHudPart').textContent = currentMonster.part;
+    document.getElementById('monsterHudAtk').textContent = currentMonster.atk ? (currentMonster.atk.min + '-' + currentMonster.atk.max) : '—';
+    document.getElementById('monsterHudDef').textContent = (typeof currentMonster.def === 'number') ? currentMonster.def : '—';
     animator.setMonster(currentMonster);
   }
 
@@ -1383,7 +1546,8 @@
   const btnHeavy = document.getElementById('btnHeavy');
   const btnDodge = document.getElementById('btnDodge');
 
-  let monsterHp = 100, stamina = 100, playerHp = 100, fightOver = false;
+  let monsterHp = 100, monsterMaxHp = 100, stamina = 100, playerHp = 100, playerMaxHp = 100, playerMaxStamina = 100, fightOver = false;
+  let heroStats = computeHeroStats();
 
   // ---------- loot / hunt rewards (rolled fresh per monster, per kill) ----------
   let playerGold = parseInt((document.getElementById('goldAmount') || {}).textContent, 10) || 0;
@@ -1449,7 +1613,13 @@
   }
 
   function resetCombat(){
-    monsterHp = 100; stamina = 100; playerHp = 100; fightOver = false;
+    // recompute in case the player changed gear since the last hunt
+    heroStats = computeHeroStats();
+    playerMaxHp = heroStats.maxHp;
+    playerMaxStamina = heroStats.maxStamina;
+    monsterMaxHp = currentMonster.hp || 100;
+
+    monsterHp = monsterMaxHp; stamina = playerMaxStamina; playerHp = playerMaxHp; fightOver = false;
     monsterHpFill.style.width = '100%';
     staminaFill.style.width = '100%';
     playerHpFill.style.width = '100%';
@@ -1475,17 +1645,35 @@
     setTimeout(()=> pop.remove(), 700);
   }
 
-  function doAttack(min, max, cooldownMs, btn){
+  // Player attack damage: scales off Hero ATK (base + equipped weapon),
+  // adds the weapon's elemental damage (amplified if the monster is weak to
+  // that element, dampened if resistant), then reduces by monster DEF.
+  function computeAttackDamage(minRatio, maxRatio){
+    const atk = heroStats.atk;
+    let dmg = atk*minRatio + Math.random()*(atk*(maxRatio-minRatio));
+
+    if(heroStats.weaponElement){
+      const resist = (currentMonster.resist && currentMonster.resist[heroStats.weaponElement]) || 0;
+      dmg += Math.max(0, heroStats.weaponElementAmount * (1 - resist/100));
+    }
+
+    const monsterDef = currentMonster.def || 0;
+    return Math.max(1, Math.round(dmg - monsterDef));
+  }
+
+  function doAttack(minRatio, maxRatio, staminaCost, cooldownMs, btn){
     if(fightOver || stamina < 15) { logMsg('Not enough stamina!'); return; }
-    const dmg = Math.floor(min + Math.random()*(max-min));
-    const crit = Math.random() < 0.18;
+    const dmg = computeAttackDamage(minRatio, maxRatio);
+    // Luck gives a small nudge to crit chance on top of the base 18%.
+    const critChance = 0.18 + (heroStats.luck || 0) / 200;
+    const crit = Math.random() < critChance;
     const finalDmg = crit ? Math.floor(dmg*1.5) : dmg;
 
-    stamina = Math.max(0, stamina - (max > 20 ? 30 : 15));
-    staminaFill.style.width = stamina + '%';
+    stamina = Math.max(0, stamina - staminaCost);
+    staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
 
     monsterHp = Math.max(0, monsterHp - finalDmg);
-    monsterHpFill.style.width = monsterHp + '%';
+    monsterHpFill.style.width = (monsterHp / monsterMaxHp * 100) + '%';
 
     arenaMonster.classList.remove('hit'); void arenaMonster.offsetWidth; arenaMonster.classList.add('hit');
     combatArena.classList.remove('arena-shake'); void combatArena.offsetWidth; combatArena.classList.add('arena-shake');
@@ -1508,26 +1696,34 @@
       setTimeout(()=> victoryOverlay.classList.add('show'), 400);
     } else {
       animator.play('hit'); // automatically returns to idle when finished
-      // simple monster counter-attack chance
+      // simple monster counter-attack chance, using the monster's own ATK
+      // range reduced by Hero DEF and by Hero's resistance to its element
       if(Math.random() < 0.3){
         setTimeout(()=>{
           if(fightOver) return;
-          playerHp = Math.max(0, playerHp - (8 + Math.random()*10));
-          playerHpFill.style.width = playerHp + '%';
-          logMsg(currentMonster.name + ' counterattacks!');
+          const mAtk = currentMonster.atk || { min:8, max:18 };
+          let mDmg = mAtk.min + Math.random()*(mAtk.max - mAtk.min);
+          mDmg = Math.max(1, mDmg - heroStats.def);
+          const heroResist = (currentMonster.element && heroStats.resist[currentMonster.element]) || 0;
+          mDmg = mDmg - mDmg * (heroResist / 100);
+          mDmg = Math.max(1, Math.round(mDmg));
+
+          playerHp = Math.max(0, playerHp - mDmg);
+          playerHpFill.style.width = (playerHp / playerMaxHp * 100) + '%';
+          logMsg(currentMonster.name + ' counterattacks! -' + mDmg + ' HP');
           animator.play('attack'); // automatically returns to idle when finished
         }, 500);
       }
     }
   }
 
-  btnLight.addEventListener('click', ()=> doAttack(8, 16, 350, btnLight));
-  btnHeavy.addEventListener('click', ()=> doAttack(20, 32, 900, btnHeavy));
+  btnLight.addEventListener('click', ()=> doAttack(0.35, 0.6, 15, 350, btnLight));
+  btnHeavy.addEventListener('click', ()=> doAttack(0.85, 1.25, 30, 900, btnHeavy));
 
   btnDodge.addEventListener('click', ()=>{
     if(fightOver || stamina < 20) { logMsg("Can't dodge right now!"); return; }
     stamina = Math.max(0, stamina - 20);
-    staminaFill.style.width = stamina + '%';
+    staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
     dodgeFlash.classList.add('show');
     logMsg('Nimble dodge!');
     setTimeout(()=> dodgeFlash.classList.remove('show'), 150);
@@ -1536,9 +1732,9 @@
   // stamina regen over time
   setInterval(()=>{
     if(fightOver) return;
-    if(stamina < 100){
-      stamina = Math.min(100, stamina + 4);
-      staminaFill.style.width = stamina + '%';
+    if(stamina < playerMaxStamina){
+      stamina = Math.min(playerMaxStamina, stamina + 4);
+      staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
     }
   }, 400);
 
