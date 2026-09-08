@@ -565,29 +565,29 @@
     </div>
 
     <div class="tabs">
-      <div class="tab">RANK 1</div>
-      <div class="tab">RANK 2</div>
-      <div class="tab active">RANK 3</div>
-      <div class="tab">RANK 4</div>
-      <div class="tab">RANK 5</div>
+      <div class="tab" data-rank="1">RANK 1</div>
+      <div class="tab" data-rank="2">RANK 2</div>
+      <div class="tab active" data-rank="3">RANK 3</div>
+      <div class="tab" data-rank="4">RANK 4</div>
+      <div class="tab" data-rank="5">RANK 5</div>
     </div>
 
     <div class="featured pixel-frame">
-      <span class="tag">★ QUEST EVENT</span>
+      <span class="tag" id="questTag">★ QUEST EVENT</span>
       <div class="featured-row">
-        <div class="featured-monster">🐉</div>
+        <div class="featured-monster" id="featuredMonsterIcon">🐉</div>
         <div class="featured-info">
-          <div class="featured-name">RED FLARECLAW</div>
-          <div class="featured-elem">🔥 Fire Element</div>
-          <div class="stars">★★★<span class="off">☆☆</span></div>
+          <div class="featured-name" id="featuredName">RED FLARECLAW</div>
+          <div class="featured-elem" id="featuredElem">🔥 Fire Element</div>
+          <div class="stars" id="featuredStars">★★★<span class="off">☆☆</span></div>
         </div>
       </div>
-      <div class="featured-go" data-goto="screen-combat" data-monster="flareclaw">HUNT NOW</div>
+      <div class="featured-go" id="featuredGoBtn" data-goto="screen-combat" data-monster="flareclaw">HUNT NOW</div>
     </div>
 
-    <div class="list-label"><span>ALL QUESTS — RANK 3</span><span>6 quests</span></div>
+    <div class="list-label"><span id="questListLabel">ALL QUESTS — RANK 3</span><span id="questListCount">6 quests</span></div>
 
-    <div class="quest-list">
+    <div class="quest-list" id="questList">
       <div class="quest-card" data-goto="screen-combat" data-monster="rockhide">
         <div class="quest-icon monster-art" style="background-image:url('assets/rockhide.webp')"></div>
         <div class="quest-mid"><div class="quest-name">TAKE DOWN ROCKHIDE</div><div class="quest-meta">🪨 Earth <span class="stars">★★★<span class="off">☆☆</span></span></div></div>
@@ -973,10 +973,11 @@
   // wipes equip state, unlocks, material/potion counts, and gold back to
   // those defaults. That's why equipped accessories kept reverting.
   const SAVE_KEY = 'pixelhunt_save_v1';
+  let currentRank = 3; // which Quest Board rank tab is active; updated by renderQuestBoard()
 
   function saveGame(){
     try {
-      const data = { gold: playerGold, items: {} };
+      const data = { gold: playerGold, rank: currentRank, items: {} };
       Object.keys(ITEMS).forEach(cat => {
         data.items[cat] = ITEMS[cat].map(i => ({
           key: i.key,
@@ -1016,6 +1017,8 @@
         const goldEl = document.getElementById('goldAmount');
         if(goldEl) goldEl.textContent = data.gold;
       }
+
+      if(typeof data.rank === 'number') currentRank = data.rank;
     } catch(e){
       console.warn('pixelhunt: failed to load progress', e);
     }
@@ -1257,12 +1260,9 @@
   });
 
   // ---------- quest board tabs ----------
-  document.querySelectorAll('#screen-quest .tab').forEach(tab=>{
-    tab.addEventListener('click', ()=>{
-      document.querySelectorAll('#screen-quest .tab').forEach(t=>t.classList.remove('active'));
-      tab.classList.add('active');
-    });
-  });
+  // actual rendering (renderQuestBoard) is wired further below, once
+  // MONSTERS exists — this only used to toggle the active class visually,
+  // which is why switching ranks never changed the monster/quest list.
 
   // ---------- item detail sheet (elements shared by every rendered item card) ----------
   const overlay = document.getElementById('sheetOverlay');
@@ -1618,6 +1618,166 @@
   });
   loadMonster('grubling'); // default before the user clicks any quest
   renderBestiary();
+
+  // ================= QUEST BOARD (rank tabs + menu event) =================
+  // Drives both the Quest Board screen (featured event + quest list per rank)
+  // and the main-menu ribbon/sub-text, so switching ranks now actually
+  // changes which monster is featured instead of just moving the tab highlight.
+  const ELEM_INFO = {
+    earth:     { emoji:'🪨', label:'Earth' },
+    fire:      { emoji:'🔥', label:'Fire' },
+    water:     { emoji:'💧', label:'Water' },
+    wind:      { emoji:'💨', label:'Wind' },
+    lightning: { emoji:'⚡', label:'Lightning' }
+  };
+
+  // one entry per rank tab. "featured" is the highlighted event at the top;
+  // "quests" are the cards in the list below. locked entries have no
+  // `monster` key (nothing to hunt yet) and just render a lock icon.
+  const QUEST_RANKS = {
+    1: {
+      featured: { monster:'grubling', tag:'★ QUEST EVENT', stars:1 },
+      quests: [
+        { monster:'grubling', name:"GRUBLING'S NEST", stars:1, reward:35 },
+        { name:'???', stars:1, locked:true, elemLabel:'Locked' }
+      ]
+    },
+    2: {
+      featured: { monster:'aquafin', tag:'★ QUEST EVENT', stars:2 },
+      quests: [
+        { monster:'aquafin',  name:'CAPTURE AQUAFIN',     stars:2, reward:60 },
+        { monster:'grubling', name:"GRUBLING'S NEST",     stars:1, reward:35 },
+        { name:'???', stars:2, locked:true, elemLabel:'Locked' }
+      ]
+    },
+    3: {
+      featured: { monster:'flareclaw', tag:'★ QUEST EVENT', stars:3 },
+      quests: [
+        { monster:'rockhide',  name:'TAKE DOWN ROCKHIDE',    stars:3, reward:80 },
+        { monster:'stormwing', name:'BRING DOWN STORMWING',  stars:3, reward:95 },
+        { monster:'aquafin',   name:'CAPTURE AQUAFIN',       stars:2, reward:60 },
+        { monster:'flareclaw', name:'HUNT FLARECLAW',        stars:2, reward:55 },
+        { name:"GRUBLING'S NEST", stars:1, locked:true, elemLabel:'Earth' },
+        { name:'VOIDFANG — ???',  stars:5, locked:true, elemLabel:'Secret' }
+      ]
+    },
+    4: {
+      featured: { monster:'stormwing', tag:'★ ELITE EVENT', stars:4 },
+      quests: [
+        { monster:'flareclaw',  name:'HUNT ELITE FLARECLAW',       stars:4, reward:140 },
+        { monster:'rockhide',   name:'TAKE DOWN ELITE ROCKHIDE',   stars:4, reward:150 },
+        { monster:'stormwing',  name:'BRING DOWN ELITE STORMWING', stars:4, reward:145 },
+        { monster:'aquafin',    name:'CAPTURE ELITE AQUAFIN',      stars:3, reward:110 },
+        { name:'VOIDFANG — ???', stars:5, locked:true, elemLabel:'Secret' }
+      ]
+    },
+    5: {
+      featured: { name:'VOIDFANG — ???', emoji:'🌑', tag:'★ SECRET EVENT', stars:5, locked:true, elemLabel:'Secret' },
+      quests: [
+        { monster:'flareclaw', name:'HUNT ELITE FLARECLAW',     stars:4, reward:140 },
+        { monster:'rockhide',  name:'TAKE DOWN ELITE ROCKHIDE', stars:4, reward:150 },
+        { name:'VOIDFANG — ???', stars:5, locked:true, elemLabel:'Secret' },
+        { name:'???', stars:5, locked:true, elemLabel:'Locked' }
+      ]
+    }
+  };
+
+  function titleCase(str){
+    return str.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+  }
+
+  function starsHtml(filled){
+    filled = Math.max(0, Math.min(5, filled || 0));
+    return '★'.repeat(filled) + (filled < 5 ? '<span class="off">' + '☆'.repeat(5 - filled) + '</span>' : '');
+  }
+
+  function questIconHtml(q){
+    const mm = q.monster ? MONSTERS[q.monster] : null;
+    const icon = mm ? (mm.icon || (mm.anims && mm.anims.idle && mm.anims.idle.url)) : null;
+    if(icon) return '<div class="quest-icon monster-art" style="background-image:url(\'' + icon + '\')"></div>';
+    return '<div class="quest-icon">' + (mm ? mm.emojiFallback : '🔒') + '</div>';
+  }
+
+  // updates the main-menu ribbon + "Rank X — ... awaits" line to match
+  // whichever rank's event is currently featured on the Quest Board.
+  function updateMenuEvent(rank){
+    const data = QUEST_RANKS[rank];
+    if(!data) return;
+    const fMonster = data.featured.monster ? MONSTERS[data.featured.monster] : null;
+    const fName = fMonster ? fMonster.name : (data.featured.name || '???');
+
+    const ribbon = document.querySelector('#screen-menu .ribbon');
+    if(ribbon) ribbon.innerHTML = '<span class="dot"></span>EVENT: ' + fName + (fMonster ? ' HAS APPEARED' : ' AWAITS');
+
+    const sub = document.querySelector('#screen-menu .btn.primary .sub');
+    if(sub) sub.textContent = 'Rank ' + rank + ' — ' + titleCase(fName) + ' awaits';
+  }
+
+  function renderQuestBoard(rank){
+    const data = QUEST_RANKS[rank];
+    if(!data) return;
+    currentRank = rank;
+
+    document.querySelectorAll('#screen-quest .tab').forEach(t=>{
+      t.classList.toggle('active', parseInt(t.dataset.rank, 10) === rank);
+    });
+
+    const fMonster = data.featured.monster ? MONSTERS[data.featured.monster] : null;
+    const fElem = fMonster ? ELEM_INFO[fMonster.element] : null;
+
+    document.getElementById('questTag').textContent = data.featured.tag || '★ QUEST EVENT';
+    document.getElementById('featuredMonsterIcon').textContent = fMonster ? fMonster.emojiFallback : (data.featured.emoji || '❓');
+    document.getElementById('featuredName').textContent = fMonster ? fMonster.name : (data.featured.name || '???');
+    document.getElementById('featuredElem').textContent = fElem ? (fElem.emoji + ' ' + fElem.label + ' Element') : (data.featured.elemLabel || 'Secret');
+    document.getElementById('featuredStars').innerHTML = starsHtml(data.featured.stars);
+
+    const goBtn = document.getElementById('featuredGoBtn');
+    if(data.featured.locked || !data.featured.monster){
+      goBtn.textContent = 'LOCKED';
+      goBtn.style.opacity = '0.4';
+      goBtn.style.pointerEvents = 'none';
+    } else {
+      goBtn.textContent = 'HUNT NOW';
+      goBtn.dataset.monster = data.featured.monster;
+      goBtn.style.opacity = '';
+      goBtn.style.pointerEvents = '';
+    }
+
+    document.getElementById('questListLabel').textContent = 'ALL QUESTS — RANK ' + rank;
+    document.getElementById('questListCount').textContent = data.quests.length + ' quests';
+
+    const list = document.getElementById('questList');
+    list.innerHTML = data.quests.map(q=>{
+      const mm = q.monster ? MONSTERS[q.monster] : null;
+      const elem = mm ? ELEM_INFO[mm.element] : null;
+      const metaLabel = elem ? (elem.emoji + ' ' + elem.label) : (q.elemLabel || 'Secret');
+      const goAttr = (!q.locked && q.monster) ? (' data-goto="screen-combat" data-monster="' + q.monster + '"') : '';
+      return '<div class="quest-card' + (q.locked ? ' locked' : '') + '"' + goAttr + '>'
+        + questIconHtml(q)
+        + '<div class="quest-mid"><div class="quest-name">' + q.name + '</div>'
+        + '<div class="quest-meta">' + metaLabel + ' <span class="stars">' + starsHtml(q.stars) + '</span></div></div>'
+        + (q.locked ? '<div class="lock-icon">🔒</div>' : '<div class="quest-reward">◆ ' + q.reward + '</div>')
+        + '</div>';
+    }).join('');
+
+    // dynamically-created cards need their own listeners — the page-load-time
+    // generic [data-goto] listeners only ever attached to the original static cards
+    list.querySelectorAll('[data-goto]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        loadMonster(el.dataset.monster || 'grubling');
+        goTo(el.dataset.goto);
+      });
+    });
+
+    updateMenuEvent(rank);
+    saveGame();
+  }
+
+  document.querySelectorAll('#screen-quest .tab').forEach(tab=>{
+    tab.addEventListener('click', ()=> renderQuestBoard(parseInt(tab.dataset.rank, 10) || 3));
+  });
+
+  renderQuestBoard(currentRank); // apply saved/default rank on load
 
   const monsterHpFill = document.getElementById('monsterHpFill');
   const staminaFill = document.getElementById('staminaFill');
