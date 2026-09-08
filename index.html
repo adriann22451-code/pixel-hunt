@@ -307,6 +307,15 @@
   .dodge-flash.show{ opacity:1; }
 
   .player-hud{ position:relative; z-index:5; margin:0 14px 8px 14px; }
+  .status-badges{ display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; min-height:0; }
+  .status-badge{
+    font-family:'Press Start 2P', monospace; font-size:8px; line-height:1.4;
+    padding:4px 7px; border:2px solid #000; color:var(--bone);
+    display:flex; align-items:center; gap:4px; animation: badgeIn 0.2s ease;
+  }
+  .status-badge.poison{ background: linear-gradient(180deg, #5a3d7a, #35204a); }
+  .status-badge.resist{ background: linear-gradient(180deg, #2b6b7a, #17383f); }
+  @keyframes badgeIn{ 0%{ transform: scale(0.7); opacity:0; } 100%{ transform: scale(1); opacity:1; } }
   .stamina-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
   .stamina-label{ font-size:13px; color:var(--bone-dim); width:56px; flex-shrink:0; }
   .stamina-track{ flex:1; height:10px; background:#000; border:2px solid #000; overflow:hidden; }
@@ -730,6 +739,7 @@
     <div class="dodge-flash" id="dodgeFlash"></div>
 
     <div class="player-hud">
+      <div class="status-badges" id="playerStatusBadges"></div>
       <div class="stamina-row">
         <div class="stamina-label">STAMINA</div>
         <div class="stamina-track"><div class="stamina-fill" id="staminaFill"></div></div>
@@ -1820,11 +1830,40 @@
   const btnHeavy = document.getElementById('btnHeavy');
   const btnDodge = document.getElementById('btnDodge');
   const btnItem = document.getElementById('btnItem');
+  const playerStatusBadges = document.getElementById('playerStatusBadges');
 
   let monsterHp = 100, monsterMaxHp = 100, stamina = 100, playerHp = 100, playerMaxHp = 100, playerMaxStamina = 100, fightOver = false;
   // status effects: poison ticks HP down at the start of each of your turns;
   // the elemental resist buff temporarily adds to heroStats.resist for that element
   let poisonTurnsLeft = 0, poisonDmgPerTurn = 0, resistBuffTurnsLeft = 0, resistBuffAmount = 0;
+
+  // redraws the little buff/debuff chips over the player HUD from current state
+  function renderStatusBadges(){
+    if(!playerStatusBadges) return;
+    let html = '';
+    if(poisonTurnsLeft > 0){
+      html += '<div class="status-badge poison">☠ POISON x' + poisonTurnsLeft + '</div>';
+    }
+    if(resistBuffTurnsLeft > 0){
+      html += '<div class="status-badge resist">🛡 RESIST +' + resistBuffAmount + '% x' + resistBuffTurnsLeft + '</div>';
+    }
+    playerStatusBadges.innerHTML = html;
+  }
+
+  // resolves poison at the start of a player turn: ticks damage down (through
+  // applyDamageToPlayer, so a Phoenix Draught can still save you from a poison
+  // tick, not just a monster hit), decrements the counter, and reports back
+  // whatever applyDamageToPlayer returned so the caller knows whether to keep going.
+  function tickPoison(){
+    if(poisonTurnsLeft <= 0) return 'none';
+    poisonTurnsLeft -= 1;
+    const dmg = poisonDmgPerTurn;
+    logMsg('Poison courses through you! -' + dmg + ' HP');
+    const result = applyDamageToPlayer(dmg);
+    if(poisonTurnsLeft === 0) logMsg('The poison wears off.');
+    renderStatusBadges();
+    return result;
+  }
   let heroStats = computeHeroStats();
   let turn = 'player'; // 'player' | 'monster' | 'over' — whose move it is right now
   let playerDodging = false; // true when the player spent their turn bracing to dodge
@@ -1907,6 +1946,7 @@
     monsterHp = monsterMaxHp; stamina = playerMaxStamina; playerHp = playerMaxHp; fightOver = false;
     turn = 'player'; playerDodging = false;
     poisonTurnsLeft = 0; poisonDmgPerTurn = 0; resistBuffTurnsLeft = 0; resistBuffAmount = 0;
+    renderStatusBadges();
     monsterHpFill.style.width = '100%';
     staminaFill.style.width = '100%';
     playerHpFill.style.width = '100%';
@@ -2038,6 +2078,12 @@
   // ---------- turn switching ----------
   function startPlayerTurn(){
     if(fightOver) return;
+
+    // resolve any poison damage before the turn actually starts — this can
+    // end the fight (or trigger a Phoenix revive) on its own
+    const poisonResult = tickPoison();
+    if(poisonResult === 'defeated') return;
+
     turn = 'player';
     playerDodging = false;
     // a small stamina top-up at the start of each of your turns
@@ -2071,7 +2117,10 @@
     let mDmg = mAtk.min + Math.random()*(mAtk.max - mAtk.min);
     const mitigation = 100 / (100 + heroStats.def * 4);
     mDmg = mDmg * mitigation;
-    const heroResist = (currentMonster.element && heroStats.resist[currentMonster.element]) || 0;
+    let heroResist = (currentMonster.element && heroStats.resist[currentMonster.element]) || 0;
+    // Elemental Resist Tonic stacks on top of gear resist for its duration
+    if(resistBuffTurnsLeft > 0) heroResist += resistBuffAmount;
+    heroResist = Math.min(heroResist, 80); // keep a hit from ever being reduced to nothing
     mDmg = mDmg - mDmg * (heroResist / 100);
     mDmg = Math.max(2, Math.round(mDmg));
 
@@ -2092,29 +2141,43 @@
         }
       }
 
+      // the resist buff burns down one charge per monster attack faced,
+      // whether or not that attack actually connects
+      if(resistBuffTurnsLeft > 0){
+        resistBuffTurnsLeft -= 1;
+        if(resistBuffTurnsLeft === 0) logMsg('Your elemental resistance fades.');
+      }
+
+      let result = 'alive';
+
       if(fullyDodged){
         dodgeFlash.classList.add('show');
         setTimeout(()=> dodgeFlash.classList.remove('show'), 150);
         logMsg('You dodge the attack completely!');
       } else {
-        playerHp = Math.max(0, playerHp - finalDmg);
-        playerHpFill.style.width = (playerHp / playerMaxHp * 100) + '%';
-        playerHpNumber.textContent = playerHp + '/' + playerMaxHp;
         logMsg(playerDodging
           ? currentMonster.name + ' hits through your dodge! -' + finalDmg + ' HP'
           : currentMonster.name + ' attacks! -' + finalDmg + ' HP');
+        // route through applyDamageToPlayer so a Phoenix Draught can trigger
+        // here too, not just on a poison tick
+        result = applyDamageToPlayer(finalDmg);
+
+        // only a landed hit has a shot at poisoning you — a full dodge doesn't
+        if(result !== 'defeated' && currentMonster.poisonChance && Math.random() < currentMonster.poisonChance){
+          if(poisonTurnsLeft <= 0) logMsg(currentMonster.name + "'s attack poisons you!");
+          poisonTurnsLeft = 3;
+          poisonDmgPerTurn = Math.max(2, Math.round(finalDmg * 0.35));
+        }
       }
 
-      if(playerHp <= 0){
-        fightOver = true; turn = 'over';
-        setButtonsEnabled(false);
-        document.getElementById('defeatSub').textContent = currentMonster.name + ' was too strong this time';
-        animator.play('idle');
-        setTimeout(()=> defeatOverlay.classList.add('show'), 400);
-      } else {
-        animator.play('idle');
-        setTimeout(startPlayerTurn, 550);
+      renderStatusBadges();
+
+      if(result === 'defeated'){
+        return; // applyDamageToPlayer already ended the fight and showed the overlay
       }
+
+      animator.play('idle');
+      setTimeout(startPlayerTurn, 550);
     }, 500);
   }
 
@@ -2133,15 +2196,17 @@
   });
 
   // ---------- combat items: potions actually do something now ----------
-  // Only the potions with a clear, immediate numeric effect are usable
-  // mid-fight (HP / stamina restore). Antidote, the elemental resist tonic,
-  // and the phoenix revive would need a status-effect / death-recovery
-  // system this game doesn't have yet, so they're left as inventory-only
-  // for now rather than wired to a fake effect.
+  // Health/stamina potions are a plain instant restore. Antidote and the
+  // Elemental Resist Tonic drive the status-effect system above (poison /
+  // temporary resist buff); the Phoenix Draught stays automatic — it fires
+  // from applyDamageToPlayer whenever HP would hit 0, so it never needs to
+  // be selected from this menu.
   const COMBAT_USABLE_POTIONS = [
-    { key:'potion_health',         restoreHp: 35,               label:'Restores 35 HP' },
-    { key:'potion_health_greater', restoreHp: 70,               label:'Restores 70 HP' },
-    { key:'potion_stamina',        restoreStamina: 50,          label:'Restores 50 Stamina' }
+    { key:'potion_health',           restoreHp: 35,                        label:'Restores 35 HP' },
+    { key:'potion_health_greater',   restoreHp: 70,                        label:'Restores 70 HP' },
+    { key:'potion_stamina',          restoreStamina: 50,                   label:'Restores 50 Stamina' },
+    { key:'potion_antidote',         curePoison: true,                     label:'Cures poison' },
+    { key:'potion_elemental_resist', resistBuff: { turns: 3, amount: 40 }, label:'+40% elemental resist for 3 turns' }
   ];
 
   const itemSheetOverlay = document.getElementById('itemSheetOverlay');
@@ -2151,11 +2216,14 @@
     combatItemList.innerHTML = COMBAT_USABLE_POTIONS.map(def => {
       const item = ITEMS.potion.find(i => i.key === def.key);
       const qty = item ? (item.qty || 0) : 0;
-      const disabled = qty <= 0;
+      // no sense letting the Antidote be tapped (and wasted) when you aren't poisoned
+      const nothingToCure = def.curePoison && poisonTurnsLeft <= 0;
+      const disabled = qty <= 0 || nothingToCure;
+      const desc = nothingToCure ? def.label + ' — not poisoned' : def.label;
       return '<div class="combat-item-row' + (disabled ? ' disabled' : '') + '" data-key="' + def.key + '">'
         + '<div class="combat-item-icon" style="background-image:url(\'' + (item ? item.img : '') + '\')"></div>'
         + '<div class="combat-item-mid"><div class="combat-item-name">' + (item ? item.name : def.key) + '</div>'
-        + '<div class="combat-item-desc">' + def.label + '</div></div>'
+        + '<div class="combat-item-desc">' + desc + '</div></div>'
         + '<div class="combat-item-qty">x' + qty + '</div>'
         + '</div>';
     }).join('');
@@ -2170,6 +2238,7 @@
     const def = COMBAT_USABLE_POTIONS.find(d => d.key === key);
     const item = def && ITEMS.potion.find(i => i.key === key);
     if(!def || !item || (item.qty || 0) <= 0) return;
+    if(def.curePoison && poisonTurnsLeft <= 0) return; // nothing to cure — don't burn it for nothing
 
     item.qty -= 1;
 
@@ -2185,6 +2254,17 @@
       staminaNumber.textContent = stamina + '/' + playerMaxStamina;
       logMsg('You drink the ' + item.name + '. +' + def.restoreStamina + ' Stamina');
     }
+    if(def.curePoison){
+      poisonTurnsLeft = 0;
+      poisonDmgPerTurn = 0;
+      logMsg('You drink the ' + item.name + '. The poison is neutralized!');
+    }
+    if(def.resistBuff){
+      resistBuffTurnsLeft = def.resistBuff.turns;
+      resistBuffAmount = def.resistBuff.amount;
+      logMsg('You drink the ' + item.name + '. Elemental resistance +' + def.resistBuff.amount + '% for ' + def.resistBuff.turns + ' turns!');
+    }
+    renderStatusBadges();
 
     saveGame();
     itemSheetOverlay.classList.remove('open');
