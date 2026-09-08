@@ -378,6 +378,20 @@
     background: linear-gradient(180deg, var(--amber), #c9781f);
     border:2px solid #000; padding:12px 20px; cursor:pointer;
   }
+  .victory-title.defeat{ color:var(--blood); text-shadow: 0 0 14px rgba(156,47,31,0.7), 3px 3px 0 #000; }
+  .victory-go.defeat{ background: linear-gradient(180deg, var(--blood), #6e2015); color:var(--bone); }
+
+  /* ---------- turn-based combat indicator ---------- */
+  .turn-banner{
+    position:relative; z-index:5; margin:0 14px 6px 14px;
+    text-align:center; font-family:'Press Start 2P', monospace; font-size:10px;
+    letter-spacing:1px; padding:6px 0;
+    background:var(--panel); border:2px solid var(--line); color:var(--amber);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .turn-banner.monster-turn{ color:var(--blood); border-color:rgba(156,47,31,0.5); }
+  .action-btn.turn-disabled{ pointer-events:none; opacity:0.35; }
+  .action-btn.turn-disabled .circle{ filter:grayscale(0.6); }
 
   /* ================= SCREEN 5: REWARD ================= */
   #screen-reward{
@@ -720,6 +734,8 @@
       </div>
     </div>
 
+    <div class="turn-banner" id="turnBanner">YOUR TURN</div>
+
     <div class="combat-controls">
       <div class="move-pad"><div class="stick"></div></div>
       <div class="action-cluster">
@@ -742,6 +758,12 @@
       <div class="victory-title">PREY DOWN!</div>
       <div class="victory-sub" id="victorySub">Red Flareclaw defeated</div>
       <div class="victory-go" id="btnGoReward">VIEW HUNT REWARDS</div>
+    </div>
+
+    <div class="victory-overlay" id="defeatOverlay">
+      <div class="victory-title defeat">HUNTER DOWN!</div>
+      <div class="victory-sub" id="defeatSub">You were defeated</div>
+      <div class="victory-go defeat" id="btnRetreat">RETREAT TO CAMP</div>
     </div>
   </div>
 
@@ -1552,12 +1574,16 @@
   const combatLog = document.getElementById('combatLog');
   const dodgeFlash = document.getElementById('dodgeFlash');
   const victoryOverlay = document.getElementById('victoryOverlay');
+  const defeatOverlay = document.getElementById('defeatOverlay');
+  const turnBanner = document.getElementById('turnBanner');
   const btnLight = document.getElementById('btnLight');
   const btnHeavy = document.getElementById('btnHeavy');
   const btnDodge = document.getElementById('btnDodge');
 
   let monsterHp = 100, monsterMaxHp = 100, stamina = 100, playerHp = 100, playerMaxHp = 100, playerMaxStamina = 100, fightOver = false;
   let heroStats = computeHeroStats();
+  let turn = 'player'; // 'player' | 'monster' | 'over' — whose move it is right now
+  let playerDodging = false; // true when the player spent their turn bracing to dodge
 
   // ---------- loot / hunt rewards (rolled fresh per monster, per kill) ----------
   let playerGold = parseInt((document.getElementById('goldAmount') || {}).textContent, 10) || 0;
@@ -1622,6 +1648,10 @@
     document.getElementById('rewardList').innerHTML = html;
   }
 
+  function setButtonsEnabled(enabled){
+    [btnLight, btnHeavy, btnDodge].forEach(btn => btn.classList.toggle('turn-disabled', !enabled));
+  }
+
   function resetCombat(){
     // recompute in case the player changed gear since the last hunt
     heroStats = computeHeroStats();
@@ -1630,6 +1660,7 @@
     monsterMaxHp = currentMonster.hp || 100;
 
     monsterHp = monsterMaxHp; stamina = playerMaxStamina; playerHp = playerMaxHp; fightOver = false;
+    turn = 'player'; playerDodging = false;
     monsterHpFill.style.width = '100%';
     staminaFill.style.width = '100%';
     playerHpFill.style.width = '100%';
@@ -1637,6 +1668,10 @@
     staminaNumber.textContent = playerMaxStamina + '/' + playerMaxStamina;
     playerHpNumber.textContent = playerMaxHp + '/' + playerMaxHp;
     victoryOverlay.classList.remove('show');
+    defeatOverlay.classList.remove('show');
+    turnBanner.textContent = 'YOUR TURN';
+    turnBanner.classList.remove('monster-turn');
+    setButtonsEnabled(true);
     combatLog.innerHTML = '';
     animator.play('idle');
   }
@@ -1674,8 +1709,9 @@
     return Math.max(1, Math.round(dmg - monsterDef));
   }
 
-  function doAttack(minRatio, maxRatio, staminaCost, cooldownMs, btn){
-    if(fightOver || stamina < 15) { logMsg('Not enough stamina!'); return; }
+  function doAttack(minRatio, maxRatio, staminaCost, btn){
+    if(fightOver || turn !== 'player') return;
+    if(stamina < staminaCost) { logMsg('Not enough stamina!'); return; }
     const dmg = computeAttackDamage(minRatio, maxRatio);
     // Luck gives a small nudge to crit chance on top of the base 18%.
     const critChance = 0.18 + (heroStats.luck || 0) / 200;
@@ -1696,10 +1732,11 @@
     logMsg(crit ? 'CRITICAL! -' + finalDmg + ' HP' : 'Hit! -' + finalDmg + ' HP');
 
     btn.classList.add('on-cooldown');
-    setTimeout(()=> btn.classList.remove('on-cooldown'), cooldownMs);
+    setTimeout(()=> btn.classList.remove('on-cooldown'), 350);
 
     if(monsterHp <= 0 && !fightOver){
-      fightOver = true;
+      fightOver = true; turn = 'over';
+      setButtonsEnabled(false);
       animator.play('defeat', { onComplete: ()=>{} }); // stop on the last frame, don't return to idle
       document.getElementById('victorySub').textContent = currentMonster.name + ' defeated';
 
@@ -1711,50 +1748,103 @@
       setTimeout(()=> victoryOverlay.classList.add('show'), 400);
     } else {
       animator.play('hit'); // automatically returns to idle when finished
-      // simple monster counter-attack chance, using the monster's own ATK
-      // range reduced by Hero DEF and by Hero's resistance to its element
-      if(Math.random() < 0.3){
-        setTimeout(()=>{
-          if(fightOver) return;
-          const mAtk = currentMonster.atk || { min:8, max:18 };
-          let mDmg = mAtk.min + Math.random()*(mAtk.max - mAtk.min);
-          mDmg = Math.max(1, mDmg - heroStats.def);
-          const heroResist = (currentMonster.element && heroStats.resist[currentMonster.element]) || 0;
-          mDmg = mDmg - mDmg * (heroResist / 100);
-          mDmg = Math.max(1, Math.round(mDmg));
-
-          playerHp = Math.max(0, playerHp - mDmg);
-          playerHpFill.style.width = (playerHp / playerMaxHp * 100) + '%';
-          playerHpNumber.textContent = playerHp + '/' + playerMaxHp;
-          logMsg(currentMonster.name + ' counterattacks! -' + mDmg + ' HP');
-          animator.play('attack'); // automatically returns to idle when finished
-        }, 500);
-      }
+      endPlayerTurn();
     }
   }
 
-  btnLight.addEventListener('click', ()=> doAttack(0.35, 0.6, 15, 350, btnLight));
-  btnHeavy.addEventListener('click', ()=> doAttack(0.85, 1.25, 30, 900, btnHeavy));
+  // ---------- turn switching ----------
+  function startPlayerTurn(){
+    if(fightOver) return;
+    turn = 'player';
+    playerDodging = false;
+    // a small stamina top-up at the start of each of your turns
+    stamina = Math.min(playerMaxStamina, stamina + 15);
+    staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
+    staminaNumber.textContent = stamina + '/' + playerMaxStamina;
+    turnBanner.textContent = 'YOUR TURN';
+    turnBanner.classList.remove('monster-turn');
+    setButtonsEnabled(true);
+    animator.play('idle');
+  }
+
+  function endPlayerTurn(){
+    if(fightOver) return;
+    turn = 'monster';
+    setButtonsEnabled(false);
+    turnBanner.textContent = currentMonster.name + "'S TURN";
+    turnBanner.classList.add('monster-turn');
+    setTimeout(monsterTurn, 850);
+  }
+
+  // The monster always swings back on its turn — no more random chance.
+  // If the player braced to dodge, there's a real shot at avoiding it entirely.
+  function monsterTurn(){
+    if(fightOver) return;
+    const mAtk = currentMonster.atk || { min:8, max:18 };
+    let mDmg = mAtk.min + Math.random()*(mAtk.max - mAtk.min);
+    mDmg = Math.max(1, mDmg - heroStats.def);
+    const heroResist = (currentMonster.element && heroStats.resist[currentMonster.element]) || 0;
+    mDmg = mDmg - mDmg * (heroResist / 100);
+    mDmg = Math.max(1, Math.round(mDmg));
+
+    animator.play('attack');
+    combatArena.classList.remove('arena-shake'); void combatArena.offsetWidth; combatArena.classList.add('arena-shake');
+
+    setTimeout(()=>{
+      if(fightOver) return;
+      let finalDmg = mDmg;
+      let fullyDodged = false;
+
+      if(playerDodging){
+        if(Math.random() < 0.55){
+          fullyDodged = true;
+          finalDmg = 0;
+        } else {
+          finalDmg = Math.round(mDmg * 0.4);
+        }
+      }
+
+      if(fullyDodged){
+        dodgeFlash.classList.add('show');
+        setTimeout(()=> dodgeFlash.classList.remove('show'), 150);
+        logMsg('You dodge the attack completely!');
+      } else {
+        playerHp = Math.max(0, playerHp - finalDmg);
+        playerHpFill.style.width = (playerHp / playerMaxHp * 100) + '%';
+        playerHpNumber.textContent = playerHp + '/' + playerMaxHp;
+        logMsg(playerDodging
+          ? currentMonster.name + ' hits through your dodge! -' + finalDmg + ' HP'
+          : currentMonster.name + ' attacks! -' + finalDmg + ' HP');
+      }
+
+      if(playerHp <= 0){
+        fightOver = true; turn = 'over';
+        setButtonsEnabled(false);
+        document.getElementById('defeatSub').textContent = currentMonster.name + ' was too strong this time';
+        animator.play('idle');
+        setTimeout(()=> defeatOverlay.classList.add('show'), 400);
+      } else {
+        animator.play('idle');
+        setTimeout(startPlayerTurn, 550);
+      }
+    }, 500);
+  }
+
+  btnLight.addEventListener('click', ()=> doAttack(0.35, 0.6, 15, btnLight));
+  btnHeavy.addEventListener('click', ()=> doAttack(0.85, 1.25, 30, btnHeavy));
 
   btnDodge.addEventListener('click', ()=>{
-    if(fightOver || stamina < 20) { logMsg("Can't dodge right now!"); return; }
+    if(fightOver || turn !== 'player') return;
+    if(stamina < 20) { logMsg("Can't dodge right now!"); return; }
     stamina = Math.max(0, stamina - 20);
     staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
     staminaNumber.textContent = stamina + '/' + playerMaxStamina;
-    dodgeFlash.classList.add('show');
-    logMsg('Nimble dodge!');
-    setTimeout(()=> dodgeFlash.classList.remove('show'), 150);
+    playerDodging = true;
+    logMsg('You brace to dodge the next attack!');
+    endPlayerTurn();
   });
 
-  // stamina regen over time
-  setInterval(()=>{
-    if(fightOver) return;
-    if(stamina < playerMaxStamina){
-      stamina = Math.min(playerMaxStamina, stamina + 4);
-      staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
-      staminaNumber.textContent = stamina + '/' + playerMaxStamina;
-    }
-  }, 400);
+  document.getElementById('btnRetreat').addEventListener('click', ()=> goTo('screen-quest'));
 
   document.getElementById('btnGoReward').addEventListener('click', ()=> goTo('screen-reward'));
 
