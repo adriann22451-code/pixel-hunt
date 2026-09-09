@@ -454,6 +454,16 @@
 
   /* ---------- CRAFT SCREEN ---------- */
   .craft-list{ flex:1; overflow-y:auto; padding:12px 14px 14px 14px; display:flex; flex-direction:column; gap:10px; }
+  .shop-list{ flex:1; overflow-y:auto; padding:12px 14px 14px 14px; display:flex; flex-direction:column; gap:10px; }
+  .shop-card{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:2px solid var(--rc, var(--line)); box-shadow:0 0 8px -2px var(--rc, transparent); padding:10px; }
+  .shop-icon{ width:52px; height:52px; flex-shrink:0; background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
+  .shop-mid{ flex:1; min-width:0; }
+  .shop-name{ font-size:13px; color:var(--bone); }
+  .shop-sub{ font-size:10px; color:var(--bone-dim); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .shop-qty{ font-size:10px; color:var(--rc, var(--amber)); margin-top:2px; }
+  .shop-buy-btn{ flex-shrink:0; background:var(--wood); border:2px solid #000; padding:8px 10px; font-size:10px; line-height:1.5; color:var(--bone); text-align:center; cursor:pointer; white-space:nowrap; }
+  .shop-buy-btn.disabled{ opacity:0.4; cursor:default; }
+  .shop-buy-btn.owned{ background:var(--panel); color:var(--bone-dim); cursor:default; }
   .craft-card{ background:var(--panel-2); border:2px solid var(--rc, var(--line)); box-shadow:0 0 8px -2px var(--rc, transparent); padding:10px; display:flex; flex-direction:column; gap:8px; }
   .craft-card-head{ display:flex; align-items:center; gap:10px; }
   .craft-icon{ width:46px; height:46px; flex-shrink:0; background:var(--void); border:2px solid var(--rc, var(--common)); background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
@@ -571,6 +581,11 @@
           <span class="nail tl"></span><span class="nail br"></span>
           <span class="icon icon-img" style="background-image:url('assets/icon_inventory.webp')"></span>
           <div class="label">INVENTORY</div>
+        </div>
+        <div class="btn pixel-frame" data-goto="screen-shop">
+          <span class="nail tl"></span><span class="nail br"></span>
+          <span class="icon">🛒</span>
+          <div class="label">SHOP</div>
         </div>
       </div>
     </div>
@@ -853,6 +868,28 @@
     </div>
   </div>
 
+  <!-- ================= SCREEN: SHOP ================= -->
+  <div class="screen" id="screen-shop">
+    <div class="header">
+      <div class="back-btn" data-goto="screen-menu">◀</div>
+      <div>
+        <div class="header-title">SHOP</div>
+        <div class="header-sub">Emberfall Trading Post</div>
+      </div>
+      <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="shopGoldAmount">245</span></div>
+    </div>
+
+    <div class="tabs" id="shopTabs">
+      <div class="tab active" data-shop-category="potion">POTIONS</div>
+      <div class="tab" data-shop-category="weapon">WEAPONS</div>
+      <div class="tab" data-shop-category="armor">ARMOR</div>
+    </div>
+
+    <div class="shop-list" id="shopList"></div>
+
+    <div style="height:76px; flex-shrink:0;"></div>
+  </div>
+
   <!-- ---------- DETAIL SHEET (shared, sits above inventory) ---------- -->
   <div class="sheet-overlay" id="sheetOverlay">
     <div class="sheet pixel-frame">
@@ -973,27 +1010,27 @@
       { key:'weapon_fire_rare', name:'Ember Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_fire_rare.webp', rarity:'rare', atk:46, elem:'Fire +12', desc:"A matched pair pulled from the ashes of a Flareclaw's den — still smoldering.", locked:false },
       { key:'weapon_fire_epic', name:'Ember Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_fire_epic.webp', rarity:'epic', atk:60, elem:'Fire +17', desc:"Strung with a Flareclaw's sinew; the arrowhead nocks itself in flame.", locked:false },
       { key:'weapon_fire_legendary', name:'Infernus, the Cinderfall Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_fire_legendary.webp', rarity:'legendary', atk:78, elem:'Fire +24', desc:'Said to be the last claw of the first Flareclaw ever slain — the fire never went out.', locked:false },
-      { key:'weapon_water_common', name:'Tide Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_water_common.webp', rarity:'common', atk:24, elem:'Water +5', desc:"A worn dagger that never seems to rust, no matter how long it's been at sea.", locked:false },
+      { key:'weapon_water_common', name:'Tide Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_water_common.webp', rarity:'common', atk:24, elem:'Water +5', desc:"A worn dagger that never seems to rust, no matter how long it's been at sea.", shopPrice:150, locked:true },
       { key:'weapon_water_uncommon', name:'Tide Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_water_uncommon.webp', rarity:'uncommon', atk:34, elem:'Water +8', desc:"Scale-wrapped grip, a pearl set in the guard — a diver's favorite sidearm.", locked:false },
       { key:'weapon_water_rare', name:'Tide Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_water_rare.webp', rarity:'rare', atk:46, elem:'Water +12', desc:'Twin blades carved to mimic breaking waves, always beaded with cold water.', locked:false },
       { key:'weapon_water_epic', name:'Tide Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_water_epic.webp', rarity:'epic', atk:60, elem:'Water +17', desc:'A ceremonial bow carved from coral, its draw shimmering like deep current.', locked:false },
       { key:'weapon_water_legendary', name:'Leviathan’s Maw, the Tidal Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_water_legendary.webp', rarity:'legendary', atk:78, elem:'Water +24', desc:'Forged from the fang of something no hunter has ever seen whole and lived to describe.', locked:false },
-      { key:'weapon_wind_common', name:'Gale Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_wind_common.webp', rarity:'common', atk:24, elem:'Wind +5', desc:'Light as a feather and just as easy to lose in tall grass.', locked:false },
+      { key:'weapon_wind_common', name:'Gale Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_wind_common.webp', rarity:'common', atk:24, elem:'Wind +5', desc:'Light as a feather and just as easy to lose in tall grass.', shopPrice:150, locked:true },
       { key:'weapon_wind_uncommon', name:'Gale Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_wind_uncommon.webp', rarity:'uncommon', atk:34, elem:'Wind +8', desc:'Balanced to a fault; hunters say it practically swings itself.', locked:false },
       { key:'weapon_wind_rare', name:'Gale Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_wind_rare.webp', rarity:'rare', atk:46, elem:'Wind +12', desc:'Twin blades so light they hum in open air, feathers trailing off the crossguard.', locked:false },
       { key:'weapon_wind_epic', name:'Gale Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_wind_epic.webp', rarity:'epic', atk:60, elem:'Wind +17', desc:'A Stormwing trophy bow — loose an arrow and the wind aims it for you.', locked:false },
       { key:'weapon_wind_legendary', name:'Zephyrion, the Stormcaller Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_wind_legendary.webp', rarity:'legendary', atk:78, elem:'Wind +24', desc:"A greatsword that never touches the ground — it's said to still be falling from where Stormwing dropped it.", locked:false },
-      { key:'weapon_earth_common', name:'Terra Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_earth_common.webp', rarity:'common', atk:24, elem:'Earth +5', desc:'Chipped from quarry stone. What it lacks in finesse it makes up for in weight.', locked:false },
+      { key:'weapon_earth_common', name:'Terra Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_earth_common.webp', rarity:'common', atk:24, elem:'Earth +5', desc:'Chipped from quarry stone. What it lacks in finesse it makes up for in weight.', shopPrice:150, locked:true },
       { key:'weapon_earth_uncommon', name:'Terra Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_earth_uncommon.webp', rarity:'uncommon', atk:34, elem:'Earth +8', desc:'Reinforced with old stone plating bound in vine and iron wire.', locked:false },
       { key:'weapon_earth_rare', name:'Terra Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_earth_rare.webp', rarity:'rare', atk:46, elem:'Earth +12', desc:'A dual-wield set laced with living moss and glowing mineral veins.', locked:false },
       { key:'weapon_earth_epic', name:'Terra Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_earth_epic.webp', rarity:'epic', atk:60, elem:'Earth +17', desc:'A greatbow of living stone and root, heavy to draw but devastating to loose.', locked:false },
       { key:'weapon_earth_legendary', name:'Terragnor, the Mountainbreaker Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_earth_legendary.webp', rarity:'legendary', atk:78, elem:'Earth +24', desc:'Carved from the core of a mountain that Rockhide once called home.', locked:false },
-      { key:'weapon_dark_common', name:'Umbra Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_dark_common.webp', rarity:'common', atk:24, elem:'Dark +5', desc:'A plain blade that drank in shadow the moment it was forged.', locked:false },
+      { key:'weapon_dark_common', name:'Umbra Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_dark_common.webp', rarity:'common', atk:24, elem:'Dark +5', desc:'A plain blade that drank in shadow the moment it was forged.', shopPrice:150, locked:true },
       { key:'weapon_dark_uncommon', name:'Umbra Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_dark_uncommon.webp', rarity:'uncommon', atk:34, elem:'Dark +8', desc:"Etched with a faint eye-shaped rune that seems to track the wielder's grip.", locked:false },
       { key:'weapon_dark_rare', name:'Umbra Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_dark_rare.webp', rarity:'rare', atk:46, elem:'Dark +12', desc:'A pair of fanged blades that seem to drink the light around their edge.', locked:false },
       { key:'weapon_dark_epic', name:'Umbra Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_dark_epic.webp', rarity:'epic', atk:60, elem:'Dark +17', desc:"A bow strung with something that isn't quite string. It never runs out of arrows to imagine.", locked:false },
       { key:'weapon_dark_legendary', name:'Nyxbane, the Hollow Greatsword', sub:'Greatsword', icon:'⚔', img:'assets/weapon_dark_legendary.webp', rarity:'legendary', atk:78, elem:'Dark +24', desc:"A blade said to be a sliver of the Voidfang's own hollow heart, given an edge.", locked:false },
-      { key:'weapon_light_common', name:'Solis Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_light_common.webp', rarity:'common', atk:24, elem:'Light +5', desc:'A humble blade that always seems to catch the sun, even indoors.', locked:false },
+      { key:'weapon_light_common', name:'Solis Dagger', sub:'Dagger', icon:'🗡', img:'assets/weapon_light_common.webp', rarity:'common', atk:24, elem:'Light +5', desc:'A humble blade that always seems to catch the sun, even indoors.', shopPrice:150, locked:true },
       { key:'weapon_light_uncommon', name:'Solis Blade', sub:'Sword & Shield', icon:'⚔', img:'assets/weapon_light_uncommon.webp', rarity:'uncommon', atk:34, elem:'Light +8', desc:'Gold filigree along the fuller, said to never dull in sunlight.', locked:false },
       { key:'weapon_light_rare', name:'Solis Twinfangs', sub:'Dual Blade', icon:'🗡', img:'assets/weapon_light_rare.webp', rarity:'rare', atk:46, elem:'Light +12', desc:'Twin blades that ring like glass and never cast a shadow of their own.', locked:false },
       { key:'weapon_light_epic', name:'Solis Longbow', sub:'Bow', icon:'🏹', img:'assets/weapon_light_epic.webp', rarity:'epic', atk:60, elem:'Light +17', desc:'A bow that draws its own arrow from pure radiance when the string is pulled taut.', locked:false },
@@ -1002,17 +1039,17 @@
     ],
     armor: [
       { key:'armor_leather',  name:'Leather Armor', sub:'Light Armor', icon:'🛡', img:'assets/armor_leather.webp', rarity:'common', atk:'—', elem:'DEF +18',       desc:'Simple hide armor. Every hunter starts with a set like this.', equipped:true, locked:false },
-      { key:'armor_fire_common', name:'Ember Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_fire_common.webp', rarity:'common', atk:'—', elem:'Fire +8', desc:'Cured leather that never fully cools. Faint embers drift off the seams.', locked:false },
+      { key:'armor_fire_common', name:'Ember Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_fire_common.webp', rarity:'common', atk:'—', elem:'Fire +8', desc:'Cured leather that never fully cools. Faint embers drift off the seams.', shopPrice:130, locked:true },
       { key:'armor_fire_uncommon', name:'Ember Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_fire_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Fire +12', desc:'Reinforced with soot-blackened plates. Warm to the touch, always.', locked:false },
       { key:'armor_fire_rare', name:'Ember Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_fire_rare.webp', rarity:'rare', atk:'—', elem:'Fire +16', desc:"Heavy plating quenched in a Flareclaw's own molten breath.", locked:false },
       { key:'armor_fire_epic', name:'Ember Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_fire_epic.webp', rarity:'epic', atk:'—', elem:'Fire +22', desc:"Ceremonial plate worn by hunters who've faced a Flareclaw and won.", locked:false },
       { key:'armor_fire_legendary', name:'Flareking\'s Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_fire_legendary.webp', rarity:'legendary', atk:'—', elem:'Fire +30', desc:'Said to be cast from the molten crown of the first Flareclaw king.', locked:false },
-      { key:'armor_water_common', name:'Tide Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_water_common.webp', rarity:'common', atk:'—', elem:'Water +8', desc:'Scaled vest shed from something living deep off the coast.', locked:false },
+      { key:'armor_water_common', name:'Tide Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_water_common.webp', rarity:'common', atk:'—', elem:'Water +8', desc:'Scaled vest shed from something living deep off the coast.', shopPrice:130, locked:true },
       { key:'armor_water_uncommon', name:'Tide Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_water_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Water +12', desc:'Coral-ribbed and pearl-studded, dries the moment it leaves the water.', locked:false },
       { key:'armor_water_rare', name:'Tide Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_water_rare.webp', rarity:'rare', atk:'—', elem:'Water +16', desc:'Deep-sea plating that beads with cold water no matter the weather.', locked:false },
       { key:'armor_water_epic', name:'Tide Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_water_epic.webp', rarity:'epic', atk:'—', elem:'Water +22', desc:'Aegis plate blessed by tides no ordinary hunter has charted.', locked:false },
       { key:'armor_water_legendary', name:'Abyssal Tide Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_water_legendary.webp', rarity:'legendary', atk:'—', elem:'Water +30', desc:'Grown, not forged — from something that still sleeps beneath the tide.', locked:false },
-      { key:'armor_wind_common', name:'Gale Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_wind_common.webp', rarity:'common', atk:'—', elem:'Wind +8', desc:'Featherweight padding stitched from downy, wind-swept plumage.', locked:false },
+      { key:'armor_wind_common', name:'Gale Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_wind_common.webp', rarity:'common', atk:'—', elem:'Wind +8', desc:'Featherweight padding stitched from downy, wind-swept plumage.', shopPrice:130, locked:true },
       { key:'armor_wind_uncommon', name:'Gale Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_wind_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Wind +12', desc:'Layered feathers over a silver frame — barely slows a hunter down.', locked:false },
       { key:'armor_wind_rare', name:'Gale Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_rare.webp', rarity:'rare', atk:'—', elem:'Wind +16', desc:'Storm-forged plate that hums faintly whenever the wind picks up.', locked:false },
       { key:'armor_wind_epic', name:'Gale Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_epic.webp', rarity:'epic', atk:'—', elem:'Wind +22', desc:'Aegis plate that never quite touches the ground it stands on.', locked:false },
@@ -1046,12 +1083,12 @@
       { key:'material_singularity_shard',name:'Singularity Shard',  sub:'Epic Material',    icon:'🌌', img:'assets/material_singularity_shard.webp',rarity:'legendary', atk:'—', elem:'—', qty:1, desc:'A fragment that seems to fold light around itself. Origin unknown.', locked:false }
     ],
     potion: [
-      { key:'potion_health',         name:'Health Potion',           sub:'Recovery Item', icon:'🧪', img:'assets/potion_health.webp',         rarity:'common',    atk:'—', elem:'—', qty:5, desc:'Restores a moderate amount of health. Every hunter carries a few.', locked:false },
-      { key:'potion_health_greater', name:'Greater Health Potion',   sub:'Recovery Item', icon:'🧪', img:'assets/potion_health_greater.webp', rarity:'rare',      atk:'—', elem:'—', qty:3, desc:'A refined brew that restores significantly more health.', locked:false },
-      { key:'potion_stamina',        name:'Stamina Draught',         sub:'Recovery Item', icon:'🧪', img:'assets/potion_stamina.webp',         rarity:'common',    atk:'—', elem:'—', qty:5, desc:'Restores stamina, letting you dodge and attack a little longer.', locked:false },
-      { key:'potion_antidote',       name:'Antidote',                sub:'Recovery Item', icon:'🧪', img:'assets/potion_antidote.webp',        rarity:'common',    atk:'—', elem:'—', qty:4, desc:'Cures poison. Best swallowed quickly, before asking questions.', locked:false },
-      { key:'potion_elemental_resist', name:'Elemental Resist Tonic',sub:'Buff Item',     icon:'🧪', img:'assets/potion_elemental_resist.webp', rarity:'epic',     atk:'—', elem:'—', qty:2, desc:'Grants temporary resistance to all elemental damage.', locked:false },
-      { key:'potion_phoenix',        name:'Phoenix Draught',         sub:'Revival Item',  icon:'🧪', img:'assets/potion_phoenix.webp',         rarity:'legendary', atk:'—', elem:'—', qty:1, desc:'Revives a fallen hunter on the spot. Said to taste like ash and gold.', locked:false }
+      { key:'potion_health',         name:'Health Potion',           sub:'Recovery Item', icon:'🧪', img:'assets/potion_health.webp',         rarity:'common',    atk:'—', elem:'—', qty:5, shopPrice:40,  desc:'Restores a moderate amount of health. Every hunter carries a few.', locked:false },
+      { key:'potion_health_greater', name:'Greater Health Potion',   sub:'Recovery Item', icon:'🧪', img:'assets/potion_health_greater.webp', rarity:'rare',      atk:'—', elem:'—', qty:3, shopPrice:90,  desc:'A refined brew that restores significantly more health.', locked:false },
+      { key:'potion_stamina',        name:'Stamina Draught',         sub:'Recovery Item', icon:'🧪', img:'assets/potion_stamina.webp',         rarity:'common',    atk:'—', elem:'—', qty:5, shopPrice:35,  desc:'Restores stamina, letting you dodge and attack a little longer.', locked:false },
+      { key:'potion_antidote',       name:'Antidote',                sub:'Recovery Item', icon:'🧪', img:'assets/potion_antidote.webp',        rarity:'common',    atk:'—', elem:'—', qty:4, shopPrice:45,  desc:'Cures poison. Best swallowed quickly, before asking questions.', locked:false },
+      { key:'potion_elemental_resist', name:'Elemental Resist Tonic',sub:'Buff Item',     icon:'🧪', img:'assets/potion_elemental_resist.webp', rarity:'epic',     atk:'—', elem:'—', qty:2, shopPrice:150, desc:'Grants temporary resistance to all elemental damage.', locked:false },
+      { key:'potion_phoenix',        name:'Phoenix Draught',         sub:'Revival Item',  icon:'🧪', img:'assets/potion_phoenix.webp',         rarity:'legendary', atk:'—', elem:'—', qty:1, shopPrice:400, desc:'Revives a fallen hunter on the spot. Said to taste like ash and gold.', locked:false }
     ]
   };
 
@@ -2430,6 +2467,87 @@
 
   document.querySelectorAll('[data-goto="screen-craft"]').forEach(el=>{
     el.addEventListener('click', renderCraftList);
+  });
+
+  // ---------- shop: buy potions freely (qty+=1), unlock common weapon/armor once ----------
+  let currentShopCategory = 'potion';
+
+  function renderShop(category){
+    if(category) currentShopCategory = category;
+    const goldEl = document.getElementById('shopGoldAmount');
+    if(goldEl) goldEl.textContent = playerGold;
+
+    const list = document.getElementById('shopList');
+    if(!list) return;
+
+    const isGearTab = currentShopCategory === 'weapon' || currentShopCategory === 'armor';
+    // shop only stocks potions (any rarity) and common-rarity gear
+    const items = (ITEMS[currentShopCategory] || []).filter(it =>
+      typeof it.shopPrice === 'number' && (!isGearTab || it.rarity === 'common')
+    );
+
+    let html = '';
+    items.forEach(it => {
+      const owned = isGearTab && !it.locked;
+      const canAfford = playerGold >= it.shopPrice;
+      const btnHtml = owned
+        ? '<div class="shop-buy-btn owned">OWNED</div>'
+        : '<div class="shop-buy-btn' + (canAfford ? '' : ' disabled') + '" data-shop-key="' + it.key + '">BUY<br>' + it.shopPrice + '◆</div>';
+      const subText = isGearTab ? (it.sub + ' · ' + (it.elem || '—')) : it.desc;
+      const qtyText = (!isGearTab && typeof it.qty === 'number') ? ('Owned: ' + it.qty) : '';
+
+      html += '<div class="shop-card rar-' + it.rarity + '">'
+        + '<div class="shop-icon" style="background-image:url(\'' + it.img + '\')"></div>'
+        + '<div class="shop-mid"><div class="shop-name">' + it.name + '</div><div class="shop-sub">' + subText + '</div>' + (qtyText ? '<div class="shop-qty">' + qtyText + '</div>' : '') + '</div>'
+        + btnHtml
+        + '</div>';
+    });
+
+    list.innerHTML = html || '<div class="shop-sub" style="padding:20px; text-align:center;">Nothing here yet.</div>';
+
+    list.querySelectorAll('[data-shop-key]:not(.disabled)').forEach(btn=>{
+      btn.addEventListener('click', ()=> buyShopItem(btn.dataset.shopKey));
+    });
+  }
+
+  // handles both purchase types: consumables just add to qty and stay
+  // purchasable forever, gear is a one-time unlock (locked -> false)
+  function buyShopItem(key){
+    let item = null;
+    Object.keys(ITEMS).some(cat => {
+      const found = ITEMS[cat].find(i => i.key === key);
+      if(found) item = found;
+      return !!found;
+    });
+    if(!item || typeof item.shopPrice !== 'number') return;
+    if(playerGold < item.shopPrice) return;
+
+    const isGear = typeof item.qty !== 'number';
+    if(isGear){
+      if(!item.locked) return; // already owned, nothing to buy
+      playerGold -= item.shopPrice;
+      item.locked = false;
+    } else {
+      playerGold -= item.shopPrice;
+      item.qty = (item.qty || 0) + 1;
+    }
+
+    updateGoldChip();
+    renderShop();
+    renderInventory(currentCategory);
+    saveGame();
+  }
+
+  document.querySelectorAll('[data-shop-category]').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-shop-category]').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      renderShop(tab.dataset.shopCategory);
+    });
+  });
+
+  document.querySelectorAll('[data-goto="screen-shop"]').forEach(el=>{
+    el.addEventListener('click', ()=> renderShop());
   });
 </script>
 
