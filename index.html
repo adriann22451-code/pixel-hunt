@@ -138,6 +138,7 @@
 
   .list-label{ padding:14px 14px 8px 14px; font-size:15px; color:var(--bone-dim); letter-spacing:1px; display:flex; justify-content:space-between; }
   .quest-list{ flex:1; overflow-y:auto; padding:0 14px 14px 14px; display:flex; flex-direction:column; gap:8px; }
+  .hero-stats-scroll{ flex:1; overflow-y:auto; display:flex; flex-direction:column; }
   .quest-card{ display:flex; align-items:center; gap:10px; background:var(--panel); border:2px solid var(--line); padding:10px; cursor:pointer; }
   .quest-card.locked{ opacity:0.45; cursor:default; }
   .quest-icon{ width:42px; height:42px; background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
@@ -833,21 +834,23 @@
       </div>
     </div>
 
-    <div class="loadout" id="heroLoadoutPanel"></div>
+    <div class="hero-stats-scroll">
+      <div class="loadout" id="heroLoadoutPanel"></div>
 
-    <div class="hero-stats-grid">
-      <div class="hero-stat-card"><div class="hero-stat-label">MAX HP</div><div class="hero-stat-value" id="heroHp">100</div></div>
-      <div class="hero-stat-card"><div class="hero-stat-label">STAMINA</div><div class="hero-stat-value" id="heroStamina">100</div></div>
-      <div class="hero-stat-card"><div class="hero-stat-label">ATTACK</div><div class="hero-stat-value" id="heroAtk">10</div></div>
-      <div class="hero-stat-card"><div class="hero-stat-label">DEFENSE</div><div class="hero-stat-value" id="heroDef">0</div></div>
-      <div class="hero-stat-card"><div class="hero-stat-label">LUCK</div><div class="hero-stat-value" id="heroLuck">0</div></div>
-      <div class="hero-stat-card"><div class="hero-stat-label">WEAPON ELEMENT</div><div class="hero-stat-value small" id="heroWeaponElem">—</div></div>
+      <div class="hero-stats-grid">
+        <div class="hero-stat-card"><div class="hero-stat-label">MAX HP</div><div class="hero-stat-value" id="heroHp">100</div></div>
+        <div class="hero-stat-card"><div class="hero-stat-label">STAMINA</div><div class="hero-stat-value" id="heroStamina">100</div></div>
+        <div class="hero-stat-card"><div class="hero-stat-label">ATTACK</div><div class="hero-stat-value" id="heroAtk">10</div></div>
+        <div class="hero-stat-card"><div class="hero-stat-label">DEFENSE</div><div class="hero-stat-value" id="heroDef">0</div></div>
+        <div class="hero-stat-card"><div class="hero-stat-label">LUCK</div><div class="hero-stat-value" id="heroLuck">0</div></div>
+        <div class="hero-stat-card"><div class="hero-stat-label">WEAPON ELEMENT</div><div class="hero-stat-value small" id="heroWeaponElem">—</div></div>
+      </div>
+
+      <div class="list-label"><span>ELEMENTAL RESISTANCE</span></div>
+      <div class="resist-list" id="heroResistList"></div>
+
+      <div style="height:76px; flex-shrink:0;"></div>
     </div>
-
-    <div class="list-label"><span>ELEMENTAL RESISTANCE</span></div>
-    <div class="resist-list" id="heroResistList"></div>
-
-    <div style="height:76px; flex-shrink:0;"></div>
   </div>
 
   <!-- ---------- DETAIL SHEET (shared, sits above inventory) ---------- -->
