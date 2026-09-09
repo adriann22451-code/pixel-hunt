@@ -988,9 +988,21 @@
     ],
     armor: [
       { key:'armor_leather',  name:'Leather Armor', sub:'Light Armor', icon:'🛡', img:'assets/armor_leather.webp', rarity:'common', atk:'—', elem:'DEF +18',       desc:'Simple hide armor. Every hunter starts with a set like this.', equipped:true, locked:false },
-      { key:'armor_ember_scale',     name:'Ember Scale Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_ember_scale.webp',     rarity:'rare',      atk:'—', elem:'Fire +14',     desc:"Scaled plating cut from a Flareclaw's hide. Matches the Ember Sword.", locked:true },
-      { key:'armor_coral_plate',     name:'Coral Plate Armor',    sub:'Heavy Armor', icon:'🛡', img:'assets/armor_coral_plate.webp',     rarity:'rare',      atk:'—', elem:'Water +14',    desc:"Smooth living coral shaped into plating. Matches the Coral weapons.", locked:true },
-      { key:'armor_stormwing_mail',  name:'Stormwing Mail',       sub:'Light Armor', icon:'🛡', img:'assets/armor_stormwing_mail.webp',  rarity:'epic',      atk:'—', elem:'Wind +20',     desc:'Woven from Stormwing feathers. Light enough to barely feel.', locked:true },
+      { key:'armor_fire_common', name:'Ember Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_fire_common.webp', rarity:'common', atk:'—', elem:'Fire +8', desc:'Cured leather that never fully cools. Faint embers drift off the seams.', locked:false },
+      { key:'armor_fire_uncommon', name:'Ember Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_fire_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Fire +12', desc:'Reinforced with soot-blackened plates. Warm to the touch, always.', locked:false },
+      { key:'armor_fire_rare', name:'Ember Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_fire_rare.webp', rarity:'rare', atk:'—', elem:'Fire +16', desc:"Heavy plating quenched in a Flareclaw's own molten breath.", locked:false },
+      { key:'armor_fire_epic', name:'Ember Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_fire_epic.webp', rarity:'epic', atk:'—', elem:'Fire +22', desc:"Ceremonial plate worn by hunters who've faced a Flareclaw and won.", locked:false },
+      { key:'armor_fire_legendary', name:'Flareking\'s Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_fire_legendary.webp', rarity:'legendary', atk:'—', elem:'Fire +30', desc:'Said to be cast from the molten crown of the first Flareclaw king.', locked:false },
+      { key:'armor_water_common', name:'Tide Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_water_common.webp', rarity:'common', atk:'—', elem:'Water +8', desc:'Scaled vest shed from something living deep off the coast.', locked:false },
+      { key:'armor_water_uncommon', name:'Tide Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_water_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Water +12', desc:'Coral-ribbed and pearl-studded, dries the moment it leaves the water.', locked:false },
+      { key:'armor_water_rare', name:'Tide Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_water_rare.webp', rarity:'rare', atk:'—', elem:'Water +16', desc:'Deep-sea plating that beads with cold water no matter the weather.', locked:false },
+      { key:'armor_water_epic', name:'Tide Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_water_epic.webp', rarity:'epic', atk:'—', elem:'Water +22', desc:'Aegis plate blessed by tides no ordinary hunter has charted.', locked:false },
+      { key:'armor_water_legendary', name:'Abyssal Tide Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_water_legendary.webp', rarity:'legendary', atk:'—', elem:'Water +30', desc:'Grown, not forged — from something that still sleeps beneath the tide.', locked:false },
+      { key:'armor_wind_common', name:'Gale Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_wind_common.webp', rarity:'common', atk:'—', elem:'Wind +8', desc:'Featherweight padding stitched from downy, wind-swept plumage.', locked:false },
+      { key:'armor_wind_uncommon', name:'Gale Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_wind_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Wind +12', desc:'Layered feathers over a silver frame — barely slows a hunter down.', locked:false },
+      { key:'armor_wind_rare', name:'Gale Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_rare.webp', rarity:'rare', atk:'—', elem:'Wind +16', desc:'Storm-forged plate that hums faintly whenever the wind picks up.', locked:false },
+      { key:'armor_wind_epic', name:'Gale Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_epic.webp', rarity:'epic', atk:'—', elem:'Wind +22', desc:'Aegis plate that never quite touches the ground it stands on.', locked:false },
+      { key:'armor_wind_legendary', name:'Skysunder Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_legendary.webp', rarity:'legendary', atk:'—', elem:'Wind +30', desc:'Armor plating torn from a storm that never finished passing.', locked:false },
       { key:'armor_rockhide_plate',  name:'Rockhide Plate Armor', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_rockhide_plate.webp',  rarity:'epic',      atk:'—', elem:'Earth +20',    desc:"Slabs of Rockhide stone bound in leather. Stops almost anything.", locked:true },
       { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Dark +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:true }
     ],
@@ -1097,19 +1109,6 @@
       { key:'material_rockhide_core',     qty:1 },
       { key:'material_stormwing_crystal', qty:1 },
       { key:'material_aquafin_membrane',  qty:1 }
-    ]},
-    armor_ember_scale: { category:'armor', gold:150, materials:[
-      { key:'material_claw',       qty:5 },
-      { key:'material_scale',      qty:2 },
-      { key:'material_ember_core', qty:1 }
-    ]},
-    armor_coral_plate: { category:'armor', gold:150, materials:[
-      { key:'material_aquafin_scale',    qty:5 },
-      { key:'material_aquafin_membrane', qty:2 }
-    ]},
-    armor_stormwing_mail: { category:'armor', gold:180, materials:[
-      { key:'material_stormwing_feather', qty:5 },
-      { key:'material_stormwing_crystal', qty:2 }
     ]},
     armor_rockhide_plate: { category:'armor', gold:180, materials:[
       { key:'material_rockhide_plating', qty:5 },
