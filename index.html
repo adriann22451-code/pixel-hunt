@@ -2173,8 +2173,12 @@
     const grid = document.getElementById('inventoryGrid');
     const allItems = ITEMS[category] || [];
     const items = allItems.filter(it => matchesFilter(it, currentFilter));
+    // an item counts as "not owned" if it's locked (unclaimed gear) OR its
+    // qty has been depleted to 0 (used-up potions/materials) — both should
+    // render as an empty slot, same as unowned weapon/armor
+    const isUnowned = it => it.locked || (typeof it.qty === 'number' && it.qty <= 0);
     // owned items always show first; not-yet-owned (locked/empty) placeholders trail behind
-    items.sort((a, b) => (a.locked === b.locked) ? 0 : (a.locked ? 1 : -1));
+    items.sort((a, b) => (isUnowned(a) === isUnowned(b)) ? 0 : (isUnowned(a) ? 1 : -1));
 
     if(allItems.length === 0){
       grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--bone-dim); font-size:14px; padding:30px 10px;">No items yet in this category.</div>';
@@ -2189,8 +2193,9 @@
     for(let i=0; i<items.length; i++){
       const it = items[i];
 
-      // not-yet-owned gear: just an empty slot box, no icon/name/"???" shown
-      if(it.locked){
+      // not-yet-owned gear, or a potion/material whose qty has run out:
+      // just an empty slot box, no icon/name/"???" shown
+      if(isUnowned(it)){
         html += '<div class="item item-empty"></div>';
         continue;
       }
