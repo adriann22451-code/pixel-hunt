@@ -408,10 +408,36 @@
     animation: dmgFloat 0.7s ease-out forwards;
   }
   .dmg-pop.crit{ color: var(--blood); font-size:20px; }
+  .dmg-pop.super{ color:#f2e13f; }
   @keyframes dmgFloat{ 0%{ opacity:1; transform: translateY(0) scale(1);} 100%{ opacity:0; transform: translateY(-55px) scale(1.15);} }
 
+  .super-effective-label{
+    position:absolute; left:50%; top:26%; transform: translateX(-50%);
+    font-family:'Press Start 2P', monospace; font-size:11px; color:#f2e13f;
+    text-shadow: 2px 2px 0 #000; pointer-events:none;
+    animation: superPop 0.9s ease-out forwards;
+  }
+  @keyframes superPop{ 0%{ opacity:0; transform: translateX(-50%) scale(0.6);} 15%{ opacity:1; transform: translateX(-50%) scale(1.1);} 25%{ transform: translateX(-50%) scale(1);} 80%{ opacity:1;} 100%{ opacity:0; transform: translateX(-50%) translateY(-10px) scale(1);} }
+
   .arena-shake{ animation: arenaShake 0.25s ease; }
+  .arena-shake-heavy{ animation: arenaShakeHeavy 0.35s ease; }
   @keyframes arenaShake{ 0%,100%{ transform: translateX(0);} 25%{ transform: translateX(-4px);} 75%{ transform: translateX(4px);} }
+  @keyframes arenaShakeHeavy{ 0%,100%{ transform: translate(0,0);} 20%{ transform: translate(-8px,2px);} 40%{ transform: translate(7px,-2px);} 60%{ transform: translate(-6px,1px);} 80%{ transform: translate(5px,-1px);} }
+
+  .arena-monster.flash-hit .arena-monster-sprite,
+  .arena-monster.flash-hit span{ animation: flashWhite 0.25s ease; }
+  @keyframes flashWhite{ 0%{ filter: brightness(1);} 40%{ filter: brightness(2.6) saturate(0);} 100%{ filter: brightness(1);} }
+
+  .telegraph-badge{
+    position:absolute; top:8%; left:50%; transform: translateX(-50%);
+    font-family:'Press Start 2P', monospace; font-size:9px; color:var(--blood);
+    background:rgba(6,4,3,0.85); border:2px solid var(--blood);
+    padding:6px 10px; white-space:nowrap; z-index:6;
+    opacity:0; pointer-events:none; transition: opacity 0.25s;
+    animation: telegraphPulse 0.8s ease-in-out infinite;
+  }
+  .telegraph-badge.show{ opacity:1; }
+  @keyframes telegraphPulse{ 0%,100%{ transform: translateX(-50%) scale(1);} 50%{ transform: translateX(-50%) scale(1.05);} }
 
   .dodge-flash{
     position:absolute; inset:0; background: rgba(111,179,201,0.12); z-index:6;
@@ -440,19 +466,15 @@
     padding: 8px 14px 18px 14px;
     display:flex; align-items:flex-end; justify-content:space-between;
   }
-  .move-pad{
-    width:78px; height:78px;
-    background: rgba(28,20,15,0.7);
-    border:2px solid var(--line);
-    border-radius:50%;
-    position:relative;
+  .action-btn.flee .circle{ background: linear-gradient(180deg, var(--panel-2), #241a2a); color:var(--bone-dim); width:48px; height:48px; font-size:18px; }
+  .action-btn.flee:active .circle{ transform: scale(0.92); }
+
+  .speed-toggle-btn{
+    font-family:'Press Start 2P', monospace; font-size:10px;
+    color:var(--bone-dim); background:var(--panel); border:2px solid var(--line);
+    padding:6px 8px; cursor:pointer; margin-left:auto;
   }
-  .move-pad .stick{
-    position:absolute; top:50%; left:50%; width:32px; height:32px;
-    background: var(--panel-2); border:2px solid var(--bone-dim);
-    border-radius:50%;
-    transform: translate(-50%,-50%);
-  }
+  .speed-toggle-btn.on{ color:#1a1006; background: linear-gradient(180deg, var(--amber), #c9781f); border-color:#000; }
 
   .action-cluster{ display:flex; align-items:flex-end; gap:10px; }
   .action-btn{
@@ -886,7 +908,8 @@
 
     <div class="combat-top">
       <div class="back-btn" data-goto="screen-quest">◀</div>
-      <div class="combat-timer" id="combatTimer">02:00</div>
+      <div class="speed-toggle-btn" id="btnSpeedToggle">1X</div>
+      <div class="combat-timer" id="combatTurnCounter">TURN 1/15</div>
     </div>
 
     <div class="monster-hud">
@@ -902,6 +925,7 @@
     <div class="combat-log" id="combatLog"></div>
 
     <div class="combat-arena" id="combatArena">
+      <div class="telegraph-badge" id="telegraphBadge">⚡ BERSIAP SERANGAN KUAT!</div>
       <div class="arena-monster" id="arenaMonster"><div class="arena-monster-sprite" id="arenaMonsterSprite"></div><span id="arenaMonsterEmoji" style="display:none;"></span></div>
     </div>
 
@@ -924,7 +948,10 @@
     <div class="turn-banner" id="turnBanner">YOUR TURN</div>
 
     <div class="combat-controls">
-      <div class="move-pad"><div class="stick"></div></div>
+      <div class="action-btn flee" id="btnFlee">
+        <div class="circle">🏃</div>
+        <div class="tag">FLEE</div>
+      </div>
       <div class="action-cluster">
         <div class="action-btn item" id="btnItem">
           <div class="circle">🧪</div>
@@ -2980,6 +3007,7 @@
   const combatArena = document.getElementById('combatArena');
   const combatLog = document.getElementById('combatLog');
   const dodgeFlash = document.getElementById('dodgeFlash');
+  const telegraphBadge = document.getElementById('telegraphBadge');
   const victoryOverlay = document.getElementById('victoryOverlay');
   const defeatOverlay = document.getElementById('defeatOverlay');
   const turnBanner = document.getElementById('turnBanner');
@@ -3024,6 +3052,23 @@
   let heroStats = computeHeroStats();
   let turn = 'player'; // 'player' | 'monster' | 'over' — whose move it is right now
   let playerDodging = false; // true when the player spent their turn bracing to dodge
+
+  // ---------- turn counter (replaces the old real-time countdown) ----------
+  // a hunt has a turn budget instead of a wall-clock timer, so the pressure
+  // comes from decision-making, not from a clock ticking while you read the banner
+  const MAX_HUNT_TURNS = 15;
+  let huntTurnCount = 1; // counts player turns; shown as "TURN n/15"
+
+  // ---------- monster telegraph ----------
+  // every few monster turns, instead of attacking immediately the monster
+  // "winds up" for one turn (no damage dealt), giving the player a turn to
+  // react — dodge, heal, whatever — before the empowered strike lands next
+  let monsterTurnCount = 0;
+  let telegraphPending = false; // true on the turn the monster actually unleashes the empowered hit
+
+  // ---------- 2x speed toggle for grinding ----------
+  let fastMode = false;
+  function sp(ms){ return fastMode ? Math.round(ms * 0.45) : ms; } // scales a delay down when fast mode is on
 
   // ---------- loot / hunt rewards (rolled fresh per monster, per kill) ----------
   let playerGold = parseInt((document.getElementById('goldAmount') || {}).textContent, 10) || 0;
@@ -3121,6 +3166,10 @@
     monsterHp = monsterMaxHp; stamina = playerMaxStamina; playerHp = playerMaxHp; fightOver = false;
     turn = 'player'; playerDodging = false;
     poisonTurnsLeft = 0; poisonDmgPerTurn = 0; resistBuffTurnsLeft = 0; resistBuffAmount = 0;
+    huntTurnCount = 1; monsterTurnCount = 0; telegraphPending = false;
+    const turnCounterEl = document.getElementById('combatTurnCounter');
+    if(turnCounterEl) turnCounterEl.textContent = 'TURN 1/' + MAX_HUNT_TURNS;
+    telegraphBadge.classList.remove('show');
     renderStatusBadges();
     monsterHpFill.style.width = '100%';
     staminaFill.style.width = '100%';
@@ -3179,14 +3228,30 @@
     if(combatLog.children.length > 3) combatLog.removeChild(combatLog.children[0]);
   }
 
-  function spawnDamage(amount, crit){
+  function spawnDamage(amount, crit, superEffective){
     const pop = document.createElement('div');
-    pop.className = 'dmg-pop' + (crit ? ' crit' : '');
+    pop.className = 'dmg-pop' + (crit ? ' crit' : '') + (superEffective ? ' super' : '');
     pop.textContent = '-' + amount;
     pop.style.left = (44 + Math.random()*12) + '%';
     pop.style.top = (36 + Math.random()*8) + '%';
     combatArena.appendChild(pop);
-    setTimeout(()=> pop.remove(), 700);
+    setTimeout(()=> pop.remove(), sp(700));
+
+    if(superEffective){
+      const label = document.createElement('div');
+      label.className = 'super-effective-label';
+      label.textContent = 'SUPER EFFECTIVE!';
+      combatArena.appendChild(label);
+      setTimeout(()=> label.remove(), sp(900));
+    }
+  }
+
+  // brief white flash + optional stronger shake on the monster sprite —
+  // "heavy" is used for crits and the Heavy Attack button so a big hit reads as big
+  function flashMonsterHit(heavy){
+    arenaMonster.classList.remove('flash-hit'); void arenaMonster.offsetWidth; arenaMonster.classList.add('flash-hit');
+    combatArena.classList.remove('arena-shake', 'arena-shake-heavy'); void combatArena.offsetWidth;
+    combatArena.classList.add(heavy ? 'arena-shake-heavy' : 'arena-shake');
   }
 
   // Player attack damage: scales off Hero ATK (base + equipped weapon),
@@ -3221,6 +3286,9 @@
     const critChance = 0.18 + (heroStats.luck || 0) / 200;
     const crit = Math.random() < critChance;
     const finalDmg = crit ? Math.floor(dmg*1.5) : dmg;
+    const isHeavyBtn = btn === btnHeavy;
+    const superEffective = !!(heroStats.weaponElement && currentMonster.element
+      && elementAdvantage(heroStats.weaponElement, currentMonster.element) === 1);
 
     stamina = Math.max(0, stamina - staminaCost);
     staminaFill.style.width = (stamina / playerMaxStamina * 100) + '%';
@@ -3231,14 +3299,14 @@
     monsterHpNumber.textContent = monsterHp + '/' + monsterMaxHp;
 
     arenaMonster.classList.remove('hit'); void arenaMonster.offsetWidth; arenaMonster.classList.add('hit');
-    combatArena.classList.remove('arena-shake'); void combatArena.offsetWidth; combatArena.classList.add('arena-shake');
-    spawnDamage(finalDmg, crit);
+    flashMonsterHit(crit || isHeavyBtn);
+    spawnDamage(finalDmg, crit, superEffective);
     SFX.swing();
     crit ? SFX.crit() : SFX.hit();
-    logMsg(crit ? 'CRITICAL! -' + finalDmg + ' HP' : 'Hit! -' + finalDmg + ' HP');
+    logMsg((crit ? 'CRITICAL! ' : 'Hit! ') + (superEffective ? 'Super effective! ' : '') + '-' + finalDmg + ' HP');
 
     btn.classList.add('on-cooldown');
-    setTimeout(()=> btn.classList.remove('on-cooldown'), 350);
+    setTimeout(()=> btn.classList.remove('on-cooldown'), sp(350));
 
     if(monsterHp <= 0 && !fightOver){
       fightOver = true; turn = 'over';
@@ -3278,6 +3346,10 @@
     turnBanner.classList.remove('monster-turn');
     setButtonsEnabled(true);
     animator.play('idle');
+
+    huntTurnCount += 1;
+    const turnCounterEl = document.getElementById('combatTurnCounter');
+    if(turnCounterEl) turnCounterEl.textContent = 'TURN ' + Math.min(huntTurnCount, MAX_HUNT_TURNS) + '/' + MAX_HUNT_TURNS;
   }
 
   function endPlayerTurn(){
@@ -3286,7 +3358,7 @@
     setButtonsEnabled(false);
     turnBanner.textContent = currentMonster.name + "'S TURN";
     turnBanner.classList.add('monster-turn');
-    setTimeout(monsterTurn, 850);
+    setTimeout(monsterTurn, sp(850));
   }
 
   // The monster always swings back on its turn — no more random chance.
@@ -3297,8 +3369,30 @@
   // no matter how hard they actually swung.
   function monsterTurn(){
     if(fightOver) return;
+    monsterTurnCount += 1;
+
+    // Every 4th monster turn (when nothing is already telegraphed), the monster
+    // winds up instead of attacking: no damage this turn, but the player gets
+    // an extra turn to dodge/heal before the empowered strike lands next.
+    if(!telegraphPending && monsterTurnCount % 4 === 0){
+      telegraphPending = true;
+      turnBanner.textContent = currentMonster.name + ' IS CHARGING...';
+      telegraphBadge.classList.add('show');
+      logMsg(currentMonster.name + ' braces for a powerful strike!');
+      setTimeout(()=>{
+        telegraphBadge.classList.remove('show');
+        animator.play('idle');
+        setTimeout(startPlayerTurn, sp(400));
+      }, sp(900));
+      return;
+    }
+
+    const empowered = telegraphPending; // this is the turn the wind-up pays off
+    telegraphPending = false;
+
     const mAtk = currentMonster.atk || { min:8, max:18 };
     let mDmg = mAtk.min + Math.random()*(mAtk.max - mAtk.min);
+    if(empowered) mDmg *= 1.7;
     const mitigation = 100 / (100 + heroStats.def * 4);
     mDmg = mDmg * mitigation;
     let heroResist = (currentMonster.element && heroStats.resist[currentMonster.element]) || 0;
@@ -3320,7 +3414,8 @@
     mDmg = Math.max(2, Math.round(mDmg));
 
     animator.play('attack');
-    combatArena.classList.remove('arena-shake'); void combatArena.offsetWidth; combatArena.classList.add('arena-shake');
+    combatArena.classList.remove('arena-shake', 'arena-shake-heavy'); void combatArena.offsetWidth;
+    combatArena.classList.add(empowered ? 'arena-shake-heavy' : 'arena-shake');
 
     setTimeout(()=>{
       if(fightOver) return;
@@ -3347,12 +3442,13 @@
 
       if(fullyDodged){
         dodgeFlash.classList.add('show');
-        setTimeout(()=> dodgeFlash.classList.remove('show'), 150);
-        logMsg('You dodge the attack completely!');
+        setTimeout(()=> dodgeFlash.classList.remove('show'), sp(150));
+        logMsg(empowered ? 'You dodge the powerful strike completely!' : 'You dodge the attack completely!');
       } else {
+        const atkLabel = empowered ? ' unleashes a powerful strike! -' : ' attacks! -';
         logMsg(playerDodging
           ? currentMonster.name + ' hits through your dodge! -' + finalDmg + ' HP'
-          : currentMonster.name + ' attacks! -' + finalDmg + ' HP');
+          : currentMonster.name + atkLabel + finalDmg + ' HP');
         // route through applyDamageToPlayer so a Phoenix Draught can trigger
         // here too, not just on a poison tick
         result = applyDamageToPlayer(finalDmg);
@@ -3372,8 +3468,8 @@
       }
 
       animator.play('idle');
-      setTimeout(startPlayerTurn, 550);
-    }, 500);
+      setTimeout(startPlayerTurn, sp(550));
+    }, sp(500));
   }
 
   btnLight.addEventListener('click', ()=> doAttack(0.35, 0.6, 15, btnLight));
@@ -3388,6 +3484,21 @@
     playerDodging = true;
     logMsg('You brace to dodge the next attack!');
     endPlayerTurn();
+  });
+
+  // ---------- flee: bail out of the hunt any time it's your turn, no rewards ----------
+  const btnFlee = document.getElementById('btnFlee');
+  if(btnFlee) btnFlee.addEventListener('click', ()=>{
+    if(fightOver || turn !== 'player') return;
+    goTo('screen-quest');
+  });
+
+  // ---------- 2x speed toggle: shortens combat delays for low-tier grinding ----------
+  const btnSpeedToggle = document.getElementById('btnSpeedToggle');
+  if(btnSpeedToggle) btnSpeedToggle.addEventListener('click', ()=>{
+    fastMode = !fastMode;
+    btnSpeedToggle.textContent = fastMode ? '2X' : '1X';
+    btnSpeedToggle.classList.toggle('on', fastMode);
   });
 
   // ---------- combat items: potions actually do something now ----------
@@ -3483,18 +3594,6 @@
   document.querySelectorAll('[data-goto="screen-combat"]').forEach(el=>{
     el.addEventListener('click', resetCombat);
   });
-
-  // simple countdown timer display (visual only)
-  let timeLeft = 120;
-  const timerEl = document.getElementById('combatTimer');
-  setInterval(()=>{
-    if(document.getElementById('screen-combat').classList.contains('active') && !fightOver && timeLeft > 0){
-      timeLeft--;
-      const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
-      const s = String(timeLeft%60).padStart(2,'0');
-      timerEl.textContent = m + ':' + s;
-    }
-  }, 1000);
 
   // ---------- craft gear screen ----------
   // builds a card per recipe: shows what it needs, how much of that you currently
