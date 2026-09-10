@@ -152,6 +152,8 @@
     background-position: center top;
   }
   #screen-quest .header .chip{ margin-left:auto; }
+  #screen-quest .header{ flex-wrap:wrap; row-gap:8px; }
+  #screen-quest .header .chip + .chip{ margin-left:8px; }
 
   .featured{ margin:14px 14px 0 14px; position:relative; background: linear-gradient(180deg, rgba(10,7,5,0.15), rgba(10,7,5,0.85)), linear-gradient(135deg, #2a1c12, #1a1109); border:2px solid #000; padding:14px; overflow:hidden; }
   .featured .tag{ display:inline-block; font-family:'Press Start 2P', monospace; font-size:8px; color:var(--blood); background: rgba(156,47,31,0.15); border:1px solid var(--blood); padding:3px 6px; margin-bottom:8px; }
@@ -241,6 +243,8 @@
   .sheet-actions{ display:flex; gap:10px; margin-top:16px; }
   .sheet-btn{ flex:1; text-align:center; font-family:'Press Start 2P', monospace; font-size:10px; padding:12px; border:2px solid #000; cursor:pointer; }
   .sheet-btn.equip{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
+  .sheet-btn.buy-ticket{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
+  .sheet-btn.buy-ticket.disabled{ opacity:0.45; cursor:default; }
   .sheet-btn.close{ background:var(--panel); color:var(--bone-dim); border-color: var(--line); }
 
   /* ---------- BESTIARY ---------- */
@@ -521,6 +525,7 @@
   #screen-shop .header .chip{ font-size:13px; padding:4px 8px; }
   .shop-qty{ font-size:10px; color:var(--rc, var(--amber)); margin-top:2px; }
   .shop-buy-btn{ flex-shrink:0; background:var(--wood); border:2px solid #000; padding:8px 10px; font-size:10px; line-height:1.5; color:var(--bone); text-align:center; cursor:pointer; white-space:nowrap; }
+  .shop-buy-btn .shop-buy-currency{ width:11px; height:11px; margin-left:2px; }
   .shop-buy-btn.disabled{ opacity:0.4; cursor:default; }
   .shop-buy-btn.owned{ background:var(--panel); color:var(--bone-dim); cursor:default; }
   .craft-card{ background:var(--panel-2); border:2px solid var(--rc, var(--line)); box-shadow:0 0 8px -2px var(--rc, transparent); padding:10px; display:flex; flex-direction:column; gap:8px; }
@@ -590,6 +595,7 @@
       <div class="currency">
         <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="goldAmount">245</span></div>
         <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span><span id="crystalAmount">12</span></div>
+        <div class="chip"><span class="icon">🎫</span><span class="ticket-amount" id="ticketAmount">5</span></div>
       </div>
       <div class="topbar-actions">
         <div class="settings-btn inbox-btn" id="inboxBtn">✉<span class="inbox-badge" id="inboxBadge"></span></div>
@@ -672,6 +678,7 @@
         <div class="header-sub">Emberfall Village</div>
       </div>
       <div class="chip"><span class="icon">◆</span>245</div>
+      <div class="chip"><span class="icon">🎫</span><span class="ticket-amount" id="questTicketAmount">5</span></div>
     </div>
 
     <div class="tabs">
@@ -1018,6 +1025,19 @@
     </div>
   </div>
 
+  <!-- ---------- OUT OF TICKETS SHEET ---------- -->
+  <div class="sheet-overlay" id="ticketSheetOverlay">
+    <div class="sheet pixel-frame">
+      <div class="sheet-handle"></div>
+      <div class="sheet-name" style="margin-bottom:6px;">OUT OF TICKETS</div>
+      <div class="sheet-desc" style="margin-top:0; border-top:none; padding-top:0;">You've used today's free hunt tickets. Buy one more with Crystal to keep hunting, or come back tomorrow.</div>
+      <div class="sheet-actions">
+        <div class="sheet-btn buy-ticket" id="ticketBuyBtn"><span class="icon-img" style="width:12px; height:12px; margin-right:4px; vertical-align:middle; background-image:url('assets/gem_premium.webp')"></span>BUY · <span id="ticketBuyPrice">3</span></div>
+        <div class="sheet-btn close" id="ticketSheetClose">CANCEL</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ---------- CODEX ENTRY SHEET (item / monster description) ---------- -->
   <div class="sheet-overlay" id="codexSheetOverlay">
     <div class="sheet pixel-frame">
@@ -1223,6 +1243,38 @@
   const SAVE_KEY = 'pixelhunt_save_v2';
   let currentTier = 'B'; // which Quest Board tier tab is active; updated by renderQuestBoard()
 
+  // ---------- daily hunt tickets ----------
+  // Hunting used to be free forever, which also made Crystal pointless to
+  // hoard. Now every hunter gets a handful of free tickets per real-world
+  // day; once they're gone, the only way to keep hunting is spending
+  // Crystal on more — that's what actually keeps Crystal scarce.
+  const DAILY_FREE_TICKETS = 5;
+  const TICKET_CRYSTAL_PRICE = 3;
+  let playerTickets = DAILY_FREE_TICKETS;
+  let lastTicketDay = todayString();
+
+  function todayString(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function updateTicketChip(){
+    document.querySelectorAll('.ticket-amount').forEach(function(el){ el.textContent = playerTickets; });
+  }
+
+  // called on load and again right before every hunt attempt, so tickets
+  // top back up to the free daily amount the moment the calendar day rolls
+  // over, even if the tab was just left open overnight
+  function refreshDailyTickets(){
+    const today = todayString();
+    if(today !== lastTicketDay){
+      lastTicketDay = today;
+      playerTickets = DAILY_FREE_TICKETS;
+      updateTicketChip();
+      saveGame();
+    }
+  }
+
   // ---------- inbox / mail ----------
   // New players start with nothing equipped — the starter weapon/armor/accessory
   // sit in ITEMS as locked:true until claimed here, so nothing is handed out
@@ -1309,7 +1361,7 @@
 
   function saveGame(){
     try {
-      const data = { gold: playerGold, crystal: playerCrystal, tier: currentTier, items: {}, mail: {} };
+      const data = { gold: playerGold, crystal: playerCrystal, tickets: playerTickets, ticketDay: lastTicketDay, tier: currentTier, items: {}, mail: {} };
       Object.keys(ITEMS).forEach(cat => {
         data.items[cat] = ITEMS[cat].map(i => ({
           key: i.key,
@@ -1363,13 +1415,76 @@
       }
 
       if(typeof data.tier === 'string') currentTier = data.tier;
+
+      // playerTickets/lastTicketDay are declared above this function, so
+      // (unlike gold/crystal) they can just be assigned directly.
+      if(typeof data.tickets === 'number') playerTickets = data.tickets;
+      if(typeof data.ticketDay === 'string') lastTicketDay = data.ticketDay;
     } catch(e){
       console.warn('pixelhunt: failed to load progress', e);
     }
   }
 
   loadGame();
+  refreshDailyTickets(); // tops tickets back up if a new day started since the last save
+  updateTicketChip();
   updateInboxBadge();
+
+  // ---------- ticket gate: intercept every hunt-start click ----------
+  // All hunt entry points (home ribbon, quest board featured button, quest
+  // cards — current and future ones) share the data-goto="screen-combat"
+  // attribute, so a single delegated, capturing listener on document can
+  // catch every one of them, including cards rendered later by
+  // renderQuestBoard(). Capture phase runs before the element's own
+  // goTo/loadMonster/resetCombat listeners, so it can consume a ticket
+  // first, or block the click entirely and offer to buy one instead.
+  const ticketSheetOverlay = document.getElementById('ticketSheetOverlay');
+  let pendingHuntTarget = null;
+
+  document.addEventListener('click', function(e){
+    const el = e.target.closest('[data-goto="screen-combat"]');
+    if(!el) return;
+
+    refreshDailyTickets();
+    if(playerTickets > 0){
+      playerTickets -= 1;
+      updateTicketChip();
+      saveGame();
+      return; // let the click continue through to the normal hunt-start listeners
+    }
+
+    // no tickets left — block this click and offer to buy one with Crystal
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    pendingHuntTarget = el;
+    document.getElementById('ticketBuyPrice').textContent = TICKET_CRYSTAL_PRICE;
+    document.getElementById('ticketBuyBtn').classList.toggle('disabled', playerCrystal < TICKET_CRYSTAL_PRICE);
+    ticketSheetOverlay.classList.add('open');
+  }, true);
+
+  document.getElementById('ticketBuyBtn').addEventListener('click', function(){
+    if(playerCrystal < TICKET_CRYSTAL_PRICE) return;
+    playerCrystal -= TICKET_CRYSTAL_PRICE;
+    playerTickets += 1;
+    updateCrystalChip();
+    updateTicketChip();
+    saveGame();
+    ticketSheetOverlay.classList.remove('open');
+    const target = pendingHuntTarget;
+    pendingHuntTarget = null;
+    if(target) target.click(); // resume the hunt the player originally tapped
+  });
+
+  document.getElementById('ticketSheetClose').addEventListener('click', function(){
+    ticketSheetOverlay.classList.remove('open');
+    pendingHuntTarget = null;
+  });
+  ticketSheetOverlay.addEventListener('click', function(e){
+    if(e.target === ticketSheetOverlay){
+      ticketSheetOverlay.classList.remove('open');
+      pendingHuntTarget = null;
+    }
+  });
 
   // ---------- crafting recipes ----------
   // each entry: which category the crafted item lives in, its material cost, and a gold cost.
@@ -3087,11 +3202,11 @@
     items.forEach(it => {
       const owned = isGearTab && !it.locked;
       const price = isCrystalTab ? it.crystalPrice : it.shopPrice;
-      const currencySymbol = isCrystalTab ? '💎' : '◆';
+      const currencyIcon = isCrystalTab ? 'assets/gem_premium.webp' : 'assets/gold_coin.webp';
       const canAfford = (isCrystalTab ? playerCrystal : playerGold) >= price;
       const btnHtml = owned
         ? '<div class="shop-buy-btn owned">OWNED</div>'
-        : '<div class="shop-buy-btn' + (canAfford ? '' : ' disabled') + '" data-shop-key="' + it.key + '">BUY<br>' + price + currencySymbol + '</div>';
+        : '<div class="shop-buy-btn' + (canAfford ? '' : ' disabled') + '" data-shop-key="' + it.key + '">BUY<br>' + price + '<span class="icon-img shop-buy-currency" style="background-image:url(\'' + currencyIcon + '\')"></span></div>';
       const subText = isGearTab ? (it.sub + ' · ' + (it.elem || '—')) : it.desc;
       const qtyText = (!isGearTab && typeof it.qty === 'number') ? ('Owned: ' + it.qty) : '';
 
