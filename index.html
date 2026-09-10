@@ -1198,10 +1198,65 @@
     soundOn = on;
     localStorage.setItem('pixelhunt_sound', soundOn ? 'on' : 'off');
     renderSoundState();
+    // give feedback on the toggle action itself — but only the "on" case
+    // plays through SFX (checks soundOn internally), the "off" case is
+    // silent by definition once soundOn is already false
+    if(soundOn) SFX.toggleOn(); 
   }
   soundToggleBtn.addEventListener('click', ()=> setSound(!soundOn));
   settingsSoundToggle.addEventListener('click', ()=> setSound(!soundOn));
   renderSoundState();
+
+  // ---------- lightweight synthesized SFX engine ----------
+  // No audio files exist for this game yet, so every sound here is a tiny
+  // 8-bit-style blip generated on the fly with the Web Audio API. Browsers
+  // only allow audio after a user gesture, so the AudioContext is created
+  // lazily on first use rather than on page load.
+  let audioCtx = null;
+  function getAudioCtx(){
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) audioCtx = new AC();
+    }
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function playTone(freq, duration, type, startTime, peak){
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(freq, startTime);
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(peak != null ? peak : 0.15, startTime + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.02);
+  }
+  const SFX = {
+    _play(fn){ if(!soundOn) return; const ctx = getAudioCtx(); if(!ctx) return; try{ fn(ctx.currentTime); }catch(e){} },
+    click(){ this._play(t => playTone(520, 0.05, 'square', t, 0.09)); },
+    toggleOn(){ this._play(t => { playTone(440, 0.06, 'square', t, 0.12); playTone(660, 0.08, 'square', t+0.06, 0.12); }); },
+    buy(){ this._play(t => { playTone(660, 0.06, 'square', t, 0.12); playTone(880, 0.1, 'square', t+0.06, 0.12); }); },
+    error(){ this._play(t => playTone(160, 0.1, 'square', t, 0.12)); },
+    swing(){ this._play(t => playTone(180, 0.08, 'sawtooth', t, 0.1)); },
+    hit(){ this._play(t => playTone(140, 0.09, 'square', t, 0.18)); },
+    crit(){ this._play(t => { playTone(180, 0.05, 'square', t, 0.2); playTone(90, 0.12, 'square', t+0.05, 0.2); }); },
+    hurt(){ this._play(t => playTone(220, 0.12, 'sawtooth', t, 0.16)); },
+    victory(){ this._play(t => [523,659,784,1047].forEach((f,i)=> playTone(f, 0.14, 'square', t+i*0.09, 0.14))); },
+    defeat(){ this._play(t => [392,330,262].forEach((f,i)=> playTone(f, 0.2, 'triangle', t+i*0.13, 0.14))); }
+  };
+
+  // Generic click blip for ordinary UI buttons — navigation, tabs, chips,
+  // icon buttons. Uses delegation so it doesn't need touching every
+  // existing handler. Gameplay-specific sounds (attacks, purchases, claims)
+  // are hooked individually below with their own distinct sound instead.
+  document.addEventListener('click', (e)=>{
+    if(e.target.closest('.btn, .tab, .nav-item, .icon-btn, .currency-chip, .back-btn')) SFX.click();
+  });
 
   // ---------- settings sheet ----------
   const settingsOverlay = document.getElementById('settingsOverlay');
@@ -1554,6 +1609,7 @@
       item.equipped = true;
     });
     mail.claimed = true;
+    SFX.buy();
 
     renderInbox();
     renderLoadout();
@@ -3061,6 +3117,7 @@
       playerHp = Math.max(0, playerHp - amount);
       playerHpFill.style.width = (playerHp / playerMaxHp * 100) + '%';
       playerHpNumber.textContent = playerHp + '/' + playerMaxHp;
+      SFX.hurt();
     }
     if(playerHp > 0) return 'alive';
 
@@ -3079,6 +3136,7 @@
     setButtonsEnabled(false);
     document.getElementById('defeatSub').textContent = currentMonster.name + ' was too strong this time';
     animator.play('idle');
+    SFX.defeat();
     setTimeout(()=> defeatOverlay.classList.add('show'), 400);
     return 'defeated';
   }
@@ -3144,6 +3202,8 @@
     arenaMonster.classList.remove('hit'); void arenaMonster.offsetWidth; arenaMonster.classList.add('hit');
     combatArena.classList.remove('arena-shake'); void combatArena.offsetWidth; combatArena.classList.add('arena-shake');
     spawnDamage(finalDmg, crit);
+    SFX.swing();
+    crit ? SFX.crit() : SFX.hit();
     logMsg(crit ? 'CRITICAL! -' + finalDmg + ' HP' : 'Hit! -' + finalDmg + ' HP');
 
     btn.classList.add('on-cooldown');
@@ -3153,6 +3213,7 @@
       fightOver = true; turn = 'over';
       setButtonsEnabled(false);
       animator.play('defeat', { onComplete: ()=>{} }); // stop on the last frame, don't return to idle
+      SFX.victory();
       document.getElementById('victorySub').textContent = currentMonster.name + ' defeated';
 
       // roll & grant the actual haul for THIS monster, then build the reward screen from it
@@ -3478,6 +3539,7 @@
       matItem.qty -= m.qty;
     });
     item.locked = false;
+    SFX.buy();
 
     updateGoldChip();
     renderCraftList();
@@ -3570,6 +3632,7 @@
     } else {
       item.qty = (item.qty || 0) + 1;
     }
+    SFX.buy();
 
     updateGoldChip();
     updateCrystalChip();
