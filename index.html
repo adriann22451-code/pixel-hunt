@@ -1772,6 +1772,8 @@
     const grid = document.getElementById('inventoryGrid');
     const allItems = ITEMS[category] || [];
     const items = allItems.filter(it => matchesFilter(it, currentFilter));
+    // owned items always show first; not-yet-owned (locked/empty) placeholders trail behind
+    items.sort((a, b) => (a.locked === b.locked) ? 0 : (a.locked ? 1 : -1));
 
     if(allItems.length === 0){
       grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--bone-dim); font-size:14px; padding:30px 10px;">No items yet in this category.</div>';
