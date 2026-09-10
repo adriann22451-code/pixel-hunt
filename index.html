@@ -51,6 +51,50 @@
   .vignette{ position:absolute; inset:0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%); pointer-events:none; z-index:50; }
   .noise{ position:absolute; inset:0; opacity:0.05; background-image: repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 3px); pointer-events:none; z-index:49; }
 
+  /* ================= LOADING SCREEN ================= */
+  #loadingScreen{
+    position:absolute; inset:0; z-index:1000;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at 50% 40%, #241a13 0%, #140e0a 55%, #0a0705 100%);
+    transition: opacity 0.6s ease;
+  }
+  #loadingScreen.is-hidden{ opacity:0; pointer-events:none; }
+  .loading-torch{
+    font-size:36px; margin-bottom:18px;
+    animation: loadingFlicker 1.1s infinite steps(2);
+    filter: drop-shadow(0 0 14px rgba(242,169,59,0.55));
+  }
+  @keyframes loadingFlicker{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:0.72; transform:scale(0.94); } }
+  .loading-eyebrow{
+    font-size:13px; color:var(--bone-dim); letter-spacing:4px; text-transform:uppercase; margin-bottom:10px;
+  }
+  .loading-logo{
+    font-family:'Press Start 2P', monospace; font-size:26px; line-height:1.5;
+    color:var(--amber); text-shadow:3px 3px 0 #000; text-align:center;
+  }
+  .loading-logo .accent{ color:var(--ember); display:block; }
+  .loading-tagline{
+    margin-top:12px; font-size:16px; color:var(--bone-dim); letter-spacing:2px;
+  }
+  .loading-bar-wrap{ width:230px; margin-top:46px; }
+  .loading-bar-track{
+    height:16px; background:#000; border:2px solid var(--line); position:relative; overflow:hidden;
+  }
+  .loading-bar-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--ember), var(--amber));
+    box-shadow:0 0 10px rgba(242,169,59,0.55);
+    transition:width 0.25s ease;
+  }
+  .loading-bar-notches{ display:flex; justify-content:space-between; margin-top:4px; }
+  .loading-bar-notches span{ width:2px; height:5px; background:var(--line); }
+  .loading-percent{
+    margin-top:12px; font-family:'Press Start 2P', monospace; font-size:11px; color:var(--bone); text-align:center;
+  }
+  .loading-tip{
+    margin-top:26px; font-size:14px; color:var(--bone-dim); text-align:center; padding:0 34px; min-height:20px;
+  }
+
   .pixel-frame{
     clip-path: polygon(0 6px,6px 6px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 6px),0 calc(100% - 6px));
   }
@@ -702,6 +746,124 @@
 <body>
 
 <div class="device">
+
+  <!-- ================= LOADING SCREEN ================= -->
+  <div id="loadingScreen">
+    <div class="loading-torch">🔥</div>
+    <div class="loading-eyebrow">Huntsman's Log</div>
+    <div class="loading-logo">PIXEL<span class="accent">HUNT</span></div>
+    <div class="loading-tagline">Hunt. Craft. Survive.</div>
+    <div class="loading-bar-wrap">
+      <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBarFill"></div></div>
+      <div class="loading-bar-notches"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="loading-percent" id="loadingPercent">0%</div>
+    </div>
+    <div class="loading-tip" id="loadingTip"></div>
+  </div>
+  <script>
+  (function(){
+    var ASSETS = [
+      "assets/accessory_hunters_ring.webp","assets/accessory_lucky_charm.webp","assets/accessory_void_amulet.webp",
+      "assets/aquafin.webp","assets/armor_dark_common.webp","assets/armor_dark_epic.webp","assets/armor_dark_legendary.webp",
+      "assets/armor_dark_rare.webp","assets/armor_dark_uncommon.webp","assets/armor_earth_common.webp","assets/armor_earth_epic.webp",
+      "assets/armor_earth_legendary.webp","assets/armor_earth_rare.webp","assets/armor_earth_uncommon.webp","assets/armor_fire_common.webp",
+      "assets/armor_fire_epic.webp","assets/armor_fire_legendary.webp","assets/armor_fire_rare.webp","assets/armor_fire_uncommon.webp",
+      "assets/armor_leather.webp","assets/armor_light_common.webp","assets/armor_light_epic.webp","assets/armor_light_legendary.webp",
+      "assets/armor_light_rare.webp","assets/armor_light_uncommon.webp","assets/armor_water_common.webp","assets/armor_water_epic.webp",
+      "assets/armor_water_legendary.webp","assets/armor_water_rare.webp","assets/armor_water_uncommon.webp","assets/armor_wind_common.webp",
+      "assets/armor_wind_epic.webp","assets/armor_wind_legendary.webp","assets/armor_wind_rare.webp","assets/armor_wind_uncommon.webp",
+      "assets/flareclaw_attack.webp","assets/flareclaw_defeat.webp","assets/flareclaw_hit.webp","assets/flareclaw_idle.webp",
+      "assets/gem_premium.webp","assets/gold_coin.webp","assets/grubling_attack.webp","assets/grubling_defeat.webp",
+      "assets/grubling_hit.webp","assets/grubling_idle.webp","assets/hero_avatar.webp","assets/icon_armor.webp",
+      "assets/icon_bestiary.webp","assets/icon_inventory.webp","assets/icon_quest.webp","assets/material_aquafin_membrane.webp",
+      "assets/material_aquafin_scale.webp","assets/material_beast_hide.webp","assets/material_claw.webp","assets/material_ember_core.webp",
+      "assets/material_grubling_shell.webp","assets/material_monster_bone.webp","assets/material_rockhide_core.webp",
+      "assets/material_rockhide_plating.webp","assets/material_scale.webp","assets/material_singularity_shard.webp",
+      "assets/material_stormwing_crystal.webp","assets/material_stormwing_feather.webp","assets/potion_antidote.webp",
+      "assets/potion_elemental_resist.webp","assets/potion_health.webp","assets/potion_health_greater.webp","assets/potion_phoenix.webp",
+      "assets/potion_stamina.webp","assets/quest_board.webp","assets/rockhide.webp","assets/stormwing.webp",
+      "assets/talisman_earth.webp","assets/talisman_fire.webp","assets/talisman_lightning.webp","assets/talisman_water.webp",
+      "assets/talisman_wind.webp","assets/village_bg.webp","assets/weapon_dark_common.webp","assets/weapon_dark_epic.webp",
+      "assets/weapon_dark_legendary.webp","assets/weapon_dark_rare.webp","assets/weapon_dark_uncommon.webp","assets/weapon_earth_common.webp",
+      "assets/weapon_earth_epic.webp","assets/weapon_earth_legendary.webp","assets/weapon_earth_rare.webp","assets/weapon_earth_uncommon.webp",
+      "assets/weapon_fire_common.webp","assets/weapon_fire_epic.webp","assets/weapon_fire_legendary.webp","assets/weapon_fire_rare.webp",
+      "assets/weapon_fire_uncommon.webp","assets/weapon_light_common.webp","assets/weapon_light_epic.webp","assets/weapon_light_legendary.webp",
+      "assets/weapon_light_rare.webp","assets/weapon_light_uncommon.webp","assets/weapon_mystery.webp","assets/weapon_water_common.webp",
+      "assets/weapon_water_epic.webp","assets/weapon_water_legendary.webp","assets/weapon_water_rare.webp","assets/weapon_water_uncommon.webp",
+      "assets/weapon_wind_common.webp","assets/weapon_wind_epic.webp","assets/weapon_wind_legendary.webp","assets/weapon_wind_rare.webp",
+      "assets/weapon_wind_uncommon.webp"
+    ];
+    var TIPS = [
+      "Sharpening your blade...",
+      "Tracking monster footprints...",
+      "Stoking the campfire...",
+      "Counting gold coins...",
+      "Brewing health potions...",
+      "Reading the Huntsman's Log...",
+      "Sorting gear by rarity...",
+      "Scouting the misty mountains..."
+    ];
+
+    var screenEl = document.getElementById('loadingScreen');
+    var fillEl = document.getElementById('loadingBarFill');
+    var percentEl = document.getElementById('loadingPercent');
+    var tipEl = document.getElementById('loadingTip');
+
+    var total = ASSETS.length || 1;
+    var loaded = 0;
+    var finished = false;
+    var startTime = Date.now();
+
+    function setProgress(pct){
+      if(fillEl) fillEl.style.width = pct + '%';
+      if(percentEl) percentEl.textContent = pct + '%';
+    }
+
+    var tipIndex = 0;
+    function rotateTip(){
+      if(!tipEl) return;
+      tipEl.textContent = TIPS[tipIndex % TIPS.length];
+      tipIndex++;
+    }
+    rotateTip();
+    var tipTimer = setInterval(rotateTip, 1400);
+
+    function onAssetDone(){
+      loaded++;
+      setProgress(Math.min(100, Math.round((loaded / total) * 100)));
+      if(loaded >= total) finish();
+    }
+
+    function finish(){
+      if(finished) return;
+      finished = true;
+      clearInterval(tipTimer);
+      setProgress(100);
+      var elapsed = Date.now() - startTime;
+      var minDuration = 1100; // let the loading screen breathe even on instant cache loads
+      var wait = Math.max(0, minDuration - elapsed);
+      setTimeout(function(){
+        if(!screenEl) return;
+        screenEl.classList.add('is-hidden');
+        setTimeout(function(){ screenEl.remove(); }, 650);
+      }, wait);
+    }
+
+    if(ASSETS.length === 0){
+      finish();
+    } else {
+      ASSETS.forEach(function(src){
+        var img = new Image();
+        img.onload = onAssetDone;
+        img.onerror = onAssetDone; // a missing/broken asset should never trap the player here
+        img.src = src;
+      });
+    }
+
+    // safety net: never let a slow network keep the loading screen up too long
+    setTimeout(finish, 6000);
+  })();
+  </script>
 
   <!-- ================= SCREEN: MAIN MENU ================= -->
   <div class="screen active" id="screen-menu">
