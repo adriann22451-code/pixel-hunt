@@ -80,6 +80,24 @@
   /* ================= SCREEN 1: MAIN MENU ================= */
   #screen-menu .topbar{ display:flex; justify-content:space-between; align-items:center; padding:14px 14px 0 14px; }
   #screen-menu .currency{ display:flex; gap:8px; }
+  .currency-chip{ cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; }
+  .currency-chip:active{ background:var(--panel-2); border-color:var(--amber); }
+
+  /* ---------- currency info toast ---------- */
+  .currency-toast{
+    position:absolute; top:56px; left:14px; right:14px; z-index:60;
+    background:var(--panel-2); border:2px solid var(--amber); padding:10px 12px;
+    display:flex; align-items:flex-start; gap:10px;
+    opacity:0; pointer-events:none; transform:translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    box-shadow:0 6px 16px rgba(0,0,0,0.5);
+  }
+  .currency-toast.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .currency-toast .icon-img{ width:22px; height:22px; flex-shrink:0; margin-top:1px; }
+  .currency-toast .ct-icon-emoji{ font-size:18px; flex-shrink:0; }
+  .currency-toast .ct-body{ flex:1; }
+  .currency-toast .ct-title{ font-family:'Press Start 2P', monospace; font-size:10px; color:var(--amber); margin-bottom:4px; }
+  .currency-toast .ct-desc{ font-size:14px; color:var(--bone-dim); line-height:1.4; }
   #screen-menu .settings-btn{ width:34px; height:34px; background:var(--panel); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--bone-dim); font-size:16px; }
   #screen-menu .topbar-actions{ display:flex; align-items:center; gap:8px; }
   #screen-menu .inbox-btn{ position:relative; }
@@ -610,13 +628,21 @@
   <div class="screen active" id="screen-menu">
     <div class="topbar">
       <div class="currency">
-        <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="goldAmount">245</span></div>
-        <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span><span id="crystalAmount">12</span></div>
-        <div class="chip"><span class="icon">🎫</span><span class="ticket-amount" id="ticketAmount">5</span></div>
+        <div class="chip currency-chip" data-currency="gold"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="goldAmount">245</span></div>
+        <div class="chip currency-chip" data-currency="crystal"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span><span id="crystalAmount">12</span></div>
+        <div class="chip currency-chip" data-currency="ticket"><span class="icon">🎫</span><span class="ticket-amount" id="ticketAmount">5</span></div>
       </div>
       <div class="topbar-actions">
         <div class="settings-btn inbox-btn" id="inboxBtn">✉<span class="inbox-badge" id="inboxBadge"></span></div>
         <div class="settings-btn" id="settingsBtn">⚙</div>
+      </div>
+    </div>
+
+    <div class="currency-toast" id="currencyToast">
+      <span id="currencyToastIcon"></span>
+      <div class="ct-body">
+        <div class="ct-title" id="currencyToastTitle"></div>
+        <div class="ct-desc" id="currencyToastDesc"></div>
       </div>
     </div>
 
@@ -3562,6 +3588,47 @@
 
   document.querySelectorAll('[data-goto="screen-shop"]').forEach(el=>{
     el.addEventListener('click', ()=> renderShop());
+  });
+
+  // ---------- currency chip info toast (gold / crystal / ticket) ----------
+  // Tapping a currency chip in the topbar shows a small description of what
+  // that currency is for. Auto-hides after a few seconds or on outside tap.
+  const CURRENCY_INFO = {
+    gold:    { title: 'GOLD',    desc: 'Earned from hunts. Spent on gear, potions and crafting.', img: 'assets/gold_coin.webp' },
+    crystal: { title: 'CRYSTAL', desc: 'Premium gem. Used for rare shop trades and scarce materials.', img: 'assets/gem_premium.webp' },
+    ticket:  { title: 'TICKET',  desc: 'Grants entry to hunts. Refills over time or from rewards.', emoji: '🎫' }
+  };
+
+  let currencyToastTimer = null;
+  function showCurrencyToast(key){
+    const info = CURRENCY_INFO[key];
+    const toast = document.getElementById('currencyToast');
+    if(!info || !toast) return;
+
+    document.getElementById('currencyToastTitle').textContent = info.title;
+    document.getElementById('currencyToastDesc').textContent = info.desc;
+    const iconEl = document.getElementById('currencyToastIcon');
+    iconEl.innerHTML = info.img
+      ? '<span class="icon-img" style="background-image:url(\'' + info.img + '\')"></span>'
+      : '<span class="ct-icon-emoji">' + info.emoji + '</span>';
+
+    toast.classList.add('show');
+    clearTimeout(currencyToastTimer);
+    currencyToastTimer = setTimeout(()=> toast.classList.remove('show'), 3200);
+  }
+
+  document.querySelectorAll('.currency-chip').forEach(chip=>{
+    chip.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      showCurrencyToast(chip.dataset.currency);
+    });
+  });
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('.currency-chip') && !e.target.closest('#currencyToast')){
+      const toast = document.getElementById('currencyToast');
+      if(toast) toast.classList.remove('show');
+      clearTimeout(currencyToastTimer);
+    }
   });
 </script>
 
