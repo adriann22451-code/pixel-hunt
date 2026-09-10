@@ -229,7 +229,7 @@
   .sheet-overlay.open .sheet{ transform: translateY(0); }
   .sheet-handle{ width:36px; height:4px; background:var(--line); margin:0 auto 14px auto; }
   .sheet-top{ display:flex; gap:12px; align-items:center; }
-  .sheet-icon{ width:56px; height:56px; background:var(--panel); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:30px; flex-shrink:0; position:relative; }
+  .sheet-icon{ width:56px; height:56px; box-sizing:border-box; padding:6px; background:var(--panel); background-origin:content-box; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:30px; flex-shrink:0; position:relative; }
   .sheet-icon .rarity-bar{ position:absolute; top:0; left:0; right:0; height:3px; }
   .sheet-name{ font-family:'Press Start 2P', monospace; font-size:12px; color:var(--bone); line-height:1.4; }
   .sheet-type{ font-size:14px; color:var(--rare); margin-top:4px; }
@@ -253,7 +253,7 @@
   .beast-part{ font-size:14px; color:var(--bone-dim); margin-top:4px; }
   .beast-status{ font-size:12px; color:var(--moss); }
   .beast-status.undiscovered{ color:var(--bone-dim); }
-  .beast-icon.icon-art{ background-size:80% auto; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
+  .beast-icon.icon-art{ box-sizing:border-box; padding:5px; background-size:contain; background-origin:content-box; background-repeat:no-repeat; background-position:center; }
 
   /* rarity glow — epic/legendary get an increasingly eye-catching treatment
      on the icon art and name text only (not the whole card outline, which
@@ -1749,7 +1749,7 @@
     if(img){
       codexSheetIconEmoji.textContent = '';
       codexSheetIconEl.style.backgroundImage = "url('" + img + "')";
-      codexSheetIconEl.style.backgroundSize = '70% auto';
+      codexSheetIconEl.style.backgroundSize = 'contain';
       codexSheetIconEl.style.backgroundPosition = 'center';
       codexSheetIconEl.style.backgroundRepeat = 'no-repeat';
     } else {
@@ -1871,7 +1871,7 @@
     if(itemEl.dataset.img){
       sheetIconEmoji.textContent = '';
       sheetIconEl.style.backgroundImage = `url('${itemEl.dataset.img}')`;
-      sheetIconEl.style.backgroundSize = '70% auto';
+      sheetIconEl.style.backgroundSize = 'contain';
       sheetIconEl.style.backgroundPosition = 'center';
       sheetIconEl.style.backgroundRepeat = 'no-repeat';
     } else {
