@@ -514,6 +514,11 @@
   .shop-mid{ flex:1; min-width:0; }
   .shop-name{ font-size:13px; color:var(--bone); }
   .shop-sub{ font-size:10px; color:var(--bone-dim); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* shop header now carries two currency chips (gold + crystal) — wrap
+     instead of overflowing the narrow device frame, and shrink them a
+     touch so both usually still fit on one line */
+  #screen-shop .header{ flex-wrap:wrap; row-gap:8px; }
+  #screen-shop .header .chip{ font-size:13px; padding:4px 8px; }
   .shop-qty{ font-size:10px; color:var(--rc, var(--amber)); margin-top:2px; }
   .shop-buy-btn{ flex-shrink:0; background:var(--wood); border:2px solid #000; padding:8px 10px; font-size:10px; line-height:1.5; color:var(--bone); text-align:center; cursor:pointer; white-space:nowrap; }
   .shop-buy-btn.disabled{ opacity:0.4; cursor:default; }
@@ -584,7 +589,7 @@
     <div class="topbar">
       <div class="currency">
         <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="goldAmount">245</span></div>
-        <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span>12</div>
+        <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span><span id="crystalAmount">12</span></div>
       </div>
       <div class="topbar-actions">
         <div class="settings-btn inbox-btn" id="inboxBtn">✉<span class="inbox-badge" id="inboxBadge"></span></div>
@@ -948,12 +953,14 @@
         <div class="header-sub">Emberfall Trading Post</div>
       </div>
       <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="shopGoldAmount">245</span></div>
+      <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span><span id="shopCrystalAmount">12</span></div>
     </div>
 
     <div class="tabs" id="shopTabs">
       <div class="tab active" data-shop-category="potion">POTIONS</div>
       <div class="tab" data-shop-category="weapon">WEAPONS</div>
       <div class="tab" data-shop-category="armor">ARMOR</div>
+      <div class="tab" data-shop-category="material">MATERIALS</div>
     </div>
 
     <div class="shop-list" id="shopList"></div>
@@ -1184,18 +1191,18 @@
     ],
     material: [
       { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', icon:'🦴', img:'assets/material_claw.webp',       rarity:'common', atk:'—', elem:'—', qty:12, desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
-      { key:'material_scale',      name:'Pure Fire Scale', sub:'Rare Material',    icon:'🔥', img:'assets/material_scale.webp',      rarity:'rare',   atk:'—', elem:'—', qty:3,  desc:'A scale that never cools. Only the toughest Flareclaws carry these.', locked:false },
-      { key:'material_ember_core', name:'Ember Core',      sub:'Epic Material',    icon:'💠', img:'assets/material_ember_core.webp', rarity:'epic',   atk:'—', elem:'—', qty:1,  desc:"A Flareclaw's inner core, still glowing faintly with heat.", locked:false },
+      { key:'material_scale',      name:'Pure Fire Scale', sub:'Rare Material',    icon:'🔥', img:'assets/material_scale.webp',      rarity:'rare',   atk:'—', elem:'—', qty:3,  crystalPrice:3, desc:'A scale that never cools. Only the toughest Flareclaws carry these.', locked:false },
+      { key:'material_ember_core', name:'Ember Core',      sub:'Epic Material',    icon:'💠', img:'assets/material_ember_core.webp', rarity:'epic',   atk:'—', elem:'—', qty:1,  crystalPrice:6, desc:"A Flareclaw's inner core, still glowing faintly with heat.", locked:false },
       { key:'material_rockhide_plating', name:'Rockhide Plating',   sub:'Monster Material', icon:'🪨', img:'assets/material_rockhide_plating.webp', rarity:'common', atk:'—', elem:'—', qty:9, desc:'A chunk of cracked stone plating shed by a Rockhide.', locked:false },
-      { key:'material_rockhide_core',    name:'Rockhide Core Stone',sub:'Epic Material',    icon:'🟢', img:'assets/material_rockhide_core.webp',    rarity:'epic',   atk:'—', elem:'—', qty:1, desc:"A dense stone core threaded with glowing green veins.", locked:false },
+      { key:'material_rockhide_core',    name:'Rockhide Core Stone',sub:'Epic Material',    icon:'🟢', img:'assets/material_rockhide_core.webp',    rarity:'epic',   atk:'—', elem:'—', qty:1, crystalPrice:6, desc:"A dense stone core threaded with glowing green veins.", locked:false },
       { key:'material_stormwing_feather',name:'Stormwing Feather',  sub:'Monster Material', icon:'🪶', img:'assets/material_stormwing_feather.webp',rarity:'common', atk:'—', elem:'—', qty:7, desc:'A sleek feather still crackling faintly with static.', locked:false },
-      { key:'material_stormwing_crystal',name:'Stormwing Wind Crystal', sub:'Rare Material', icon:'💎', img:'assets/material_stormwing_crystal.webp', rarity:'rare', atk:'—', elem:'—', qty:2, desc:'A jagged shard formed from compressed wind current.', locked:false },
+      { key:'material_stormwing_crystal',name:'Stormwing Wind Crystal', sub:'Rare Material', icon:'💎', img:'assets/material_stormwing_crystal.webp', rarity:'rare', atk:'—', elem:'—', qty:2, crystalPrice:3, desc:'A jagged shard formed from compressed wind current.', locked:false },
       { key:'material_aquafin_scale',    name:'Aquafin Scale',      sub:'Monster Material', icon:'🐟', img:'assets/material_aquafin_scale.webp',    rarity:'common', atk:'—', elem:'—', qty:8, desc:'An iridescent scale that never fully dries out.', locked:false },
-      { key:'material_aquafin_membrane', name:'Aquafin Fin Membrane', sub:'Rare Material', icon:'🌊', img:'assets/material_aquafin_membrane.webp', rarity:'rare', atk:'—', elem:'—', qty:2, desc:'A translucent fin membrane, still cool and damp to the touch.', locked:false },
+      { key:'material_aquafin_membrane', name:'Aquafin Fin Membrane', sub:'Rare Material', icon:'🌊', img:'assets/material_aquafin_membrane.webp', rarity:'rare', atk:'—', elem:'—', qty:2, crystalPrice:3, desc:'A translucent fin membrane, still cool and damp to the touch.', locked:false },
       { key:'material_grubling_shell',   name:'Grubling Shell Fragment', sub:'Monster Material', icon:'🐛', img:'assets/material_grubling_shell.webp', rarity:'common', atk:'—', elem:'—', qty:15, desc:'A cracked shell fragment. The most common material a hunter finds.', locked:false },
       { key:'material_monster_bone',     name:'Monster Bone',       sub:'Monster Material', icon:'🦴', img:'assets/material_monster_bone.webp',    rarity:'common', atk:'—', elem:'—', qty:10, desc:'A weathered bone fragment. Basic crafting material for most gear.', locked:false },
       { key:'material_beast_hide',       name:'Beast Hide',         sub:'Monster Material', icon:'🟤', img:'assets/material_beast_hide.webp',       rarity:'common', atk:'—', elem:'—', qty:6, desc:'A folded piece of thick hide, still smelling faintly of the hunt.', locked:false },
-      { key:'material_singularity_shard',name:'Singularity Shard',  sub:'Epic Material',    icon:'🌌', img:'assets/material_singularity_shard.webp',rarity:'legendary', atk:'—', elem:'—', qty:1, desc:'A fragment that seems to fold light around itself. Origin unknown.', locked:false }
+      { key:'material_singularity_shard',name:'Singularity Shard',  sub:'Epic Material',    icon:'🌌', img:'assets/material_singularity_shard.webp',rarity:'legendary', atk:'—', elem:'—', qty:1, crystalPrice:12, desc:'A fragment that seems to fold light around itself. Origin unknown.', locked:false }
     ],
     potion: [
       { key:'potion_health',         name:'Health Potion',           sub:'Recovery Item', icon:'🧪', img:'assets/potion_health.webp',         rarity:'common',    atk:'—', elem:'—', qty:5, shopPrice:40,  desc:'Restores a moderate amount of health. Every hunter carries a few.', locked:false },
@@ -1302,7 +1309,7 @@
 
   function saveGame(){
     try {
-      const data = { gold: playerGold, tier: currentTier, items: {}, mail: {} };
+      const data = { gold: playerGold, crystal: playerCrystal, tier: currentTier, items: {}, mail: {} };
       Object.keys(ITEMS).forEach(cat => {
         data.items[cat] = ITEMS[cat].map(i => ({
           key: i.key,
@@ -1346,6 +1353,13 @@
       if(typeof data.gold === 'number'){
         const goldEl = document.getElementById('goldAmount');
         if(goldEl) goldEl.textContent = data.gold;
+      }
+
+      // same pattern as gold: playerCrystal reads its starting value from
+      // this DOM text further below, once it's declared.
+      if(typeof data.crystal === 'number'){
+        const crystalEl = document.getElementById('crystalAmount');
+        if(crystalEl) crystalEl.textContent = data.crystal;
       }
 
       if(typeof data.tier === 'string') currentTier = data.tier;
@@ -2492,10 +2506,16 @@
 
   // ---------- loot / hunt rewards (rolled fresh per monster, per kill) ----------
   let playerGold = parseInt((document.getElementById('goldAmount') || {}).textContent, 10) || 0;
+  let playerCrystal = parseInt((document.getElementById('crystalAmount') || {}).textContent, 10) || 0;
 
   function updateGoldChip(){
     const el = document.getElementById('goldAmount');
     if(el) el.textContent = playerGold;
+  }
+
+  function updateCrystalChip(){
+    const el = document.getElementById('crystalAmount');
+    if(el) el.textContent = playerCrystal;
   }
 
   function rollQty(min, max){
@@ -2504,6 +2524,10 @@
 
   // rolls each loot-table entry independently against its own drop chance,
   // so the same monster won't hand out the exact same haul every hunt
+  // Crystal (premium currency) can also drop from a hunt — chance scales
+  // with the monster's Quest Board tier, so tougher hunts (B/A) are the
+  // reliable way to earn it instead of relying only on the Shop grind.
+  const CRYSTAL_CHANCE_BY_TIER = { E:0.02, D:0.03, C:0.04, B:0.06, A:0.08 };
   function generateLoot(monsterKey){
     const mm = MONSTERS[monsterKey] || MONSTERS.grubling;
     const table = mm.loot || [];
@@ -2526,7 +2550,10 @@
       drops.push({ key: fallback.key, qty: rollQty(fallback.min, fallback.max) });
     }
 
-    return { gold: rollQty(mm.goldMin || 15, mm.goldMax || 30), drops: drops };
+    const crystalChance = CRYSTAL_CHANCE_BY_TIER[mm.tier] || 0.02;
+    const crystal = Math.random() < crystalChance ? 1 : 0;
+
+    return { gold: rollQty(mm.goldMin || 15, mm.goldMax || 30), drops: drops, crystal: crystal };
   }
 
   // actually add the rolled loot into the player's material stack + gold total
@@ -2536,7 +2563,9 @@
       if(item) item.qty = (item.qty || 0) + d.qty;
     });
     playerGold += loot.gold;
+    playerCrystal += loot.crystal || 0;
     updateGoldChip();
+    updateCrystalChip();
     saveGame();
   }
 
@@ -2546,6 +2575,9 @@
     document.getElementById('rewardMonster').textContent = mm.emojiFallback || '❓';
 
     let html = '<div class="reward-row"><div class="rarity-bar r-common"></div><span class="icon icon-img" style="background-image:url(\'assets/gold_coin.webp\')"></span><span class="name">Gold</span><span class="amount">+' + loot.gold + '</span></div>';
+    if(loot.crystal){
+      html += '<div class="reward-row"><div class="rarity-bar r-epic"></div><span class="icon icon-img" style="background-image:url(\'assets/gem_premium.webp\')"></span><span class="name">Crystal</span><span class="amount">+' + loot.crystal + '</span></div>';
+    }
     loot.drops.forEach(d => {
       const item = ITEMS.material.find(i => i.key === d.key);
       if(!item) return;
@@ -3031,24 +3063,35 @@
     if(category) currentShopCategory = category;
     const goldEl = document.getElementById('shopGoldAmount');
     if(goldEl) goldEl.textContent = playerGold;
+    const crystalEl = document.getElementById('shopCrystalAmount');
+    if(crystalEl) crystalEl.textContent = playerCrystal;
 
     const list = document.getElementById('shopList');
     if(!list) return;
 
     const isGearTab = currentShopCategory === 'weapon' || currentShopCategory === 'armor';
+    // Materials tab is a separate crystal-only exchange for scarce crafting
+    // materials (the ones with low hunt drop chance), so grinding for a
+    // specific material isn't the only option — it's priced in Crystal,
+    // not Gold, everything else below still uses Gold as before.
+    const isCrystalTab = currentShopCategory === 'material';
     // shop only stocks potions (any rarity) plus common/uncommon gear —
     // rare, epic and legendary gear is craft-only (see screen-craft)
-    const items = (ITEMS[currentShopCategory] || []).filter(it =>
-      typeof it.shopPrice === 'number' && (!isGearTab || it.rarity === 'common' || it.rarity === 'uncommon')
-    );
+    const items = isCrystalTab
+      ? (ITEMS.material || []).filter(it => typeof it.crystalPrice === 'number')
+      : (ITEMS[currentShopCategory] || []).filter(it =>
+          typeof it.shopPrice === 'number' && (!isGearTab || it.rarity === 'common' || it.rarity === 'uncommon')
+        );
 
     let html = '';
     items.forEach(it => {
       const owned = isGearTab && !it.locked;
-      const canAfford = playerGold >= it.shopPrice;
+      const price = isCrystalTab ? it.crystalPrice : it.shopPrice;
+      const currencySymbol = isCrystalTab ? '💎' : '◆';
+      const canAfford = (isCrystalTab ? playerCrystal : playerGold) >= price;
       const btnHtml = owned
         ? '<div class="shop-buy-btn owned">OWNED</div>'
-        : '<div class="shop-buy-btn' + (canAfford ? '' : ' disabled') + '" data-shop-key="' + it.key + '">BUY<br>' + it.shopPrice + '◆</div>';
+        : '<div class="shop-buy-btn' + (canAfford ? '' : ' disabled') + '" data-shop-key="' + it.key + '">BUY<br>' + price + currencySymbol + '</div>';
       const subText = isGearTab ? (it.sub + ' · ' + (it.elem || '—')) : it.desc;
       const qtyText = (!isGearTab && typeof it.qty === 'number') ? ('Owned: ' + it.qty) : '';
 
@@ -3067,7 +3110,9 @@
   }
 
   // handles both purchase types: consumables just add to qty and stay
-  // purchasable forever, gear is a one-time unlock (locked -> false)
+  // purchasable forever, gear is a one-time unlock (locked -> false).
+  // Currency is picked per item: anything with a crystalPrice spends
+  // Crystal, everything else still spends Gold like before.
   function buyShopItem(key){
     let item = null;
     Object.keys(ITEMS).some(cat => {
@@ -3075,20 +3120,25 @@
       if(found) item = found;
       return !!found;
     });
-    if(!item || typeof item.shopPrice !== 'number') return;
-    if(playerGold < item.shopPrice) return;
+    if(!item) return;
+
+    const isCrystalItem = typeof item.crystalPrice === 'number';
+    const price = isCrystalItem ? item.crystalPrice : item.shopPrice;
+    if(typeof price !== 'number') return;
+    if(isCrystalItem ? (playerCrystal < price) : (playerGold < price)) return;
 
     const isGear = typeof item.qty !== 'number';
+    if(isGear && !item.locked) return; // already owned, nothing to buy
+
+    if(isCrystalItem) playerCrystal -= price; else playerGold -= price;
     if(isGear){
-      if(!item.locked) return; // already owned, nothing to buy
-      playerGold -= item.shopPrice;
       item.locked = false;
     } else {
-      playerGold -= item.shopPrice;
       item.qty = (item.qty || 0) + 1;
     }
 
     updateGoldChip();
+    updateCrystalChip();
     renderShop();
     renderInventory(currentCategory);
     saveGame();
