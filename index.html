@@ -176,7 +176,8 @@
   .featured{ margin:14px 14px 0 14px; position:relative; background: linear-gradient(180deg, rgba(10,7,5,0.15), rgba(10,7,5,0.85)), linear-gradient(135deg, #2a1c12, #1a1109); border:2px solid #000; padding:14px; overflow:hidden; }
   .featured .tag{ display:inline-block; font-family:'Press Start 2P', monospace; font-size:8px; color:var(--blood); background: rgba(156,47,31,0.15); border:1px solid var(--blood); padding:3px 6px; margin-bottom:8px; }
   .featured-row{ display:flex; align-items:center; gap:12px; }
-  .featured-monster{ font-size:48px; filter: drop-shadow(0 0 10px rgba(224,105,42,0.4)); }
+  .featured-monster{ font-size:48px; filter: drop-shadow(0 0 10px rgba(224,105,42,0.4)); width:72px; height:72px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .featured-monster.monster-art{ background-size:cover; background-position:center; background-repeat:no-repeat; image-rendering:pixelated; font-size:0; border:2px solid var(--line); }
   .featured-info{ flex:1; }
   .featured-name{ font-family:'Press Start 2P', monospace; font-size:13px; color:var(--bone); }
   .featured-elem{ font-size:16px; color:var(--ember); margin-top:4px; }
@@ -2899,7 +2900,16 @@
 
     document.getElementById('questTag').textContent = data.featured.tag || '★ QUEST EVENT';
     const featuredIconEl = document.getElementById('featuredMonsterIcon');
-    featuredIconEl.textContent = fMonster ? fMonster.emojiFallback : (data.featured.emoji || '❓');
+    const fIcon = fMonster ? (fMonster.icon || (fMonster.anims && fMonster.anims.idle && fMonster.anims.idle.url)) : null;
+    if(fIcon){
+      featuredIconEl.classList.add('monster-art');
+      featuredIconEl.style.backgroundImage = "url('" + fIcon + "')";
+      featuredIconEl.textContent = '';
+    } else {
+      featuredIconEl.classList.remove('monster-art');
+      featuredIconEl.style.backgroundImage = '';
+      featuredIconEl.textContent = fMonster ? fMonster.emojiFallback : (data.featured.emoji || '❓');
+    }
     const oldBadge = featuredIconEl.parentElement.querySelector('.tier-badge');
     if(oldBadge) oldBadge.remove();
     if(fMonster) featuredIconEl.insertAdjacentHTML('afterend', tierBadgeHtml(fMonster));
