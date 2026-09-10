@@ -246,10 +246,8 @@
   .beast-icon.icon-art{ background-size:80% auto; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
 
   /* rarity glow — epic/legendary get an increasingly eye-catching treatment
-     so they read as "special" at a glance in list/grid views */
-  .beast-card.rar-rare, .item.rar-rare{ border-color: var(--rare); }
-  .beast-card.rar-epic, .item.rar-epic{ border-color: var(--epic); box-shadow: 0 0 10px 0 rgba(176,125,224,0.35); }
-  .beast-card.rar-legendary, .item.rar-legendary{ border-color: var(--legendary); box-shadow: 0 0 12px 0 rgba(242,169,59,0.4); animation: legendary-pulse 2.2s ease-in-out infinite; }
+     on the icon art and name text only (not the whole card outline, which
+     reads as too busy/cluttered in a long list) */
   .beast-icon.rar-rare{ border-color: var(--rare); }
   .beast-icon.rar-epic{ border-color: var(--epic); box-shadow: 0 0 10px 1px rgba(176,125,224,0.55); }
   .beast-icon.rar-legendary{ border-color: var(--legendary); box-shadow: 0 0 14px 2px rgba(242,169,59,0.65); animation: legendary-pulse-icon 2.2s ease-in-out infinite; }
@@ -258,10 +256,8 @@
   .sheet-icon.rar-legendary{ border-color: var(--legendary); box-shadow: 0 0 16px 3px rgba(242,169,59,0.65); animation: legendary-pulse-icon 2.2s ease-in-out infinite; }
   .beast-name.rar-epic{ color: var(--epic); text-shadow: 0 0 8px rgba(176,125,224,0.6); }
   .beast-name.rar-legendary{ color: var(--legendary); text-shadow: 0 0 8px rgba(242,169,59,0.7); }
-  @keyframes legendary-pulse{
-    0%, 100%{ box-shadow: 0 0 10px 0 rgba(242,169,59,0.35); }
-    50%{ box-shadow: 0 0 18px 3px rgba(242,169,59,0.65); }
-  }
+  .item.rar-epic .name-bar{ color: var(--epic); text-shadow: 0 0 6px rgba(176,125,224,0.6); }
+  .item.rar-legendary .name-bar{ color: var(--legendary); text-shadow: 0 0 6px rgba(242,169,59,0.7); }
   @keyframes legendary-pulse-icon{
     0%, 100%{ box-shadow: 0 0 12px 1px rgba(242,169,59,0.55); }
     50%{ box-shadow: 0 0 20px 4px rgba(242,169,59,0.9); }
@@ -1694,7 +1690,7 @@
       const iconClass = 'beast-icon' + (m.img ? ' icon-art' : '') + rarityClass;
       const elLabel = codexCategory === 'monster' ? '' : itemElementLabel(m);
       const subText = elLabel ? (elLabel + ' · ' + m.sub) : m.sub;
-      html += '<div class="beast-card' + rarityClass + '" data-index="' + i + '">'
+      html += '<div class="beast-card" data-index="' + i + '">'
         + '<div class="' + iconClass + '"' + iconStyle + '>' + iconInner + '</div>'
         + '<div class="beast-mid">'
         + '<div class="beast-name' + rarityClass + '">' + m.name + '</div>'
