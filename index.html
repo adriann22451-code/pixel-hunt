@@ -1081,6 +1081,13 @@
       <div class="chip" id="craftGoldChip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="craftGoldAmount">0</span></div>
     </div>
 
+    <div class="tabs" id="craftTabs">
+      <div class="tab active" data-category="all">ALL</div>
+      <div class="tab" data-category="weapon">WEAPON</div>
+      <div class="tab" data-category="armor">ARMOR</div>
+      <div class="tab" data-category="accessory">ACCESSORY</div>
+    </div>
+
     <div class="craft-list" id="craftList"></div>
 
     <div style="height:64px; flex-shrink:0;"></div>
@@ -1433,6 +1440,7 @@
     // re-render so qty/loot changes picked up elsewhere (loot pickup, potion
     // use, etc) are reflected immediately, including the slot count chip
     if(id === 'screen-inventory') renderInventory(currentCategory);
+    if(id === 'screen-craft') renderCraftList();
   }
   document.querySelectorAll('[data-goto]').forEach(el=>{
     el.addEventListener('click', ()=> goTo(el.dataset.goto));
@@ -3821,7 +3829,11 @@
   // builds a card per recipe: shows what it needs, how much of that you currently
   // own (green if enough, red if short), and locks the CRAFT button until you have both
   // the materials and the gold for it.
-  function renderCraftList(){
+  let currentCraftCategory = 'all';
+
+  function renderCraftList(category){
+    if(category) currentCraftCategory = category;
+
     const goldAmountEl = document.getElementById('craftGoldAmount');
     if(goldAmountEl) goldAmountEl.textContent = playerGold;
 
@@ -3830,6 +3842,7 @@
 
     Object.keys(RECIPES).forEach(key => {
       const recipe = RECIPES[key];
+      if(currentCraftCategory !== 'all' && recipe.category !== currentCraftCategory) return;
       const item = (ITEMS[recipe.category] || []).find(i => i.key === key);
       if(!item) return;
 
@@ -3863,7 +3876,7 @@
         + '</div>';
     });
 
-    list.innerHTML = html;
+    list.innerHTML = html || '<div style="text-align:center; color:var(--bone-dim); padding:30px 10px; font-size:14px;">Nothing to craft in this category yet.</div>';
 
     list.querySelectorAll('[data-craft-key]:not(.disabled)').forEach(btn=>{
       btn.addEventListener('click', ()=> craftItem(btn.dataset.craftKey));
@@ -3900,8 +3913,12 @@
     saveGame();
   }
 
-  document.querySelectorAll('[data-goto="screen-craft"]').forEach(el=>{
-    el.addEventListener('click', renderCraftList);
+  document.querySelectorAll('#craftTabs .tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('#craftTabs .tab').forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      renderCraftList(tab.dataset.category);
+    });
   });
 
   // ---------- shop: buy potions freely (qty+=1), unlock common weapon/armor once ----------
