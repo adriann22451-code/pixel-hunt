@@ -266,6 +266,14 @@
   .sheet-icon.rar-legendary{ border-color: var(--legendary); box-shadow: 0 0 16px 3px rgba(242,169,59,0.65); animation: legendary-pulse-icon 2.2s ease-in-out infinite; }
   .beast-name.rar-epic{ color: var(--epic); text-shadow: 0 0 8px rgba(176,125,224,0.6); }
   .beast-name.rar-legendary{ color: var(--legendary); text-shadow: 0 0 8px rgba(242,169,59,0.7); }
+  /* epithet line ("the Cinderfall Greatsword") shown under a legendary
+     weapon's proper name — smaller, lowercase, dimmer so the main name
+     stays the focal point and the card doesn't wrap into a wall of text */
+  .beast-name-epithet{ font-family:'Press Start 2P', monospace; font-size:8px; text-transform:lowercase; color:var(--bone-dim); margin-top:3px; }
+  .beast-name-epithet.rar-epic{ color: var(--epic); opacity:0.75; }
+  .beast-name-epithet.rar-legendary{ color: var(--legendary); opacity:0.75; }
+  .sheet-name-main{ font-family:'Press Start 2P', monospace; font-size:12px; color:inherit; line-height:1.4; }
+  .sheet-name-epithet{ font-family:'Press Start 2P', monospace; font-size:9px; text-transform:lowercase; color:var(--bone-dim); line-height:1.5; margin-top:4px; opacity:0.85; }
   .item.rar-epic .name-bar{ color: var(--epic); text-shadow: 0 0 6px rgba(176,125,224,0.6); }
   .item.rar-legendary .name-bar{ color: var(--legendary); text-shadow: 0 0 6px rgba(242,169,59,0.7); }
   @keyframes legendary-pulse-icon{
@@ -1711,6 +1719,24 @@
 
   let codexFilter = 'all';
 
+  // Some legendary weapon names use a "Proper Name, the Epithet" format
+  // (e.g. "Infernus, the Cinderfall Greatsword"). Shown inline that runs
+  // very long and wraps awkwardly, so we split it: the proper name stays
+  // as the main title, and the epithet after the comma is rendered on its
+  // own line underneath in smaller, lowercase text.
+  function splitEpithetName(name){
+    const idx = name.indexOf(',');
+    if(idx === -1) return { main: name, epithet: '' };
+    return { main: name.slice(0, idx), epithet: name.slice(idx + 1).trim() };
+  }
+
+  function nameHtml(name, mainClass, epithetClass){
+    const parts = splitEpithetName(name);
+    if(!parts.epithet) return '<div class="' + mainClass + '">' + parts.main + '</div>';
+    return '<div class="' + mainClass + '">' + parts.main + '</div>'
+      + '<div class="' + epithetClass + '">' + parts.epithet + '</div>';
+  }
+
   function renderCodex(category){
     codexCategory = category || codexCategory;
     const list = document.getElementById('bestiaryList');
@@ -1742,7 +1768,7 @@
       html += '<div class="beast-card" data-index="' + i + '">'
         + '<div class="' + iconClass + '"' + iconStyle + '>' + iconInner + '</div>'
         + '<div class="beast-mid">'
-        + '<div class="beast-name' + rarityClass + '">' + m.name + '</div>'
+        + nameHtml(m.name, 'beast-name' + rarityClass, 'beast-name-epithet' + rarityClass)
         + '<div class="beast-part">' + subText + '</div>'
         + '</div>'
         + (m.tag ? ('<div class="beast-status">' + m.tag + '</div>') : (m.rarity ? ('<div class="beast-status">' + m.rarity.toUpperCase() + '</div>') : ''))
@@ -1779,7 +1805,7 @@
   const codexSheetRarityText = document.getElementById('codexSheetRarityText');
 
   function openCodexSheet(entry, category){
-    document.getElementById('codexSheetName').textContent = entry.name;
+    document.getElementById('codexSheetName').innerHTML = nameHtml(entry.name, 'sheet-name-main', 'sheet-name-epithet');
 
     const img = category === 'monster' ? entry.img : entry.img;
     if(img){
