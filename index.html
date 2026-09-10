@@ -28,17 +28,24 @@
      The game's internal layout is fixed at 390x844 (a phone canvas) — every
      absolute position, font-size, etc. assumes that resolution. Rather than
      rewrite the whole layout to be fluid, we keep the 390x844 canvas as-is
-     and scale the WHOLE box up/down with a CSS transform so it always fits
-     entirely inside whatever window/screen it's in — no scrolling needed,
-     and (since the safety margin below is tiny) effectively no empty bars
-     on the sides either. --game-scale is computed by the small script below
+     and scale the WHOLE box up/down with a CSS transform.
+     Real phone viewports (after the browser's own address bar / nav bar eat
+     into the height) rarely match the design's exact 390:844 ratio, so a
+     single uniform scale factor always leaves either empty bars on the
+     sides (if bound by height) or forces a bit of scrolling (if bound by
+     width). To get a true edge-to-edge, no-scroll fit on every screen, we
+     scale X and Y independently to each fill the window exactly — this can
+     stretch things by a small amount on screens with an unusual aspect
+     ratio, but that's normally only a few percent and far less noticeable
+     than a black bar or a scrollbar.
+     --game-scale-x/--game-scale-y are computed by the small script below
      and recalculated live on resize (covers rotating a phone, resizing a
      desktop window, or toggling mobile/desktop emulation). */
   .device{
     width:390px; height:844px; position:relative; flex-shrink:0;
     background: linear-gradient(180deg,#1a120c 0%, #120d0a 40%, #0c0906 100%);
     overflow:hidden;
-    transform: scale(var(--game-scale, 1));
+    transform: scale(var(--game-scale-x, 1), var(--game-scale-y, 1));
     transform-origin: center center;
   }
   .vignette{ position:absolute; inset:0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%); pointer-events:none; z-index:50; }
@@ -675,12 +682,15 @@
     var BASE_W = 390, BASE_H = 844;
     function applyScale(){
       var vw = window.innerWidth, vh = window.innerHeight;
-      // Fit the canvas fully inside the window on BOTH axes at once — this
-      // guarantees no scrolling is ever needed. The 0.995 factor is just a
-      // hairline safety margin (rounding/scrollbars), not a deliberate gap.
-      var scale = Math.min(vw / BASE_W, vh / BASE_H) * 0.995;
-      scale = Math.max(0.5, Math.min(scale, 2.4)); // keep it sane on tiny or huge screens
-      document.documentElement.style.setProperty('--game-scale', scale);
+      // Fill the width and height independently so the canvas always covers
+      // the full window with no side bars and no scrolling. The 0.995
+      // factor is just a hairline safety margin (rounding), not a gap.
+      var scaleX = (vw / BASE_W) * 0.995;
+      var scaleY = (vh / BASE_H) * 0.995;
+      scaleX = Math.max(0.5, Math.min(scaleX, 2.4));
+      scaleY = Math.max(0.5, Math.min(scaleY, 2.4));
+      document.documentElement.style.setProperty('--game-scale-x', scaleX);
+      document.documentElement.style.setProperty('--game-scale-y', scaleY);
     }
     applyScale();
     window.addEventListener('resize', applyScale);
