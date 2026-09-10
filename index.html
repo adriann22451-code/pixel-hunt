@@ -211,7 +211,7 @@
   .item .equip-badge{ position:absolute; top:3px; right:3px; font-family:'Press Start 2P', monospace; font-size:6px; color:#1a1006; background:var(--amber); padding:2px 3px; }
   .item .new-badge{ position:absolute; top:3px; left:3px; font-family:'Press Start 2P', monospace; font-size:6px; color:#1a1006; background:var(--amber); padding:2px 3px; }
   .item.equipped{ box-shadow: inset 0 0 0 2px var(--amber), 0 0 10px -1px var(--rc, rgba(242,169,59,0.6)); }
-  .item.locked{ opacity:0.4; cursor:default; filter:grayscale(0.5); box-shadow:none; }
+  .item.item-empty{ background:var(--void); border:2px dashed var(--line); box-shadow:none; cursor:default; opacity:0.5; }
 
   .sheet-overlay{ position:absolute; inset:0; background: rgba(0,0,0,0.6); z-index:40; display:flex; align-items:flex-end; opacity:0; pointer-events:none; transition: opacity 0.2s; }
   .sheet-overlay.open{ opacity:1; pointer-events:auto; }
@@ -1753,14 +1753,21 @@
     let html = '';
     for(let i=0; i<items.length; i++){
       const it = items[i];
-      const classes = 'item item-art' + (it.locked ? '' : ' rar-' + it.rarity) + (it.equipped ? ' equipped' : '') + (it.locked ? ' locked' : '');
+
+      // not-yet-owned gear: just an empty slot box, no icon/name/"???" shown
+      if(it.locked){
+        html += '<div class="item item-empty"></div>';
+        continue;
+      }
+
+      const classes = 'item item-art rar-' + it.rarity + (it.equipped ? ' equipped' : '');
       html += '<div class="' + classes + '" data-key="' + it.key + '" data-category="' + category + '" data-name="' + it.name + '" data-type="' + it.sub + '" data-rarity="' + it.rarity
         + '" data-icon="' + it.icon + '" data-img="' + it.img + '" data-atk="' + it.atk + '" data-elem="' + it.elem
         + '" data-desc="' + it.desc.replace(/"/g, '&quot;') + '">'
         + (it.isNew ? '<span class="new-badge">NEW</span>' : '')
         + (it.equipped ? '<span class="equip-badge">E</span>' : '')
         + (it.qty ? '<span class="qty-badge">x' + it.qty + '</span>' : '')
-        + '<div class="name-bar">' + (it.locked ? '???' : it.name + '<span class="rarity-label">' + it.rarity.toUpperCase() + '</span>') + '</div>'
+        + '<div class="name-bar">' + it.name + '<span class="rarity-label">' + it.rarity.toUpperCase() + '</span></div>'
         + '</div>';
     }
     grid.innerHTML = html;
@@ -1769,8 +1776,8 @@
     grid.querySelectorAll('[data-img]').forEach(el=>{
       el.style.backgroundImage = `url('${el.dataset.img}')`;
     });
-    // wire up detail sheet taps
-    grid.querySelectorAll('.item:not(.locked)').forEach(item=>{
+    // wire up detail sheet taps (empty slots aren't clickable)
+    grid.querySelectorAll('.item:not(.item-empty)').forEach(item=>{
       item.addEventListener('click', ()=> openItemSheet(item));
     });
   }
