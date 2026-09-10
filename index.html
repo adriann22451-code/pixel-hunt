@@ -935,7 +935,7 @@
         <div><div class="sheet-name" id="sheetName"></div><div class="sheet-type" id="sheetType"></div><div class="sheet-rarity-text" id="sheetRarityText"></div></div>
       </div>
       <div class="sheet-stats">
-        <div class="stat-row"><span>Attack</span><b id="sheetAtk"></b></div>
+        <div class="stat-row" id="sheetAtkRow"><span>Attack</span><b id="sheetAtk"></b></div>
         <div class="stat-row"><span>Element</span><b id="sheetElem"></b></div>
       </div>
       <div class="sheet-desc" id="sheetDesc"></div>
@@ -1458,6 +1458,26 @@
   const HERO_BASE = { hp: 100, stamina: 100, atk: 10, def: 0, luck: 0 };
   const ELEMENT_LABELS = { fire:'🔥 Fire', water:'💧 Water', wind:'💨 Wind', earth:'🪨 Earth', dark:'🌑 Dark', light:'✨ Light' };
 
+  // ---- elemental advantage wheel ----
+  // Fire beats Earth, Earth beats Wind, Wind beats Water, Water beats Fire
+  // (a 4-way cycle — the two elements "two steps apart", e.g. Fire vs Wind,
+  // are neutral against each other). Dark and Light are a separate pair:
+  // they always deal bonus damage to EACH OTHER, both directions, rather
+  // than one beating the other.
+  const ELEMENT_WHEEL = { fire:'earth', earth:'wind', wind:'water', water:'fire' };
+  const ELEMENT_ADVANTAGE_PCT = 25; // bonus/penalty applied on an advantage/disadvantage matchup
+
+  // Returns 1 if `attacker`'s element is strong against `defender`'s element
+  // (bonus damage), -1 if it's weak against it (reduced damage), 0 if neutral
+  // or either side has no element.
+  function elementAdvantage(attacker, defender){
+    if(!attacker || !defender || attacker === defender) return 0;
+    if((attacker === 'dark' && defender === 'light') || (attacker === 'light' && defender === 'dark')) return 1;
+    if(ELEMENT_WHEEL[attacker] === defender) return 1;
+    if(ELEMENT_WHEEL[defender] === attacker) return -1;
+    return 0;
+  }
+
   // Reads an item's "elem" display string (e.g. "Fire +12", "DEF +18",
   // "Fire Res +15", "Luck +10") and pulls out a structured stat from it.
   function parseStatString(str){
@@ -1672,6 +1692,7 @@
       sheetIconEmoji.textContent = itemEl.dataset.icon;
     }
     document.getElementById('sheetAtk').textContent = itemEl.dataset.atk;
+    document.getElementById('sheetAtkRow').style.display = (category === 'weapon') ? '' : 'none';
     document.getElementById('sheetElem').textContent = itemEl.dataset.elem;
     document.getElementById('sheetDesc').textContent = itemEl.dataset.desc;
     document.getElementById('sheetRarityBar').className = 'rarity-bar r-' + itemEl.dataset.rarity;
@@ -1854,7 +1875,9 @@
     grubling: {
       name: 'GRUBLING', part: '🪨 Shell intact', emojiFallback: '🐛',
       hp: 210, atk: { min:6, max:12 }, def: 6, element: 'earth', poisonChance: 0.2,
-      resist: { fire:-20, earth:25 },
+      // self-resist only — weakness to Fire (Fire beats Earth) is now handled
+      // automatically by the elemental wheel, no need to hardcode it here
+      resist: { earth:25 },
       goldMin: 22, goldMax: 38,
       loot: [
         { key:'material_grubling_shell', chance:1,    min:2, max:4 },
@@ -1870,7 +1893,8 @@
     flareclaw: {
       name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw_idle.webp',
       hp: 480, atk: { min:14, max:23 }, def: 16, element: 'fire',
-      resist: { fire:40, water:-25 },
+      // weakness to Water (Water beats Fire) comes from the elemental wheel
+      resist: { fire:40 },
       goldMin: 75, goldMax: 115,
       loot: [
         { key:'material_claw',       chance:1,    min:2, max:3 },
@@ -1887,7 +1911,8 @@
     },
     rockhide:  { name: 'ROCKHIDE',  part: '🪨 Stone plating intact', emojiFallback: '🐗', icon: 'assets/rockhide.webp',
       hp: 520, atk: { min:13, max:21 }, def: 25, element: 'earth',
-      resist: { earth:35, light:-20 },
+      // weakness to Fire (Fire beats Earth) comes from the elemental wheel
+      resist: { earth:35 },
       goldMin: 70, goldMax: 100,
       loot: [
         { key:'material_rockhide_plating', chance:1,    min:2, max:4 },
@@ -1897,7 +1922,8 @@
       anims: { idle: { url: 'assets/rockhide.webp', frameW: 256, frameH: 263, bgSize: '256px 263px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     stormwing: { name: 'STORMWING', part: '💨 Wings intact',         emojiFallback: '🦅', icon: 'assets/stormwing.webp',
       hp: 420, atk: { min:12, max:19 }, def: 12, element: 'wind',
-      resist: { wind:35, fire:-20 },
+      // weakness to Earth (Earth beats Wind) comes from the elemental wheel
+      resist: { wind:35 },
       goldMin: 70, goldMax: 105,
       loot: [
         { key:'material_stormwing_feather', chance:1,    min:2, max:4 },
@@ -1907,7 +1933,8 @@
       anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 278, bgSize: '256px 278px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     aquafin:   { name: 'AQUAFIN',   part: '💧 Fins intact',          emojiFallback: '🐸', icon: 'assets/aquafin.webp',
       hp: 320, atk: { min:10, max:16 }, def: 9, element: 'water', poisonChance: 0.18,
-      resist: { water:35, light:-25 },
+      // weakness to Wind (Wind beats Water) comes from the elemental wheel
+      resist: { water:35 },
       goldMin: 65, goldMax: 95,
       loot: [
         { key:'material_aquafin_scale',    chance:1,    min:2, max:4 },
@@ -2368,8 +2395,12 @@
     let dmg = atk*minRatio + Math.random()*(atk*(maxRatio-minRatio));
 
     if(heroStats.weaponElement){
-      const resist = (currentMonster.resist && currentMonster.resist[heroStats.weaponElement]) || 0;
-      dmg += Math.max(0, heroStats.weaponElementAmount * (1 - resist/100));
+      // self-resist: how much the monster inherently shrugs off its own element
+      const selfResist = (currentMonster.resist && currentMonster.resist[heroStats.weaponElement]) || 0;
+      // wheel bonus/penalty: e.g. a Water weapon vs a Fire monster gets bonus damage
+      const wheelResist = -elementAdvantage(heroStats.weaponElement, currentMonster.element) * ELEMENT_ADVANTAGE_PCT;
+      const totalResist = selfResist + wheelResist;
+      dmg += Math.max(0, heroStats.weaponElementAmount * (1 - totalResist/100));
     }
 
     const monsterDef = currentMonster.def || 0;
@@ -2463,6 +2494,17 @@
     const mitigation = 100 / (100 + heroStats.def * 4);
     mDmg = mDmg * mitigation;
     let heroResist = (currentMonster.element && heroStats.resist[currentMonster.element]) || 0;
+    // wheel bonus: wearing gear whose element counters the monster's element
+    // (e.g. Earth armor vs a Wind monster) grants extra resist on top of
+    // whatever direct same-element resist the player already has.
+    if(currentMonster.element){
+      for(const el of Object.keys(heroStats.resist)){
+        if(heroStats.resist[el] > 0 && elementAdvantage(el, currentMonster.element) === 1){
+          heroResist += ELEMENT_ADVANTAGE_PCT;
+          break;
+        }
+      }
+    }
     // Elemental Resist Tonic stacks on top of gear resist for its duration
     if(resistBuffTurnsLeft > 0) heroResist += resistBuffAmount;
     heroResist = Math.min(heroResist, 80); // keep a hit from ever being reduced to nothing
