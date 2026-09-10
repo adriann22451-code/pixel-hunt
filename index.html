@@ -504,10 +504,11 @@
   .action-btn.on-cooldown .circle{ opacity:0.35; }
 
   .combat-log{
-    position:absolute; top:64px; left:14px; z-index:5;
+    position:absolute; top:140px; left:14px; right:14px; z-index:5;
     font-size:14px; color:var(--bone-dim);
     display:flex; flex-direction:column; gap:2px;
     pointer-events:none;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
   }
 
   .victory-overlay{
@@ -553,6 +554,11 @@
   .reward-eyebrow{ font-size:15px; color:var(--bone-dim); letter-spacing:3px; text-transform:uppercase; }
   .reward-title{ font-family:'Press Start 2P', monospace; font-size:16px; color:var(--bone); margin-top:8px; }
   .reward-monster{ font-size:70px; margin-top:14px; filter: drop-shadow(0 0 16px rgba(224,105,42,0.3)); }
+  .reward-monster.monster-art{
+    width:120px; height:120px; margin:14px auto 0 auto; font-size:0;
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    image-rendering:pixelated;
+  }
 
   .reward-list{ width:100%; margin-top:20px; display:flex; flex-direction:column; gap:8px; }
   .reward-row{
@@ -3138,7 +3144,16 @@
   function renderReward(monsterKey, loot){
     const mm = MONSTERS[monsterKey] || MONSTERS.grubling;
     document.getElementById('rewardTitle').textContent = mm.name + ' DEFEATED';
-    document.getElementById('rewardMonster').textContent = mm.emojiFallback || '❓';
+    const rewardMonsterEl = document.getElementById('rewardMonster');
+    if(mm.icon){
+      rewardMonsterEl.textContent = '';
+      rewardMonsterEl.classList.add('monster-art');
+      rewardMonsterEl.style.backgroundImage = "url('" + mm.icon + "')";
+    } else {
+      rewardMonsterEl.classList.remove('monster-art');
+      rewardMonsterEl.style.backgroundImage = '';
+      rewardMonsterEl.textContent = mm.emojiFallback || '❓';
+    }
 
     let html = '<div class="reward-row"><div class="rarity-bar r-common"></div><span class="icon icon-img" style="background-image:url(\'assets/gold_coin.webp\')"></span><span class="name">Gold</span><span class="amount">+' + loot.gold + '</span></div>';
     if(loot.crystal){
