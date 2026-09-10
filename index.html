@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Pixel Hunt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
@@ -17,7 +17,12 @@
     --line:rgba(233,223,198,0.12);
   }
   *{ box-sizing:border-box; margin:0; padding:0; }
-  html,body{ height:100%; width:100%; background:#0a0705; display:flex; align-items:center; justify-content:center; font-family:'VT323', monospace; overflow:hidden; }
+  html,body{
+    height:100%; width:100%; background:#0a0705;
+    display:flex; align-items:flex-start; justify-content:center;
+    font-family:'VT323', monospace;
+    overflow-x:hidden; overflow-y:auto;
+  }
 
   /* ---------- responsive scaling ----------
      The game's internal layout is fixed at 390x844 (a phone canvas) — every
@@ -25,15 +30,21 @@
      rewrite the whole layout to be fluid, we keep the 390x844 canvas as-is
      and scale the WHOLE box up/down with a CSS transform so it always fills
      a comfortable, phone-proportioned area of whatever window it's in.
-     --game-scale is computed by the small script below and is recalculated
-     live on window resize (covers rotating a phone, resizing a desktop
-     window, or toggling a browser's mobile/desktop emulation mode). */
+     On phones we scale to fill the full WIDTH edge-to-edge (what "full
+     screen" means on a phone); if a browser's own address bar / toolbar
+     eats vertical space, the page can be scrolled a touch instead of
+     leaving empty bars down the sides. On desktop/landscape we scale to
+     fit fully within the window so nothing needs scrolling.
+     --game-scale and --device-margin-top are computed by the small script
+     below and recalculated live on resize (covers rotating a phone,
+     resizing a desktop window, or toggling mobile/desktop emulation). */
   .device{
     width:390px; height:844px; position:relative; flex-shrink:0;
+    margin-top: var(--device-margin-top, 0px);
     background: linear-gradient(180deg,#1a120c 0%, #120d0a 40%, #0c0906 100%);
     overflow:hidden;
     transform: scale(var(--game-scale, 1));
-    transform-origin: center center;
+    transform-origin: top center;
   }
   .vignette{ position:absolute; inset:0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%); pointer-events:none; z-index:50; }
   .noise{ position:absolute; inset:0; opacity:0.05; background-image: repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 3px); pointer-events:none; z-index:49; }
@@ -669,9 +680,22 @@
     var BASE_W = 390, BASE_H = 844;
     function applyScale(){
       var vw = window.innerWidth, vh = window.innerHeight;
-      var scale = Math.min((vw * 0.96) / BASE_W, (vh * 0.96) / BASE_H);
+      var scale;
+      if (vw <= vh) {
+        // Portrait / phone: fill the width edge-to-edge — this is what
+        // "full screen" means on a phone. If the browser's own chrome
+        // (address bar, toolbar) eats vertical space, the page scrolls
+        // a touch to reveal the bottom instead of shrinking the width.
+        scale = (vw * 0.995) / BASE_W;
+      } else {
+        // Landscape / desktop: fit entirely within the window, no scrolling.
+        scale = Math.min((vw * 0.96) / BASE_W, (vh * 0.96) / BASE_H);
+      }
       scale = Math.max(0.5, Math.min(scale, 2.4)); // keep it sane on tiny or huge screens
+      var scaledHeight = BASE_H * scale;
+      var marginTop = Math.max(0, (vh - scaledHeight) / 2);
       document.documentElement.style.setProperty('--game-scale', scale);
+      document.documentElement.style.setProperty('--device-margin-top', marginTop + 'px');
     }
     applyScale();
     window.addEventListener('resize', applyScale);
