@@ -17,13 +17,24 @@
     --line:rgba(233,223,198,0.12);
   }
   *{ box-sizing:border-box; margin:0; padding:0; }
-  html,body{ height:100%; background:#0a0705; display:flex; align-items:center; justify-content:center; font-family:'VT323', monospace; overflow:hidden; }
+  html,body{ height:100%; width:100%; background:#0a0705; display:flex; align-items:center; justify-content:center; font-family:'VT323', monospace; overflow:hidden; }
 
+  /* ---------- responsive scaling ----------
+     The game's internal layout is fixed at 390x844 (a phone canvas) — every
+     absolute position, font-size, etc. assumes that resolution. Rather than
+     rewrite the whole layout to be fluid, we keep the 390x844 canvas as-is
+     and scale the WHOLE box up/down with a CSS transform so it always fills
+     a comfortable, phone-proportioned area of whatever window it's in.
+     --game-scale is computed by the small script below and is recalculated
+     live on window resize (covers rotating a phone, resizing a desktop
+     window, or toggling a browser's mobile/desktop emulation mode). */
   .device{
-    width:390px; height:844px; max-height:96vh; position:relative;
+    width:390px; height:844px; position:relative; flex-shrink:0;
     background: linear-gradient(180deg,#1a120c 0%, #120d0a 40%, #0c0906 100%);
     border:3px solid #000; border-radius:28px; overflow:hidden;
     box-shadow: 0 0 0 2px #2a1e14, 0 30px 60px rgba(0,0,0,0.6);
+    transform: scale(var(--game-scale, 1));
+    transform-origin: center center;
   }
   .vignette{ position:absolute; inset:0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%); pointer-events:none; z-index:50; }
   .noise{ position:absolute; inset:0; opacity:0.05; background-image: repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 3px); pointer-events:none; z-index:49; }
@@ -653,6 +664,22 @@
   .nav-item.active{ color: var(--amber); }
   .nav-item.active .nav-icon{ filter: drop-shadow(0 0 4px rgba(242,169,59,0.6)); }
 </style>
+<script>
+  // auto-scale the 390x844 game canvas to fit any window size/orientation
+  (function(){
+    var BASE_W = 390, BASE_H = 844;
+    function applyScale(){
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var scale = Math.min((vw * 0.96) / BASE_W, (vh * 0.96) / BASE_H);
+      scale = Math.max(0.5, Math.min(scale, 2.4)); // keep it sane on tiny or huge screens
+      document.documentElement.style.setProperty('--game-scale', scale);
+    }
+    applyScale();
+    window.addEventListener('resize', applyScale);
+    window.addEventListener('orientationchange', applyScale);
+    if(window.visualViewport){ window.visualViewport.addEventListener('resize', applyScale); }
+  })();
+</script>
 </head>
 <body>
 
