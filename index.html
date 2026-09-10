@@ -182,6 +182,11 @@
   .featured-elem{ font-size:16px; color:var(--ember); margin-top:4px; }
   .stars{ margin-top:6px; font-size:15px; letter-spacing:2px; color:var(--amber); }
   .stars .off{ color: rgba(233,223,198,0.2); }
+  .featured-desc{ margin-top:10px; font-size:14px; line-height:1.5; color:var(--bone-dim); border-top:1px solid var(--line); padding-top:10px; }
+  .featured-stats{ display:flex; gap:8px; margin-top:10px; }
+  .featured-stat{ flex:1; background:rgba(0,0,0,0.25); border:1px solid var(--line); padding:6px 4px; text-align:center; }
+  .featured-stat .fs-label{ font-family:'Press Start 2P', monospace; font-size:7px; color:var(--bone-dim); letter-spacing:1px; }
+  .featured-stat .fs-value{ font-size:16px; color:var(--bone); margin-top:3px; }
   .featured-go{ margin-top:12px; background: linear-gradient(180deg, var(--amber), #c9781f); border:2px solid #000; padding:10px; text-align:center; font-family:'Press Start 2P', monospace; font-size:11px; color:#1a1006; cursor:pointer; }
 
   .list-label{ padding:14px 14px 8px 14px; font-size:15px; color:var(--bone-dim); letter-spacing:1px; display:flex; justify-content:space-between; }
@@ -742,6 +747,12 @@
           <div class="featured-elem" id="featuredElem">🔥 Fire Element</div>
           <div class="stars" id="featuredStars">★★★<span class="off">☆☆</span></div>
         </div>
+      </div>
+      <div class="featured-desc" id="featuredDesc">A fearsome beast stalks the wilds beyond Emberfall.</div>
+      <div class="featured-stats">
+        <div class="featured-stat"><div class="fs-label">HP</div><div class="fs-value" id="featuredHp">—</div></div>
+        <div class="featured-stat"><div class="fs-label">ATK</div><div class="fs-value" id="featuredAtk">—</div></div>
+        <div class="featured-stat"><div class="fs-label">DEF</div><div class="fs-value" id="featuredDef">—</div></div>
       </div>
       <div class="featured-go" id="featuredGoBtn" data-goto="screen-combat" data-monster="flareclaw">HUNT NOW</div>
     </div>
@@ -2648,6 +2659,7 @@
     grubling: {
       name: 'GRUBLING', part: '🪨 Shell intact', emojiFallback: '🐛',
       tier: 'E',
+      desc: 'A hardened larval pest that burrows beneath Emberfall\'s crop fields. Slow but stubborn, its shell secretes a mild toxin when threatened.',
       hp: 420, atk: { min:6, max:12 }, def: 6, element: 'earth', poisonChance: 0.2,
       // self-resist only — weakness to Fire (Fire beats Earth) is now handled
       // automatically by the elemental wheel, no need to hardcode it here
@@ -2667,6 +2679,7 @@
     flareclaw: {
       name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw_idle.webp',
       tier: 'B',
+      desc: 'A molten-scaled drake that nests in the scorched ridges above Emberfall. Its breath can melt steel, and its temper is just as short.',
       hp: 1392, atk: { min:14, max:23 }, def: 16, element: 'fire',
       // weakness to Water (Water beats Fire) comes from the elemental wheel
       resist: { fire:40 },
@@ -2686,6 +2699,7 @@
     },
     rockhide:  { name: 'ROCKHIDE',  part: '🪨 Stone plating intact', emojiFallback: '🐗', icon: 'assets/rockhide.webp',
       tier: 'A',
+      desc: 'An armored boar whose hide has fused with quarry stone over decades of charging cliff walls. Its plating shrugs off blunt hits but cracks under fire.',
       hp: 1664, atk: { min:13, max:21 }, def: 25, element: 'earth',
       // weakness to Fire (Fire beats Earth) comes from the elemental wheel
       resist: { earth:35 },
@@ -2698,6 +2712,7 @@
       anims: { idle: { url: 'assets/rockhide.webp', frameW: 256, frameH: 263, bgSize: '256px 263px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     stormwing: { name: 'STORMWING', part: '💨 Wings intact',         emojiFallback: '🦅', icon: 'assets/stormwing.webp',
       tier: 'C',
+      desc: 'A raptor that rides storm fronts down from the high peaks, folding its wings into razor-sharp gusts before it strikes. Grounded, it fights far less fiercely.',
       hp: 1092, atk: { min:12, max:19 }, def: 12, element: 'wind',
       // weakness to Earth (Earth beats Wind) comes from the elemental wheel
       resist: { wind:35 },
@@ -2710,6 +2725,7 @@
       anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 278, bgSize: '256px 278px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     aquafin:   { name: 'AQUAFIN',   part: '💧 Fins intact',          emojiFallback: '🐸', icon: 'assets/aquafin.webp',
       tier: 'D',
+      desc: 'A river-dwelling amphibian that lurks in the shallows near Emberfall\'s mill. Its bite carries a numbing venom, though its thin hide leaves it exposed.',
       hp: 736, atk: { min:10, max:16 }, def: 9, element: 'water', poisonChance: 0.18,
       // weakness to Wind (Wind beats Water) comes from the elemental wheel
       resist: { water:35 },
@@ -2890,6 +2906,11 @@
     document.getElementById('featuredName').textContent = fMonster ? fMonster.name : (data.featured.name || '???');
     document.getElementById('featuredElem').textContent = fElem ? (fElem.emoji + ' ' + fElem.label + ' Element') : (data.featured.elemLabel || 'Secret');
     document.getElementById('featuredStars').innerHTML = fMonster ? 'TIER ' + fMonster.tier : '???';
+
+    document.getElementById('featuredDesc').textContent = fMonster ? (fMonster.desc || 'No records of this beast exist yet.') : 'A mystery lurks beyond the mist. Return once this event unlocks.';
+    document.getElementById('featuredHp').textContent = fMonster ? fMonster.hp : '—';
+    document.getElementById('featuredAtk').textContent = (fMonster && fMonster.atk) ? (fMonster.atk.min + '-' + fMonster.atk.max) : '—';
+    document.getElementById('featuredDef').textContent = (fMonster && typeof fMonster.def === 'number') ? fMonster.def : '—';
 
     const goBtn = document.getElementById('featuredGoBtn');
     if(data.featured.locked || !data.featured.monster){
