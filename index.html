@@ -234,7 +234,7 @@
   .sheet-btn.close{ background:var(--panel); color:var(--bone-dim); border-color: var(--line); }
 
   /* ---------- BESTIARY ---------- */
-  .bestiary-list{ padding:14px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+  .bestiary-list{ flex:1; min-height:0; padding:14px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
   .beast-card{ display:flex; align-items:center; gap:12px; background:var(--panel); border:2px solid var(--line); padding:10px 12px; cursor:pointer; }
   .beast-card.locked{ opacity:0.55; cursor:default; }
   .beast-icon{ width:48px; height:48px; background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
@@ -961,6 +961,22 @@
     </div>
   </div>
 
+  <!-- ---------- CODEX ENTRY SHEET (item / monster description) ---------- -->
+  <div class="sheet-overlay" id="codexSheetOverlay">
+    <div class="sheet pixel-frame">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top">
+        <div class="sheet-icon" id="codexSheetIcon"><div class="rarity-bar" id="codexSheetRarityBar"></div><span id="codexSheetIconEmoji"></span></div>
+        <div><div class="sheet-name" id="codexSheetName"></div><div class="sheet-type" id="codexSheetType"></div><div class="sheet-rarity-text" id="codexSheetRarityText"></div></div>
+      </div>
+      <div class="sheet-stats" id="codexSheetStats"></div>
+      <div class="sheet-desc" id="codexSheetDesc"></div>
+      <div class="sheet-actions">
+        <div class="sheet-btn close" id="codexSheetClose">CLOSE</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ---------- COMBAT ITEM SHEET (use potions mid-fight) ---------- -->
   <div class="sheet-overlay" id="itemSheetOverlay">
     <div class="sheet pixel-frame">
@@ -1567,8 +1583,9 @@
   }
 
   function buildMonsterEntries(){
-    // Monsters already reachable from the quest board are "discovered".
-    const discovered = ['flareclaw', 'rockhide', 'stormwing', 'aquafin'];
+    // The Codex is a pure reference/dex — every monster is listed and viewable
+    // here regardless of quest progress (the "locked" gating only matters for
+    // the quest board / combat, not for browsing the log).
     const keys = Object.keys(MONSTERS);
     const entries = [];
     for(let i=0; i<keys.length; i++){
@@ -1577,10 +1594,35 @@
       const statSub = (typeof mm.hp === 'number')
         ? (mm.part + ' · HP ' + mm.hp + ' · ATK ' + mm.atk.min + '-' + mm.atk.max + ' · DEF ' + mm.def)
         : mm.part;
-      entries.push({ key: key, name: mm.name, sub: statSub, emojiFallback: mm.emojiFallback, img: mm.icon, locked: discovered.indexOf(key) === -1, goto:'screen-combat' });
+      entries.push({ key: key, name: mm.name, sub: statSub, emojiFallback: mm.emojiFallback, img: mm.icon, tag: ELEMENT_LABELS[mm.element] || '' });
     }
-    entries.push({ key:'voidfang', name:'???', sub:'Unknown', emojiFallback:'🌑', locked:true });
+    // Voidfang has no stat block yet (future content) — still shown, just with
+    // a mystery description instead of real numbers.
+    entries.push({ key:'voidfang', name:'???', sub:'Unknown', emojiFallback:'🌑', tag:'' });
     return entries;
+  }
+
+  // builds a reference description for a monster codex entry: element,
+  // resistance and weakness, plus its loot table (monsters have no
+  // hand-written "desc" field the way items do, so we compose one from live data)
+  function buildMonsterDesc(key){
+    const mm = MONSTERS[key];
+    if(!mm) return 'A mystery still unrecorded in any hunter\'s log.';
+    const parts = [];
+    if(mm.element){
+      const weakAgainst = Object.keys(ELEMENT_LABELS).filter(function(el){ return elementAdvantage(el, mm.element) === 1; });
+      if(weakAgainst.length){
+        parts.push('Weak to ' + weakAgainst.map(function(el){ return ELEMENT_LABELS[el]; }).join(' / ') + ' attacks — bring gear of that element to deal bonus damage.');
+      }
+    }
+    if(mm.loot && mm.loot.length){
+      const lootNames = mm.loot.map(function(l){
+        const mat = (ITEMS.material || []).find(function(m){ return m.key === l.key; });
+        return mat ? mat.name : l.key;
+      });
+      parts.push('Drops: ' + lootNames.join(', ') + '.');
+    }
+    return parts.join(' ');
   }
 
   function renderCodex(category){
@@ -1588,35 +1630,107 @@
     const list = document.getElementById('bestiaryList');
     const entries = codexCategory === 'monster' ? buildMonsterEntries() : (ITEMS[codexCategory] || []);
 
+    // The Codex is a reference log: every entry is shown with its real name,
+    // art and info regardless of whether it's actually been earned in-game
+    // yet. This only affects how the list is drawn here — it never touches
+    // the underlying item/monster objects, so Inventory/Shop/Crafting still
+    // see the real locked/owned state.
     let html = '';
     for(let i=0; i<entries.length; i++){
       const m = entries[i];
-      const goAttr = (!m.locked && m.goto) ? (' data-goto="' + m.goto + '" data-monster="' + m.key + '"') : '';
-      const iconInner = m.locked
-        ? '🔒'
-        : (m.img ? '' : (m.emojiFallback || '❔'));
-      const iconStyle = (!m.locked && m.img) ? (' style="background-image:url(\'' + m.img + '\')"') : '';
-      const iconClass = 'beast-icon' + (!m.locked && m.img ? ' icon-art' : '');
-      html += '<div class="beast-card ' + (m.locked ? 'locked' : '') + '"' + goAttr + '>'
+      const iconInner = m.img ? '' : (m.emojiFallback || '❔');
+      const iconStyle = m.img ? (' style="background-image:url(\'' + m.img + '\')"') : '';
+      const iconClass = 'beast-icon' + (m.img ? ' icon-art' : '');
+      html += '<div class="beast-card" data-index="' + i + '">'
         + '<div class="' + iconClass + '"' + iconStyle + '>' + iconInner + '</div>'
         + '<div class="beast-mid">'
-        + '<div class="beast-name">' + (m.locked ? '???' : m.name) + '</div>'
-        + '<div class="beast-part">' + (m.locked ? 'Not yet encountered' : m.sub) + '</div>'
+        + '<div class="beast-name">' + m.name + '</div>'
+        + '<div class="beast-part">' + m.sub + '</div>'
         + '</div>'
-        + '<div class="beast-status ' + (m.locked ? 'undiscovered' : '') + '">' + (m.locked ? 'LOCKED' : 'FOUND') + '</div>'
+        + (m.tag ? ('<div class="beast-status">' + m.tag + '</div>') : (m.rarity ? ('<div class="beast-status">' + m.rarity.toUpperCase() + '</div>') : ''))
         + '</div>';
     }
     list.innerHTML = html;
 
-    // wire up the unlocked monster cards so tapping one jumps straight into that hunt
-    list.querySelectorAll('[data-goto]').forEach(function(el){
-      el.addEventListener('click', function(){ loadMonster(el.dataset.monster || 'grubling'); });
-      el.addEventListener('click', function(){ goTo(el.dataset.goto); });
+    // tapping any entry opens its description
+    list.querySelectorAll('.beast-card').forEach(function(el){
+      el.addEventListener('click', function(){
+        const entry = entries[parseInt(el.dataset.index, 10)];
+        openCodexSheet(entry, codexCategory);
+      });
     });
   }
 
   // kept for backward compatibility with the initial call further down
   function renderBestiary(){ renderCodex('monster'); }
+
+  // ---------- codex entry detail sheet (shared by monster + item tabs) ----------
+  const codexSheetOverlay = document.getElementById('codexSheetOverlay');
+  const codexSheetIconEl = document.getElementById('codexSheetIcon');
+  const codexSheetIconEmoji = document.getElementById('codexSheetIconEmoji');
+  const codexSheetRarityBar = document.getElementById('codexSheetRarityBar');
+  const codexSheetRarityText = document.getElementById('codexSheetRarityText');
+
+  function openCodexSheet(entry, category){
+    document.getElementById('codexSheetName').textContent = entry.name;
+
+    const img = category === 'monster' ? entry.img : entry.img;
+    if(img){
+      codexSheetIconEmoji.textContent = '';
+      codexSheetIconEl.style.backgroundImage = "url('" + img + "')";
+      codexSheetIconEl.style.backgroundSize = '70% auto';
+      codexSheetIconEl.style.backgroundPosition = 'center';
+      codexSheetIconEl.style.backgroundRepeat = 'no-repeat';
+    } else {
+      codexSheetIconEl.style.backgroundImage = '';
+      codexSheetIconEmoji.textContent = entry.emojiFallback || entry.icon || '❔';
+    }
+
+    const statsEl = document.getElementById('codexSheetStats');
+    const descEl = document.getElementById('codexSheetDesc');
+
+    if(category === 'monster'){
+      document.getElementById('codexSheetType').textContent = entry.sub || '';
+      codexSheetRarityBar.className = 'rarity-bar';
+      codexSheetRarityText.textContent = '';
+      const mm = MONSTERS[entry.key];
+      let statsHtml = '';
+      if(mm){
+        statsHtml += '<div class="stat-row"><span>HP</span><b>' + mm.hp + '</b></div>';
+        statsHtml += '<div class="stat-row"><span>Attack</span><b>' + mm.atk.min + '-' + mm.atk.max + '</b></div>';
+        statsHtml += '<div class="stat-row"><span>Defense</span><b>' + mm.def + '</b></div>';
+        if(mm.element){
+          statsHtml += '<div class="stat-row"><span>Element</span><b>' + (ELEMENT_LABELS[mm.element] || mm.element) + '</b></div>';
+        }
+        if(mm.resist){
+          const resistText = Object.keys(mm.resist).map(function(el){
+            return (ELEMENT_LABELS[el] || el) + ' +' + mm.resist[el] + '%';
+          }).join(', ');
+          if(resistText) statsHtml += '<div class="stat-row"><span>Resist</span><b>' + resistText + '</b></div>';
+        }
+      }
+      statsEl.innerHTML = statsHtml;
+      descEl.textContent = buildMonsterDesc(entry.key);
+    } else {
+      document.getElementById('codexSheetType').textContent = entry.sub || '';
+      codexSheetRarityBar.className = 'rarity-bar r-' + entry.rarity;
+      codexSheetRarityText.className = 'sheet-rarity-text rar-' + entry.rarity;
+      codexSheetRarityText.textContent = (entry.rarity || '').toUpperCase();
+      let statsHtml = '';
+      if(category === 'weapon'){
+        statsHtml += '<div class="stat-row"><span>Attack</span><b>' + entry.atk + '</b></div>';
+      }
+      if(entry.elem && entry.elem !== '—'){
+        statsHtml += '<div class="stat-row"><span>Element</span><b>' + entry.elem + '</b></div>';
+      }
+      statsEl.innerHTML = statsHtml;
+      descEl.textContent = entry.desc || '';
+    }
+
+    codexSheetOverlay.classList.add('open');
+  }
+  document.getElementById('codexSheetClose').addEventListener('click', function(){ codexSheetOverlay.classList.remove('open'); });
+  codexSheetOverlay.addEventListener('click', function(e){ if(e.target === codexSheetOverlay) codexSheetOverlay.classList.remove('open'); });
 
   document.querySelectorAll('#codexTabs .tab').forEach(function(tab){
     tab.addEventListener('click', function(){
