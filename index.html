@@ -66,6 +66,16 @@
   /* ---------- image-based icons (replaces emoji once real art exists) ---------- */
   .icon-img{ display:inline-block; width:1em; height:1em; background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; vertical-align:middle; }
   .quest-icon.monster-art{ background-size:cover; background-position:center; background-repeat:no-repeat; image-rendering:pixelated; }
+  .quest-icon{ position:relative; }
+  .tier-badge{
+    position:absolute; top:-4px; left:-4px; z-index:2;
+    min-width:16px; height:16px; padding:0 3px; border-radius:4px;
+    font-family:'Press Start 2P', monospace; font-size:9px; line-height:16px; text-align:center;
+    color:#12100e; box-shadow:0 0 0 2px rgba(18,16,14,0.7);
+  }
+  .featured-monster{ position:relative; }
+  .featured-row .tier-badge{ position:absolute; top:-6px; left:-6px; }
+  .monster-hud-name .tier-badge{ position:static; display:inline-block; margin-left:6px; vertical-align:middle; }
 
   /* ================= SCREEN 1: MAIN MENU ================= */
   #screen-menu .topbar{ display:flex; justify-content:space-between; align-items:center; padding:14px 14px 0 14px; }
@@ -2047,17 +2057,36 @@
   // uneven padding/spacing between frames in the sprite sheet.
   // Each animation state is optional: if there's no asset for it yet, it
   // automatically falls back to idle (or to an emoji if idle isn't ready either).
+  // Fixed power tier per monster — replaces the old "same monster reappears
+  // at every quest-board rank" setup. Each monster now has ONE permanent
+  // tier (E weakest → S strongest) that drives its HP/gold, shown as a badge.
+  const TIER_META = {
+    E: { label: 'E', color: '#8a9a8f' },
+    D: { label: 'D', color: '#6fae6a' },
+    C: { label: 'C', color: '#4a9bd6' },
+    B: { label: 'B', color: '#a56fe0' },
+    A: { label: 'A', color: '#e0a23a' },
+    S: { label: 'S', color: '#e0483a' }
+  };
+  function tierBadgeHtml(monster){
+    if(!monster || !monster.tier) return '';
+    const t = TIER_META[monster.tier];
+    if(!t) return '';
+    return '<span class="tier-badge" style="background:' + t.color + '">' + t.label + '</span>';
+  }
+
   const MONSTERS = {
     grubling: {
       name: 'GRUBLING', part: '🪨 Shell intact', emojiFallback: '🐛',
-      hp: 210, atk: { min:6, max:12 }, def: 6, element: 'earth', poisonChance: 0.2,
+      tier: 'E',
+      hp: 420, atk: { min:6, max:12 }, def: 6, element: 'earth', poisonChance: 0.2,
       // self-resist only — weakness to Fire (Fire beats Earth) is now handled
       // automatically by the elemental wheel, no need to hardcode it here
       resist: { earth:25 },
-      goldMin: 22, goldMax: 38,
+      goldMin: 25, goldMax: 44,
       loot: [
         { key:'material_grubling_shell', chance:1,    min:2, max:4 },
-        { key:'material_monster_bone',   chance:0.5,  min:1, max:2 }
+        { key:'material_monster_bone',   chance:0.3,  min:1, max:2 }
       ],
       anims: {
         idle:   { url: 'assets/grubling_idle.webp', frameW: 220, frameH: 256, total: 49, fps: 24, loop: true, positions: [[0,0],[220,0],[440,0],[660,0],[880,0],[1100,0],[1320,0],[0,256],[220,256],[440,256],[660,256],[880,256],[1100,256],[1320,256],[0,512],[220,512],[440,512],[660,512],[880,512],[1100,512],[1320,512],[0,768],[220,768],[440,768],[660,768],[880,768],[1100,768],[1320,768],[0,1024],[220,1024],[440,1024],[660,1024],[880,1024],[1100,1024],[1320,1024],[0,1280],[220,1280],[440,1280],[660,1280],[880,1280],[1100,1280],[1320,1280],[0,1536],[220,1536],[440,1536],[660,1536],[880,1536],[1100,1536],[1320,1536]] },
@@ -2068,15 +2097,16 @@
     },
     flareclaw: {
       name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw_idle.webp',
-      hp: 480, atk: { min:14, max:23 }, def: 16, element: 'fire',
+      tier: 'B',
+      hp: 1392, atk: { min:14, max:23 }, def: 16, element: 'fire',
       // weakness to Water (Water beats Fire) comes from the elemental wheel
       resist: { fire:40 },
-      goldMin: 75, goldMax: 115,
+      goldMin: 109, goldMax: 167,
       loot: [
         { key:'material_claw',       chance:1,    min:2, max:3 },
-        { key:'material_beast_hide', chance:0.4,  min:1, max:2 },
-        { key:'material_scale',      chance:0.35, min:1, max:1 },
-        { key:'material_ember_core', chance:0.12, min:1, max:1 }
+        { key:'material_beast_hide', chance:0.25, min:1, max:2 },
+        { key:'material_scale',      chance:0.2,  min:1, max:1 },
+        { key:'material_ember_core', chance:0.06, min:1, max:1 }
       ],
       anims: {
         idle:   { url: 'assets/flareclaw_idle.webp', frameW: 256, frameH: 249, total: 49, fps: 24, loop: true, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,249],[256,249],[512,249],[768,249],[1024,249],[1280,249],[1536,249],[0,498],[256,498],[512,498],[768,498],[1024,498],[1280,498],[1536,498],[0,747],[256,747],[512,747],[768,747],[1024,747],[1280,747],[1536,747],[0,996],[256,996],[512,996],[768,996],[1024,996],[1280,996],[1536,996],[0,1245],[256,1245],[512,1245],[768,1245],[1024,1245],[1280,1245],[1536,1245],[0,1494],[256,1494],[512,1494],[768,1494],[1024,1494],[1280,1494],[1536,1494]] },
@@ -2086,36 +2116,39 @@
       }
     },
     rockhide:  { name: 'ROCKHIDE',  part: '🪨 Stone plating intact', emojiFallback: '🐗', icon: 'assets/rockhide.webp',
-      hp: 520, atk: { min:13, max:21 }, def: 25, element: 'earth',
+      tier: 'A',
+      hp: 1664, atk: { min:13, max:21 }, def: 25, element: 'earth',
       // weakness to Fire (Fire beats Earth) comes from the elemental wheel
       resist: { earth:35 },
-      goldMin: 70, goldMax: 100,
+      goldMin: 109, goldMax: 155,
       loot: [
         { key:'material_rockhide_plating', chance:1,    min:2, max:4 },
-        { key:'material_monster_bone',     chance:0.45, min:1, max:2 },
-        { key:'material_rockhide_core',    chance:0.15, min:1, max:1 }
+        { key:'material_monster_bone',     chance:0.28, min:1, max:2 },
+        { key:'material_rockhide_core',    chance:0.08, min:1, max:1 }
       ],
       anims: { idle: { url: 'assets/rockhide.webp', frameW: 256, frameH: 263, bgSize: '256px 263px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     stormwing: { name: 'STORMWING', part: '💨 Wings intact',         emojiFallback: '🦅', icon: 'assets/stormwing.webp',
-      hp: 420, atk: { min:12, max:19 }, def: 12, element: 'wind',
+      tier: 'C',
+      hp: 1092, atk: { min:12, max:19 }, def: 12, element: 'wind',
       // weakness to Earth (Earth beats Wind) comes from the elemental wheel
       resist: { wind:35 },
-      goldMin: 70, goldMax: 105,
+      goldMin: 95, goldMax: 142,
       loot: [
         { key:'material_stormwing_feather', chance:1,    min:2, max:4 },
-        { key:'material_beast_hide',        chance:0.35, min:1, max:1 },
-        { key:'material_stormwing_crystal', chance:0.3,  min:1, max:1 }
+        { key:'material_beast_hide',        chance:0.22, min:1, max:1 },
+        { key:'material_stormwing_crystal', chance:0.15, min:1, max:1 }
       ],
       anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 278, bgSize: '256px 278px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     aquafin:   { name: 'AQUAFIN',   part: '💧 Fins intact',          emojiFallback: '🐸', icon: 'assets/aquafin.webp',
-      hp: 320, atk: { min:10, max:16 }, def: 9, element: 'water', poisonChance: 0.18,
+      tier: 'D',
+      hp: 736, atk: { min:10, max:16 }, def: 9, element: 'water', poisonChance: 0.18,
       // weakness to Wind (Wind beats Water) comes from the elemental wheel
       resist: { water:35 },
-      goldMin: 65, goldMax: 95,
+      goldMin: 81, goldMax: 119,
       loot: [
         { key:'material_aquafin_scale',    chance:1,    min:2, max:4 },
-        { key:'material_monster_bone',     chance:0.35, min:1, max:1 },
-        { key:'material_aquafin_membrane', chance:0.3,  min:1, max:1 }
+        { key:'material_monster_bone',     chance:0.22, min:1, max:1 },
+        { key:'material_aquafin_membrane', chance:0.15, min:1, max:1 }
       ],
       anims: { idle: { url: 'assets/aquafin.webp', frameW: 256, frameH: 194, bgSize: '256px 194px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } }
   };
@@ -2186,7 +2219,7 @@
   function loadMonster(id){
     currentMonsterKey = id || 'grubling';
     currentMonster = MONSTERS[currentMonsterKey] || MONSTERS.grubling;
-    document.getElementById('monsterHudName').textContent = currentMonster.name;
+    document.getElementById('monsterHudName').innerHTML = currentMonster.name + tierBadgeHtml(currentMonster);
     document.getElementById('monsterHudPart').textContent = currentMonster.part;
     document.getElementById('monsterHudAtk').textContent = currentMonster.atk ? (currentMonster.atk.min + '-' + currentMonster.atk.max) : '—';
     document.getElementById('monsterHudDef').textContent = (typeof currentMonster.def === 'number') ? currentMonster.def : '—';
@@ -2276,8 +2309,9 @@
   function questIconHtml(q){
     const mm = q.monster ? MONSTERS[q.monster] : null;
     const icon = mm ? (mm.icon || (mm.anims && mm.anims.idle && mm.anims.idle.url)) : null;
-    if(icon) return '<div class="quest-icon monster-art" style="background-image:url(\'' + icon + '\')"></div>';
-    return '<div class="quest-icon">' + (mm ? mm.emojiFallback : '🔒') + '</div>';
+    const badge = tierBadgeHtml(mm);
+    if(icon) return '<div class="quest-icon monster-art" style="background-image:url(\'' + icon + '\')">' + badge + '</div>';
+    return '<div class="quest-icon">' + badge + (mm ? mm.emojiFallback : '🔒') + '</div>';
   }
 
   // updates the main-menu ribbon + "Rank X — ... awaits" line to match
@@ -2309,6 +2343,10 @@
 
     document.getElementById('questTag').textContent = data.featured.tag || '★ QUEST EVENT';
     document.getElementById('featuredMonsterIcon').textContent = fMonster ? fMonster.emojiFallback : (data.featured.emoji || '❓');
+    const featuredIconEl = document.getElementById('featuredMonsterIcon');
+    const oldBadge = featuredIconEl.parentElement.querySelector('.tier-badge');
+    if(oldBadge) oldBadge.remove();
+    if(fMonster) featuredIconEl.insertAdjacentHTML('afterend', tierBadgeHtml(fMonster));
     document.getElementById('featuredName').textContent = fMonster ? fMonster.name : (data.featured.name || '???');
     document.getElementById('featuredElem').textContent = fElem ? (fElem.emoji + ' ' + fElem.label + ' Element') : (data.featured.elemLabel || 'Secret');
     document.getElementById('featuredStars').innerHTML = starsHtml(data.featured.stars);
