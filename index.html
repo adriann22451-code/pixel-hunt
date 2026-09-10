@@ -725,7 +725,7 @@
         <div class="header-title">QUEST BOARD</div>
         <div class="header-sub">Emberfall Village</div>
       </div>
-      <div class="chip"><span class="icon">◆</span>245</div>
+      <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span>245</div>
       <div class="chip"><span class="icon">🎫</span><span class="ticket-amount" id="questTicketAmount">5</span></div>
     </div>
 
@@ -763,22 +763,22 @@
       <div class="quest-card" data-goto="screen-combat" data-monster="rockhide">
         <div class="quest-icon monster-art" style="background-image:url('assets/rockhide.webp')"></div>
         <div class="quest-mid"><div class="quest-name">TAKE DOWN ROCKHIDE</div><div class="quest-meta">🪨 Earth <span class="stars">★★★<span class="off">☆☆</span></span></div></div>
-        <div class="quest-reward">◆ 80</div>
+        <div class="quest-reward"><span class="icon-img" style="width:14px; height:14px; background-image:url('assets/gold_coin.webp')"></span>80</div>
       </div>
       <div class="quest-card" data-goto="screen-combat" data-monster="stormwing">
         <div class="quest-icon">🦅</div>
         <div class="quest-mid"><div class="quest-name">BRING DOWN STORMWING</div><div class="quest-meta">💨 Wind <span class="stars">★★★<span class="off">☆☆</span></span></div></div>
-        <div class="quest-reward">◆ 95</div>
+        <div class="quest-reward"><span class="icon-img" style="width:14px; height:14px; background-image:url('assets/gold_coin.webp')"></span>95</div>
       </div>
       <div class="quest-card" data-goto="screen-combat" data-monster="aquafin">
         <div class="quest-icon monster-art" style="background-image:url('assets/aquafin.webp')"></div>
         <div class="quest-mid"><div class="quest-name">CAPTURE AQUAFIN</div><div class="quest-meta">💧 Water <span class="stars">★★<span class="off">☆☆☆</span></span></div></div>
-        <div class="quest-reward">◆ 60</div>
+        <div class="quest-reward"><span class="icon-img" style="width:14px; height:14px; background-image:url('assets/gold_coin.webp')"></span>60</div>
       </div>
       <div class="quest-card" data-goto="screen-combat" data-monster="flareclaw">
         <div class="quest-icon">🔥</div>
         <div class="quest-mid"><div class="quest-name">HUNT FLARECLAW</div><div class="quest-meta">🔥 Fire <span class="stars">★★<span class="off">☆☆☆</span></span></div></div>
-        <div class="quest-reward">◆ 55</div>
+        <div class="quest-reward"><span class="icon-img" style="width:14px; height:14px; background-image:url('assets/gold_coin.webp')"></span>55</div>
       </div>
       <div class="quest-card locked">
         <div class="quest-icon asset-icon"></div>
@@ -2937,7 +2937,7 @@
         + questIconHtml(q)
         + '<div class="quest-mid"><div class="quest-name">' + q.name + '</div>'
         + '<div class="quest-meta">' + metaLabel + '</div></div>'
-        + (q.locked ? '<div class="lock-icon">🔒</div>' : '<div class="quest-reward">◆ ' + q.reward + '</div>')
+        + (q.locked ? '<div class="lock-icon">🔒</div>' : '<div class="quest-reward"><span class="icon-img" style="width:14px; height:14px; background-image:url(\'assets/gold_coin.webp\')"></span>' + q.reward + '</div>')
         + '</div>';
     }).join('');
 
