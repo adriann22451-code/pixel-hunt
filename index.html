@@ -180,7 +180,10 @@
   .lock-icon{ font-size:18px; color:var(--bone-dim); }
 
   /* ================= SCREEN 3: INVENTORY ================= */
-  #screen-inventory .header .slots-chip{ margin-left:auto; display:flex; align-items:center; gap:6px; background:var(--panel); border:2px solid var(--line); padding:5px 10px; font-size:15px; color:var(--bone-dim); }
+  #screen-inventory .header .slots-chip{ margin-left:auto; display:flex; align-items:center; gap:6px; background:var(--panel); border:2px solid var(--line); padding:5px 10px; font-size:15px; color:var(--bone-dim); cursor:pointer; }
+  #screen-inventory .header .slots-chip .expand-plus{ color:var(--amber); font-family:'Press Start 2P', monospace; font-size:10px; margin-left:2px; }
+  #screen-inventory .header .slots-chip.full{ cursor:default; }
+  #screen-inventory .header .slots-chip.full .expand-plus{ display:none; }
 
   /* rarity -> color lookup, reused by loadout ring + grid card frame */
   .rar-common{ --rc: var(--common); }
@@ -749,7 +752,7 @@
         <div class="header-title">INVENTORY</div>
         <div class="header-sub">Hunter's Lodge</div>
       </div>
-      <div class="slots-chip">42 / 60</div>
+      <div class="slots-chip" id="inventorySlotsChip">30 / 30</div>
     </div>
 
     <div class="loadout" id="loadoutPanel"></div>
@@ -1038,6 +1041,20 @@
     </div>
   </div>
 
+  <!-- ---------- EXPAND INVENTORY SLOTS SHEET ---------- -->
+  <div class="sheet-overlay" id="slotExpandSheetOverlay">
+    <div class="sheet pixel-frame">
+      <div class="sheet-handle"></div>
+      <div class="sheet-name" style="margin-bottom:6px;">EXPAND INVENTORY</div>
+      <div class="sheet-desc" style="margin-top:0; border-top:none; padding-top:0;" id="slotExpandDesc">Add 5 more inventory slots (30 → 35) using Crystal.</div>
+      <div class="sheet-actions">
+        <div class="sheet-btn buy-ticket" id="slotExpandBuyBtn"><span class="icon-img" style="width:12px; height:12px; margin-right:4px; vertical-align:middle; background-image:url('assets/gem_premium.webp')"></span>BUY · <span id="slotExpandPrice">5</span></div>
+        <div class="sheet-btn close" id="slotExpandSheetClose">CANCEL</div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- ---------- CODEX ENTRY SHEET (item / monster description) ---------- -->
   <div class="sheet-overlay" id="codexSheetOverlay">
     <div class="sheet pixel-frame">
@@ -1100,6 +1117,9 @@
     });
     const bottomNavEl = document.getElementById('bottomNav');
     if(bottomNavEl) bottomNavEl.style.display = FULLSCREEN_IDS.indexOf(id) === -1 ? '' : 'none';
+    // re-render so qty/loot changes picked up elsewhere (loot pickup, potion
+    // use, etc) are reflected immediately, including the slot count chip
+    if(id === 'screen-inventory') renderInventory(currentCategory);
   }
   document.querySelectorAll('[data-goto]').forEach(el=>{
     el.addEventListener('click', ()=> goTo(el.dataset.goto));
@@ -1243,6 +1263,87 @@
   const SAVE_KEY = 'pixelhunt_save_v2';
   let currentTier = 'B'; // which Quest Board tier tab is active; updated by renderQuestBoard()
 
+  // ---------- inventory slot capacity ----------
+  // Every hunter starts with 30 inventory slots; buying an expansion adds
+  // 5 more (up to a hard cap of 100), and each successive expansion costs
+  // more Crystal than the last. One "slot" = one owned/unlocked item entry
+  // (any category), counted regardless of stack qty — this is the number
+  // shown in the header chip and is what caps how many distinct items a
+  // hunter can hold across weapon/armor/accessory/material/potion combined.
+  const BASE_INVENTORY_CAPACITY = 30;
+  const MAX_INVENTORY_CAPACITY = 100;
+  const INVENTORY_EXPAND_STEP = 5;
+  const INVENTORY_EXPAND_BASE_COST = 5;
+  const INVENTORY_EXPAND_COST_INCREMENT = 3; // each expansion costs 3 more Crystal than the previous one
+  let inventoryCapacity = BASE_INVENTORY_CAPACITY;
+  let inventoryExpansionsBought = 0;
+
+  // an item counts as "not owned" if it's locked (unclaimed/uncrafted gear)
+  // OR its qty has run out (used-up potions/materials) — shared by the
+  // inventory renderer and the slot-capacity counter below
+  function isItemUnowned(it){
+    return it.locked || (typeof it.qty === 'number' && it.qty <= 0);
+  }
+
+  function countUsedSlots(){
+    let used = 0;
+    Object.keys(ITEMS).forEach(cat => {
+      ITEMS[cat].forEach(it => { if(!isItemUnowned(it)) used++; });
+    });
+    return used;
+  }
+
+  function nextExpandCost(){
+    return INVENTORY_EXPAND_BASE_COST + INVENTORY_EXPAND_COST_INCREMENT * inventoryExpansionsBought;
+  }
+
+  function updateSlotsChip(){
+    const chip = document.getElementById('inventorySlotsChip');
+    if(!chip) return;
+    const used = countUsedSlots();
+    const isFull = inventoryCapacity >= MAX_INVENTORY_CAPACITY;
+    chip.innerHTML = used + ' / ' + inventoryCapacity + (isFull ? '' : ' <span class="expand-plus">+</span>');
+    chip.classList.toggle('full', isFull);
+  }
+
+  const slotExpandSheetOverlay = document.getElementById('slotExpandSheetOverlay');
+
+  function openSlotExpandSheet(){
+    if(inventoryCapacity >= MAX_INVENTORY_CAPACITY) return;
+    const cost = nextExpandCost();
+    const nextCap = Math.min(inventoryCapacity + INVENTORY_EXPAND_STEP, MAX_INVENTORY_CAPACITY);
+    document.getElementById('slotExpandDesc').textContent =
+      'Add ' + (nextCap - inventoryCapacity) + ' more inventory slots (' + inventoryCapacity + ' \u2192 ' + nextCap + ') using Crystal.';
+    document.getElementById('slotExpandPrice').textContent = cost;
+    document.getElementById('slotExpandBuyBtn').classList.toggle('disabled', playerCrystal < cost);
+    slotExpandSheetOverlay.classList.add('open');
+  }
+
+  document.getElementById('inventorySlotsChip').addEventListener('click', openSlotExpandSheet);
+
+  document.getElementById('slotExpandBuyBtn').addEventListener('click', function(){
+    const cost = nextExpandCost();
+    if(inventoryCapacity >= MAX_INVENTORY_CAPACITY || playerCrystal < cost) return;
+    playerCrystal -= cost;
+    inventoryCapacity = Math.min(inventoryCapacity + INVENTORY_EXPAND_STEP, MAX_INVENTORY_CAPACITY);
+    inventoryExpansionsBought += 1;
+    updateCrystalChip();
+    updateSlotsChip();
+    renderInventory(currentCategory);
+    slotExpandSheetOverlay.classList.remove('open');
+    saveGame();
+  });
+
+  document.getElementById('slotExpandSheetClose').addEventListener('click', function(){
+    slotExpandSheetOverlay.classList.remove('open');
+  });
+
+  slotExpandSheetOverlay.addEventListener('click', function(e){
+    if(e.target === slotExpandSheetOverlay){
+      slotExpandSheetOverlay.classList.remove('open');
+    }
+  });
+
   // ---------- daily hunt tickets ----------
   // Hunting used to be free forever, which also made Crystal pointless to
   // hoard. Now every hunter gets a handful of free tickets per real-world
@@ -1361,7 +1462,7 @@
 
   function saveGame(){
     try {
-      const data = { gold: playerGold, crystal: playerCrystal, tickets: playerTickets, ticketDay: lastTicketDay, tier: currentTier, items: {}, mail: {} };
+      const data = { gold: playerGold, crystal: playerCrystal, tickets: playerTickets, ticketDay: lastTicketDay, tier: currentTier, invCapacity: inventoryCapacity, invExpansions: inventoryExpansionsBought, items: {}, mail: {} };
       Object.keys(ITEMS).forEach(cat => {
         data.items[cat] = ITEMS[cat].map(i => ({
           key: i.key,
@@ -1415,6 +1516,11 @@
       }
 
       if(typeof data.tier === 'string') currentTier = data.tier;
+
+      if(typeof data.invCapacity === 'number'){
+        inventoryCapacity = Math.min(Math.max(data.invCapacity, BASE_INVENTORY_CAPACITY), MAX_INVENTORY_CAPACITY);
+      }
+      if(typeof data.invExpansions === 'number') inventoryExpansionsBought = data.invExpansions;
 
       // playerTickets/lastTicketDay are declared above this function, so
       // (unlike gold/crystal) they can just be assigned directly.
@@ -2173,18 +2279,10 @@
     const grid = document.getElementById('inventoryGrid');
     const allItems = ITEMS[category] || [];
     const items = allItems.filter(it => matchesFilter(it, currentFilter));
-    // an item counts as "not owned" if it's locked (unclaimed gear) OR its
-    // qty has been depleted to 0 (used-up potions/materials) — both should
-    // render as an empty slot, same as unowned weapon/armor
-    const isUnowned = it => it.locked || (typeof it.qty === 'number' && it.qty <= 0);
     // owned items always show first; not-yet-owned (locked/empty) placeholders trail behind
-    items.sort((a, b) => (isUnowned(a) === isUnowned(b)) ? 0 : (isUnowned(a) ? 1 : -1));
+    items.sort((a, b) => (isItemUnowned(a) === isItemUnowned(b)) ? 0 : (isItemUnowned(a) ? 1 : -1));
 
-    if(allItems.length === 0){
-      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--bone-dim); font-size:14px; padding:30px 10px;">No items yet in this category.</div>';
-      return;
-    }
-    if(items.length === 0){
+    if(items.length === 0 && currentFilter !== 'all'){
       grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--bone-dim); font-size:14px; padding:30px 10px;">No items match this filter.</div>';
       return;
     }
@@ -2195,7 +2293,7 @@
 
       // not-yet-owned gear, or a potion/material whose qty has run out:
       // just an empty slot box, no icon/name/"???" shown
-      if(isUnowned(it)){
+      if(isItemUnowned(it)){
         html += '<div class="item item-empty"></div>';
         continue;
       }
@@ -2210,6 +2308,15 @@
         + '<div class="name-bar">' + it.name + '<span class="rarity-label">' + it.rarity.toUpperCase() + '</span></div>'
         + '</div>';
     }
+
+    // uniform slot count: on the unfiltered "All" view, pad every category's
+    // grid out to the same total (inventoryCapacity) with plain blank slots,
+    // so switching tabs (weapon <-> accessory <-> material, etc) always shows
+    // the same number of boxes instead of each category's own item count
+    if(currentFilter === 'all' && items.length < inventoryCapacity){
+      html += '<div class="item item-empty"></div>'.repeat(inventoryCapacity - items.length);
+    }
+
     grid.innerHTML = html;
 
     // apply artwork backgrounds
@@ -2220,6 +2327,8 @@
     grid.querySelectorAll('.item:not(.item-empty)').forEach(item=>{
       item.addEventListener('click', ()=> openItemSheet(item));
     });
+
+    updateSlotsChip();
   }
 
   document.querySelectorAll('#inventoryTabs .tab').forEach(function(tab){
