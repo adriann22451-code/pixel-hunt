@@ -225,6 +225,12 @@
   .item .qty-badge{ position:absolute; bottom:22px; right:3px; font-family:'Press Start 2P', monospace; font-size:7px; color:var(--bone); background:rgba(0,0,0,0.75); border:1px solid var(--line); padding:2px 3px; }
   .item .equip-badge{ position:absolute; top:3px; right:3px; font-family:'Press Start 2P', monospace; font-size:6px; color:#1a1006; background:var(--amber); padding:2px 3px; }
   .item .new-badge{ position:absolute; top:3px; left:3px; font-family:'Press Start 2P', monospace; font-size:6px; color:#1a1006; background:var(--amber); padding:2px 3px; }
+  .item .dura-track{ position:absolute; top:0; left:0; right:0; height:3px; background:rgba(0,0,0,0.6); z-index:2; }
+  .item .dura-fill{ height:100%; background:var(--moss); }
+  .item .dura-fill.dura-mid{ background:var(--amber); }
+  .item .dura-fill.dura-low{ background:var(--blood); }
+  .item.broken{ filter:grayscale(0.7); }
+  .item.broken .name-bar{ color:var(--blood); }
   .item.equipped{ box-shadow: inset 0 0 0 2px var(--amber), 0 0 10px -1px var(--rc, rgba(242,169,59,0.6)); }
   .item.item-empty{ background:var(--void); border:2px dashed var(--line); box-shadow:none; cursor:default; opacity:0.5; }
 
@@ -248,6 +254,14 @@
   .sheet-btn.equip{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
   .sheet-btn.buy-ticket{ background: linear-gradient(180deg, var(--amber), #c9781f); color:#1a1006; }
   .sheet-btn.buy-ticket.disabled{ opacity:0.45; cursor:default; }
+  .sheet-btn.repair{ background: linear-gradient(180deg, var(--moss), #4d5a37); color:#0f130a; }
+  .sheet-btn.repair.disabled{ opacity:0.45; cursor:default; }
+  .stat-row.dura-row{ align-items:center; }
+  .stat-row.dura-row .dura-right{ display:flex; align-items:center; gap:6px; }
+  .sheet-dura-track{ width:60px; height:8px; background:var(--void); border:1px solid var(--line); }
+  .sheet-dura-fill{ height:100%; background:var(--moss); }
+  .sheet-dura-fill.dura-mid{ background:var(--amber); }
+  .sheet-dura-fill.dura-low{ background:var(--blood); }
   .sheet-btn.close{ background:var(--panel); color:var(--bone-dim); border-color: var(--line); }
 
   /* ---------- BESTIARY ---------- */
@@ -1004,9 +1018,17 @@
       <div class="sheet-stats">
         <div class="stat-row" id="sheetAtkRow"><span>Attack</span><b id="sheetAtk"></b></div>
         <div class="stat-row"><span id="sheetElemLabel">Element</span><b id="sheetElem"></b></div>
+        <div class="stat-row dura-row" id="sheetDuraRow">
+          <span>Durability</span>
+          <span class="dura-right">
+            <span class="sheet-dura-track"><span class="sheet-dura-fill" id="sheetDuraFill"></span></span>
+            <b id="sheetDuraText"></b>
+          </span>
+        </div>
       </div>
       <div class="sheet-desc" id="sheetDesc"></div>
       <div class="sheet-actions">
+        <div class="sheet-btn repair" id="sheetRepairBtn"><span class="icon-img" style="width:12px; height:12px; margin-right:4px; vertical-align:middle; background-image:url('assets/gold_coin.webp')"></span>REPAIR · <span id="sheetRepairCost">0</span></div>
         <div class="sheet-btn equip">EQUIP</div>
         <div class="sheet-btn close" id="sheetClose">CLOSE</div>
       </div>
@@ -1050,6 +1072,19 @@
       <div class="sheet-actions">
         <div class="sheet-btn buy-ticket" id="slotExpandBuyBtn"><span class="icon-img" style="width:12px; height:12px; margin-right:4px; vertical-align:middle; background-image:url('assets/gem_premium.webp')"></span>BUY · <span id="slotExpandPrice">5</span></div>
         <div class="sheet-btn close" id="slotExpandSheetClose">CANCEL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- GEAR BROKEN SHEET (blocks starting a hunt with 0-durability gear) ---------- -->
+  <div class="sheet-overlay" id="gearBrokenSheetOverlay">
+    <div class="sheet pixel-frame">
+      <div class="sheet-handle"></div>
+      <div class="sheet-name" style="margin-bottom:6px;">GEAR BROKEN</div>
+      <div class="sheet-desc" style="margin-top:0; border-top:none; padding-top:0;" id="gearBrokenDesc">Your equipped gear has run out of durability. Repair it with Gold before your next hunt.</div>
+      <div class="sheet-actions">
+        <div class="sheet-btn buy-ticket" id="gearBrokenGoInv">GO TO INVENTORY</div>
+        <div class="sheet-btn close" id="gearBrokenClose">CANCEL</div>
       </div>
     </div>
   </div>
@@ -1253,6 +1288,52 @@
       { key:'potion_phoenix',        name:'Phoenix Draught',         sub:'Revival Item',  icon:'🧪', img:'assets/potion_phoenix.webp',         rarity:'legendary', atk:'—', elem:'—', qty:1, shopPrice:400, desc:'Revives a fallen hunter on the spot. Said to taste like ash and gold.', locked:false }
     ]
   };
+
+  // ---------- weapon/armor durability ----------
+  // Every weapon/armor has a max durability based on rarity. It wears down
+  // a little each time it's taken on a hunt, and once it hits 0 it's
+  // "broken" — can't be equipped or taken hunting until repaired with Gold.
+  const DURABILITY_MAX_BY_RARITY = { common:80, uncommon:110, rare:150, epic:200, legendary:260 };
+  const REPAIR_GOLD_PER_POINT_BY_RARITY = { common:1, uncommon:1, rare:2, epic:2, legendary:3 };
+  const DURABILITY_LOSS_MIN = 1;
+  const DURABILITY_LOSS_MAX = 3;
+
+  function getMaxDurability(item){
+    return DURABILITY_MAX_BY_RARITY[item.rarity] || 50;
+  }
+  function isBroken(item){
+    return typeof item.durability === 'number' && item.durability <= 0;
+  }
+  function repairCost(item){
+    const max = getMaxDurability(item);
+    const missing = max - (item.durability || 0);
+    if(missing <= 0) return 0;
+    const rate = REPAIR_GOLD_PER_POINT_BY_RARITY[item.rarity] || 3;
+    return Math.max(1, Math.round(missing * rate));
+  }
+  // start every weapon/armor entry at full durability unless a save already
+  // restored a specific value (loadGame runs after this and overwrites it)
+  ['weapon', 'armor'].forEach(cat => {
+    ITEMS[cat].forEach(it => { it.durability = getMaxDurability(it); });
+  });
+
+  // wears down whichever weapon/armor is currently equipped — called once
+  // per hunt actually started, win or lose, since the gear was used either way
+  function wearEquippedGear(){
+    ['weapon', 'armor'].forEach(cat => {
+      const item = ITEMS[cat].find(i => i.equipped);
+      if(!item) return;
+      const loss = DURABILITY_LOSS_MIN + Math.floor(Math.random() * (DURABILITY_LOSS_MAX - DURABILITY_LOSS_MIN + 1));
+      item.durability = Math.max(0, (item.durability || 0) - loss);
+    });
+  }
+  // true if the currently-equipped weapon or armor is broken — used to
+  // block starting a new hunt until the hunter repairs up
+  function hasBrokenEquippedGear(){
+    const weapon = ITEMS.weapon.find(i => i.equipped);
+    const armor = ITEMS.armor.find(i => i.equipped);
+    return (weapon && isBroken(weapon)) || (armor && isBroken(armor));
+  }
 
   // ---------- save / load progress (localStorage) ----------
   // ITEMS above is just hardcoded starting data — without this, every refresh
@@ -1468,7 +1549,8 @@
           key: i.key,
           equipped: !!i.equipped,
           locked: !!i.locked,
-          qty: i.qty
+          qty: i.qty,
+          durability: i.durability
         }));
       });
       MAILBOX.forEach(m => { data.mail[m.id] = !!m.claimed; });
@@ -1493,6 +1575,7 @@
             item.equipped = !!saved.equipped;
             item.locked = !!saved.locked;
             if(typeof saved.qty === 'number') item.qty = saved.qty;
+            if(typeof saved.durability === 'number') item.durability = saved.durability;
           });
         });
       }
@@ -1545,16 +1628,27 @@
   // goTo/loadMonster/resetCombat listeners, so it can consume a ticket
   // first, or block the click entirely and offer to buy one instead.
   const ticketSheetOverlay = document.getElementById('ticketSheetOverlay');
+  const gearBrokenSheetOverlay = document.getElementById('gearBrokenSheetOverlay');
   let pendingHuntTarget = null;
 
   document.addEventListener('click', function(e){
     const el = e.target.closest('[data-goto="screen-combat"]');
     if(!el) return;
 
+    // broken (0-durability) equipped weapon/armor blocks hunting outright,
+    // even before the ticket check — repair comes first
+    if(hasBrokenEquippedGear()){
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      gearBrokenSheetOverlay.classList.add('open');
+      return;
+    }
+
     refreshDailyTickets();
     if(playerTickets > 0){
       playerTickets -= 1;
       updateTicketChip();
+      wearEquippedGear(); // gear takes wear every time it's actually used on a hunt
       saveGame();
       return; // let the click continue through to the normal hunt-start listeners
     }
@@ -1567,6 +1661,17 @@
     document.getElementById('ticketBuyBtn').classList.toggle('disabled', playerCrystal < TICKET_CRYSTAL_PRICE);
     ticketSheetOverlay.classList.add('open');
   }, true);
+
+  document.getElementById('gearBrokenGoInv').addEventListener('click', function(){
+    gearBrokenSheetOverlay.classList.remove('open');
+    goTo('screen-inventory');
+  });
+  document.getElementById('gearBrokenClose').addEventListener('click', function(){
+    gearBrokenSheetOverlay.classList.remove('open');
+  });
+  gearBrokenSheetOverlay.addEventListener('click', function(e){
+    if(e.target === gearBrokenSheetOverlay) gearBrokenSheetOverlay.classList.remove('open');
+  });
 
   document.getElementById('ticketBuyBtn').addEventListener('click', function(){
     if(playerCrystal < TICKET_CRYSTAL_PRICE) return;
@@ -2149,13 +2254,47 @@
     return category === 'weapon' || category === 'armor' || category === 'accessory';
   }
 
+  const sheetDuraRow = document.getElementById('sheetDuraRow');
+  const sheetDuraFill = document.getElementById('sheetDuraFill');
+  const sheetDuraText = document.getElementById('sheetDuraText');
+  const sheetRepairBtn = document.getElementById('sheetRepairBtn');
+  const sheetRepairCost = document.getElementById('sheetRepairCost');
+
   function updateSheetEquipButton(item, category){
     if(!isEquippableCategory(category)){
       sheetEquipBtn.style.display = 'none';
       return;
     }
     sheetEquipBtn.style.display = '';
-    sheetEquipBtn.textContent = item.equipped ? 'UNEQUIP' : 'EQUIP';
+    const broken = (category === 'weapon' || category === 'armor') && isBroken(item);
+    sheetEquipBtn.textContent = item.equipped ? 'UNEQUIP' : (broken ? 'BROKEN' : 'EQUIP');
+    sheetEquipBtn.classList.toggle('disabled', !item.equipped && broken);
+  }
+
+  // shows the durability bar + REPAIR button for weapon/armor only, and
+  // keeps the repair button's price/enabled state in sync with current gold
+  function updateSheetDurability(item, category){
+    const isDurable = (category === 'weapon' || category === 'armor');
+    sheetDuraRow.style.display = isDurable ? '' : 'none';
+    sheetRepairBtn.style.display = isDurable ? '' : 'none';
+    if(!isDurable) return;
+
+    const max = getMaxDurability(item);
+    const cur = item.durability || 0;
+    const pct = max ? Math.max(0, Math.min(100, (cur / max) * 100)) : 0;
+    sheetDuraFill.style.width = pct + '%';
+    sheetDuraFill.classList.toggle('dura-mid', pct <= 50 && pct > 20);
+    sheetDuraFill.classList.toggle('dura-low', pct <= 20);
+    sheetDuraText.textContent = cur + ' / ' + max;
+
+    const cost = repairCost(item);
+    if(cost <= 0){
+      sheetRepairBtn.style.display = 'none';
+    } else {
+      sheetRepairBtn.style.display = '';
+      sheetRepairCost.textContent = cost;
+      sheetRepairBtn.classList.toggle('disabled', playerGold < cost);
+    }
   }
 
   function openItemSheet(itemEl){
@@ -2186,12 +2325,39 @@
     sheetRarityText.className = 'sheet-rarity-text rar-' + itemEl.dataset.rarity;
     sheetRarityText.textContent = itemEl.dataset.rarity.toUpperCase();
 
-    if(item) updateSheetEquipButton(item, category);
+    if(item){
+      updateSheetEquipButton(item, category);
+      updateSheetDurability(item, category);
+    } else {
+      sheetDuraRow.style.display = 'none';
+      sheetRepairBtn.style.display = 'none';
+    }
 
     overlay.classList.add('open');
   }
   document.getElementById('sheetClose').addEventListener('click', ()=> overlay.classList.remove('open'));
   overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+  // ---------- repair: spend Gold to refill a weapon/armor's durability to full ----------
+  function repairItem(){
+    if(!currentSheetItem) return;
+    const { category, key } = currentSheetItem;
+    if(category !== 'weapon' && category !== 'armor') return;
+    const item = (ITEMS[category] || []).find(i => i.key === key);
+    if(!item || item.locked) return;
+
+    const cost = repairCost(item);
+    if(cost <= 0 || playerGold < cost) return;
+
+    playerGold -= cost;
+    item.durability = getMaxDurability(item);
+    updateGoldChip();
+    updateSheetEquipButton(item, category);
+    updateSheetDurability(item, category);
+    renderInventory(category);
+    saveGame();
+  }
+  sheetRepairBtn.addEventListener('click', repairItem);
 
   // ---------- equip / unequip logic ----------
   // weapons: only one can be equipped at a time.
@@ -2203,6 +2369,8 @@
     const items = ITEMS[category] || [];
     const item = items.find(i => i.key === key);
     if(!item || item.locked) return;
+
+    if(!item.equipped && isBroken(item)) return; // broken gear can't be equipped until repaired
 
     if(item.equipped){
       // simply unequip — leaves that slot empty
@@ -2298,10 +2466,21 @@
         continue;
       }
 
-      const classes = 'item item-art rar-' + it.rarity + (it.equipped ? ' equipped' : '');
+      const isDurable = (category === 'weapon' || category === 'armor');
+      const broken = isDurable && isBroken(it);
+      const classes = 'item item-art rar-' + it.rarity + (it.equipped ? ' equipped' : '') + (broken ? ' broken' : '');
+      let duraHtml = '';
+      if(isDurable){
+        const max = getMaxDurability(it);
+        const cur = it.durability || 0;
+        const pct = max ? Math.max(0, Math.min(100, (cur / max) * 100)) : 0;
+        const fillClass = pct <= 20 ? ' dura-low' : (pct <= 50 ? ' dura-mid' : '');
+        duraHtml = '<div class="dura-track"><div class="dura-fill' + fillClass + '" style="width:' + pct + '%"></div></div>';
+      }
       html += '<div class="' + classes + '" data-key="' + it.key + '" data-category="' + category + '" data-name="' + it.name + '" data-type="' + it.sub + '" data-rarity="' + it.rarity
         + '" data-icon="' + it.icon + '" data-img="' + it.img + '" data-atk="' + it.atk + '" data-elem="' + it.elem
         + '" data-desc="' + it.desc.replace(/"/g, '&quot;') + '">'
+        + duraHtml
         + (it.isNew ? '<span class="new-badge">NEW</span>' : '')
         + (it.equipped ? '<span class="equip-badge">E</span>' : '')
         + (it.qty ? '<span class="qty-badge">x' + it.qty + '</span>' : '')
