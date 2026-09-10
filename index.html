@@ -843,7 +843,7 @@
         <div class="header-title">CRAFT GEAR</div>
         <div class="header-sub">Blacksmith's Bench</div>
       </div>
-      <div class="slots-chip" id="craftGoldChip">0◆</div>
+      <div class="chip" id="craftGoldChip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="craftGoldAmount">0</span></div>
     </div>
 
     <div class="craft-list" id="craftList"></div>
@@ -3501,8 +3501,8 @@
   // own (green if enough, red if short), and locks the CRAFT button until you have both
   // the materials and the gold for it.
   function renderCraftList(){
-    const goldChip = document.getElementById('craftGoldChip');
-    if(goldChip) goldChip.textContent = playerGold + '◆';
+    const goldAmountEl = document.getElementById('craftGoldAmount');
+    if(goldAmountEl) goldAmountEl.textContent = playerGold;
 
     const list = document.getElementById('craftList');
     let html = '';
@@ -3530,7 +3530,7 @@
 
       const btnHtml = alreadyCrafted
         ? '<div class="craft-btn crafted">CRAFTED ✓</div>'
-        : '<div class="craft-btn' + (canCraft ? '' : ' disabled') + '" data-craft-key="' + key + '">CRAFT — ' + recipe.gold + '◆</div>';
+        : '<div class="craft-btn' + (canCraft ? '' : ' disabled') + '" data-craft-key="' + key + '">CRAFT — ' + recipe.gold + '<span class="icon-img" style="width:12px; height:12px; margin-left:2px; vertical-align:middle; background-image:url(\'assets/gold_coin.webp\')"></span></div>';
 
       html += '<div class="craft-card rar-' + item.rarity + '">'
         + '<div class="craft-card-head">'
