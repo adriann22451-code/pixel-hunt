@@ -1090,8 +1090,21 @@
       { key:'armor_wind_rare', name:'Gale Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_rare.webp', rarity:'rare', atk:'—', elem:'Wind +16', desc:'Storm-forged plate that hums faintly whenever the wind picks up. Craft it from hunted materials.', locked:true },
       { key:'armor_wind_epic', name:'Gale Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_epic.webp', rarity:'epic', atk:'—', elem:'Wind +22', desc:'Aegis plate that never quite touches the ground it stands on. Craft it from hunted materials.', locked:true },
       { key:'armor_wind_legendary', name:'Skysunder Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_wind_legendary.webp', rarity:'legendary', atk:'—', elem:'Wind +30', desc:'Armor plating torn from a storm that never finished passing. Craft it from hunted materials.', locked:true },
-      { key:'armor_rockhide_plate',  name:'Rockhide Plate Armor', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_rockhide_plate.webp',  rarity:'epic',      atk:'—', elem:'Earth +20',    desc:"Slabs of Rockhide stone bound in leather. Stops almost anything.", locked:true },
-      { key:'armor_voidfang_carapace', name:'Voidfang Carapace',  sub:'Heavy Armor', icon:'🛡', img:'assets/armor_voidfang_carapace.webp', rarity:'legendary', atk:'—', elem:'Dark +30',   desc:'Chitin torn from something that should not exist. It hums faintly.', locked:true }
+      { key:'armor_earth_common', name:'Terra Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_earth_common.webp', rarity:'common', atk:'—', elem:'Earth +8', desc:'Moss-bound hide reinforced with river stones. Smells faintly of rain.', shopPrice:130, locked:true },
+      { key:'armor_earth_uncommon', name:'Terra Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_earth_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Earth +12', desc:'Stone plates knit into leather. Cracks never seem to spread.', shopPrice:240, locked:true },
+      { key:'armor_earth_rare', name:'Terra Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_earth_rare.webp', rarity:'rare', atk:'—', elem:'Earth +16', desc:'Bedrock slabs bound with living root. Craft it from hunted materials.', locked:true },
+      { key:'armor_earth_epic', name:'Terra Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_earth_epic.webp', rarity:'epic', atk:'—', elem:'Earth +22', desc:'Aegis plate veined with pulsing green crystal. Craft it from hunted materials.', locked:true },
+      { key:'armor_earth_legendary', name:'Titanroot Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_earth_legendary.webp', rarity:'legendary', atk:'—', elem:'Earth +30', desc:'Grown from a root that has not stopped growing in a thousand years. Craft it from hunted materials.', locked:true },
+      { key:'armor_dark_common', name:'Umbra Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_dark_common.webp', rarity:'common', atk:'—', elem:'Dark +8', desc:'Cloth that drinks in light instead of shedding it.', shopPrice:130, locked:true },
+      { key:'armor_dark_uncommon', name:'Umbra Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_dark_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Dark +12', desc:'Etched with the same eye-shaped rune found on Umbra blades.', shopPrice:240, locked:true },
+      { key:'armor_dark_rare', name:'Umbra Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_dark_rare.webp', rarity:'rare', atk:'—', elem:'Dark +16', desc:'Scaled plate wreathed in a smoke that never quite settles. Craft it from hunted materials.', locked:true },
+      { key:'armor_dark_epic', name:'Umbra Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_dark_epic.webp', rarity:'epic', atk:'—', elem:'Dark +22', desc:'Aegis plate cracked through with veins of hungry violet light. Craft it from hunted materials.', locked:true },
+      { key:'armor_dark_legendary', name:'Voidfang Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_dark_legendary.webp', rarity:'legendary', atk:'—', elem:'Dark +30', desc:'Chitin torn from something that should not exist. It hums faintly.', locked:true },
+      { key:'armor_light_common', name:'Solis Vest', sub:'Light Armor', icon:'🛡', img:'assets/armor_light_common.webp', rarity:'common', atk:'—', elem:'Light +8', desc:'Sun-bleached leather that seems to always catch a little glow.', shopPrice:130, locked:true },
+      { key:'armor_light_uncommon', name:'Solis Hauberk', sub:'Light Armor', icon:'🛡', img:'assets/armor_light_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Light +12', desc:'Gold filigree armor, polished until it throws its own light back.', shopPrice:240, locked:true },
+      { key:'armor_light_rare', name:'Solis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_light_rare.webp', rarity:'rare', atk:'—', elem:'Light +16', desc:'Ivory plate etched with radiant script. Craft it from hunted materials.', locked:true },
+      { key:'armor_light_epic', name:'Solis Aegis Plate', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_light_epic.webp', rarity:'epic', atk:'—', elem:'Light +22', desc:'Aegis plate that hums with stored sunlight. Craft it from hunted materials.', locked:true },
+      { key:'armor_light_legendary', name:'Radiant Seraph Carapace', sub:'Heavy Armor', icon:'🛡', img:'assets/armor_light_legendary.webp', rarity:'legendary', atk:'—', elem:'Light +30', desc:'Said to be shed by a seraph that once walked among hunters. It never dims.', locked:true }
     ],
     accessory: [
       { key:'talisman_earth',    name:'Earth Talisman',    sub:'Talisman', icon:'🧿', img:'assets/talisman_earth.webp',    rarity:'epic',      atk:'—', elem:'Earth Res +20',     desc:'A charm carved from Rockhide plating. Steadies the hand of its wearer. Craft it from hunted materials.', locked:true },
@@ -1289,14 +1302,25 @@
       { key:'material_stormwing_crystal', qty:1 },
       { key:'material_aquafin_membrane',  qty:1 }
     ]},
-    armor_rockhide_plate: { category:'armor', gold:180, materials:[
-      { key:'material_rockhide_plating', qty:5 },
-      { key:'material_rockhide_core',    qty:2 }
+    armor_dark_rare: { category:'armor', gold:130, materials:[
+      { key:'material_monster_bone', qty:5 }, { key:'material_beast_hide', qty:1 }
     ]},
-    armor_voidfang_carapace: { category:'armor', gold:600, materials:[
+    armor_dark_epic: { category:'armor', gold:260, materials:[
+      { key:'material_beast_hide', qty:3 }, { key:'material_grubling_shell', qty:3 }
+    ]},
+    armor_dark_legendary: { category:'armor', gold:600, materials:[
       { key:'material_singularity_shard', qty:3 },
       { key:'material_monster_bone',      qty:5 },
       { key:'material_beast_hide',        qty:5 }
+    ]},
+    armor_light_rare: { category:'armor', gold:130, materials:[
+      { key:'material_grubling_shell', qty:5 }, { key:'material_monster_bone', qty:1 }
+    ]},
+    armor_light_epic: { category:'armor', gold:260, materials:[
+      { key:'material_monster_bone', qty:3 }, { key:'material_beast_hide', qty:3 }
+    ]},
+    armor_light_legendary: { category:'armor', gold:500, materials:[
+      { key:'material_grubling_shell', qty:3 }, { key:'material_monster_bone', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]},
     talisman_fire: { category:'accessory', gold:80, materials:[
       { key:'material_claw',  qty:3 },
@@ -1387,8 +1411,7 @@
       { key:'material_grubling_shell', qty:6 }, { key:'material_monster_bone', qty:6 }, { key:'material_singularity_shard', qty:3 }
     ]},
 
-    // ---- element armor lines (fire/water/wind only — earth and dark have their
-    // own single epic/legendary pieces above, and there's no light armor yet) ----
+    // ---- element armor lines (fire/water/wind/earth/dark/light — full set) ----
     armor_fire_rare: { category:'armor', gold:130, materials:[
       { key:'material_claw',  qty:5 }, { key:'material_scale', qty:1 }
     ]},
@@ -1415,6 +1438,15 @@
     ]},
     armor_wind_legendary: { category:'armor', gold:500, materials:[
       { key:'material_stormwing_crystal', qty:3 }, { key:'material_beast_hide', qty:3 }, { key:'material_singularity_shard', qty:2 }
+    ]},
+    armor_earth_rare: { category:'armor', gold:130, materials:[
+      { key:'material_rockhide_plating', qty:5 }, { key:'material_rockhide_core', qty:1 }
+    ]},
+    armor_earth_epic: { category:'armor', gold:260, materials:[
+      { key:'material_rockhide_core', qty:3 }, { key:'material_monster_bone', qty:3 }
+    ]},
+    armor_earth_legendary: { category:'armor', gold:500, materials:[
+      { key:'material_rockhide_core', qty:3 }, { key:'material_beast_hide', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]}
   };
 
