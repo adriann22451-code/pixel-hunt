@@ -885,7 +885,7 @@
       "assets/accessory_water_epic.webp","assets/accessory_water_legendary.webp",
       "assets/accessory_wind_common.webp","assets/accessory_wind_uncommon.webp","assets/accessory_wind_rare.webp",
       "assets/accessory_wind_epic.webp","assets/accessory_wind_legendary.webp",
-      "assets/aquafin.webp","assets/armor_dark_common.webp","assets/armor_dark_epic.webp","assets/armor_dark_legendary.webp",
+      "assets/aquafin.webp","assets/mudwisp.webp","assets/armor_dark_common.webp","assets/armor_dark_epic.webp","assets/armor_dark_legendary.webp",
       "assets/armor_dark_rare.webp","assets/armor_dark_uncommon.webp","assets/armor_earth_common.webp","assets/armor_earth_epic.webp",
       "assets/armor_earth_legendary.webp","assets/armor_earth_rare.webp","assets/armor_earth_uncommon.webp","assets/armor_fire_common.webp",
       "assets/armor_fire_epic.webp","assets/armor_fire_legendary.webp","assets/armor_fire_rare.webp","assets/armor_fire_uncommon.webp",
@@ -3108,6 +3108,20 @@
         hit:    { url: 'assets/grubling_hit.webp', frameW: 197, frameH: 256, total: 96, fps: 30, loop: false, positions: [[2,2],[203,2],[404,2],[605,2],[806,2],[1007,2],[1208,2],[1409,2],[1610,2],[1811,2],[2,262],[203,262],[404,262],[605,262],[806,262],[1007,262],[1208,262],[1409,262],[1610,262],[1811,262],[2,522],[203,522],[404,522],[605,522],[806,522],[1007,522],[1208,522],[1409,522],[1610,522],[1811,522],[2,782],[203,782],[404,782],[605,782],[806,782],[1007,782],[1208,782],[1409,782],[1610,782],[1811,782],[2,1042],[203,1042],[404,1042],[605,1042],[806,1042],[1007,1042],[1208,1042],[1409,1042],[1610,1042],[1811,1042],[2,1302],[203,1302],[404,1302],[605,1302],[806,1302],[1007,1302],[1208,1302],[1409,1302],[1610,1302],[1811,1302],[2,1562],[203,1562],[404,1562],[605,1562],[806,1562],[1007,1562],[1208,1562],[1409,1562],[1610,1562],[1811,1562],[2,1822],[203,1822],[404,1822],[605,1822],[806,1822],[1007,1822],[1208,1822],[1409,1822],[1610,1822],[1811,1822],[2,2082],[203,2082],[404,2082],[605,2082],[806,2082],[1007,2082],[1208,2082],[1409,2082],[1610,2082],[1811,2082],[2,2342],[203,2342],[404,2342],[605,2342],[806,2342],[1007,2342]] },
         defeat: { url: 'assets/grubling_defeat.webp', frameW: 241, frameH: 256, total: 96, fps: 24, loop: false, positions: [[2,2],[247,2],[492,2],[737,2],[982,2],[1227,2],[1472,2],[1717,2],[1962,2],[2207,2],[2,262],[247,262],[492,262],[737,262],[982,262],[1227,262],[1472,262],[1717,262],[1962,262],[2207,262],[2,522],[247,522],[492,522],[737,522],[982,522],[1227,522],[1472,522],[1717,522],[1962,522],[2207,522],[2,782],[247,782],[492,782],[737,782],[982,782],[1227,782],[1472,782],[1717,782],[1962,782],[2207,782],[2,1042],[247,1042],[492,1042],[737,1042],[982,1042],[1227,1042],[1472,1042],[1717,1042],[1962,1042],[2207,1042],[2,1302],[247,1302],[492,1302],[737,1302],[982,1302],[1227,1302],[1472,1302],[1717,1302],[1962,1302],[2207,1302],[2,1562],[247,1562],[492,1562],[737,1562],[982,1562],[1227,1562],[1472,1562],[1717,1562],[1962,1562],[2207,1562],[2,1822],[247,1822],[492,1822],[737,1822],[982,1822],[1227,1822],[1472,1822],[1717,1822],[1962,1822],[2207,1822],[2,2082],[247,2082],[492,2082],[737,2082],[982,2082],[1227,2082],[1472,2082],[1717,2082],[1962,2082],[2207,2082],[2,2342],[247,2342],[492,2342],[737,2342],[982,2342],[1227,2342]] }
       }
+    },
+    mudwisp: {
+      name: 'MUDWISP', part: '🌑 Wisp-light intact', emojiFallback: '👻', icon: 'assets/mudwisp.webp',
+      tier: 'E',
+      desc: "A hunched bog-imp born from Emberfall's stagnant marshland, its hollow eyes burning with cold violet witch-light. It rarely attacks first, but rarely lets go once it does.",
+      hp: 440, atk: { min:6, max:13 }, def: 5, element: 'dark',
+      // weakness to Light (Dark and Light always hurt each other) comes from the elemental wheel
+      resist: { dark:20 },
+      goldMin: 42, goldMax: 68,
+      loot: [
+        { key:'material_monster_bone',   chance:1,   min:1, max:2 },
+        { key:'material_grubling_shell', chance:0.2, min:1, max:2 }
+      ],
+      anims: { idle: { url: 'assets/mudwisp.webp', frameW: 256, frameH: 257, bgSize: '256px 257px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
     flareclaw: {
       name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw_idle.webp',
