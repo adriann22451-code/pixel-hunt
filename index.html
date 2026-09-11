@@ -885,7 +885,7 @@
       "assets/accessory_water_epic.webp","assets/accessory_water_legendary.webp",
       "assets/accessory_wind_common.webp","assets/accessory_wind_uncommon.webp","assets/accessory_wind_rare.webp",
       "assets/accessory_wind_epic.webp","assets/accessory_wind_legendary.webp",
-      "assets/aquafin.webp","assets/mudwisp.webp","assets/armor_dark_common.webp","assets/armor_dark_epic.webp","assets/armor_dark_legendary.webp",
+      "assets/aquafin.webp","assets/mudwisp.webp","assets/lumenmoth.webp","assets/thornmaw.webp","assets/seraph.webp","assets/voidfang.webp","assets/armor_dark_common.webp","assets/armor_dark_epic.webp","assets/armor_dark_legendary.webp",
       "assets/armor_dark_rare.webp","assets/armor_dark_uncommon.webp","assets/armor_earth_common.webp","assets/armor_earth_epic.webp",
       "assets/armor_earth_legendary.webp","assets/armor_earth_rare.webp","assets/armor_earth_uncommon.webp","assets/armor_fire_common.webp",
       "assets/armor_fire_epic.webp","assets/armor_fire_legendary.webp","assets/armor_fire_rare.webp","assets/armor_fire_uncommon.webp",
@@ -3122,6 +3122,64 @@
         { key:'material_grubling_shell', chance:0.2, min:1, max:2 }
       ],
       anims: { idle: { url: 'assets/mudwisp.webp', frameW: 256, frameH: 257, bgSize: '256px 257px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    lumenmoth: {
+      name: 'LUMENMOTH', part: '✨ Wing-dust intact', emojiFallback: '🦋', icon: 'assets/lumenmoth.webp',
+      tier: 'D',
+      desc: 'A moth grown enormous on captured moonlight, its wings stitched from stained-glass light. It drifts rather than flies, and hunters say staring too long into its eyes leaves you forgetting why you came.',
+      hp: 700, atk: { min:11, max:17 }, def: 6, element: 'light',
+      // weakness to Dark (Dark and Light always hurt each other) comes from the elemental wheel
+      resist: { light:30 },
+      goldMin: 100, goldMax: 145,
+      loot: [
+        { key:'material_monster_bone', chance:1,    min:1, max:2 },
+        { key:'material_beast_hide',   chance:0.2,  min:1, max:1 }
+      ],
+      anims: { idle: { url: 'assets/lumenmoth.webp', frameW: 256, frameH: 246, bgSize: '256px 246px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    thornmaw: {
+      name: 'THORNMAW', part: '🌿 Bark-plate intact', emojiFallback: '🌵', icon: 'assets/thornmaw.webp',
+      tier: 'C',
+      desc: "A thicket-born ambush predator whose bark-plated hide is threaded through with living thorns. It doesn't chase — it waits, buried in root and bramble, until something wanders close enough.",
+      hp: 1150, atk: { min:13, max:20 }, def: 14, element: 'earth',
+      // weakness to Fire (Fire beats Earth) comes from the elemental wheel
+      resist: { earth:35 },
+      goldMin: 120, goldMax: 170,
+      loot: [
+        { key:'material_monster_bone', chance:1,    min:1, max:2 },
+        { key:'material_beast_hide',   chance:0.25, min:1, max:2 }
+      ],
+      anims: { idle: { url: 'assets/thornmaw.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    seraph: {
+      name: 'SERAPH', part: '✨ Wings intact', emojiFallback: '👼', icon: 'assets/seraph.webp',
+      tier: 'A',
+      desc: "The seraph the Radiant Seraph Carapace was shed from. Hunters who've glimpsed it insist it once walked among them, guarding rather than hunting. It doesn't anymore.",
+      hp: 1700, atk: { min:16, max:24 }, def: 20, element: 'light',
+      // weakness to Dark (Dark and Light always hurt each other) comes from the elemental wheel
+      resist: { light:40 },
+      goldMin: 160, goldMax: 220,
+      loot: [
+        { key:'material_monster_bone',      chance:1,    min:2, max:3 },
+        { key:'material_beast_hide',        chance:0.3,  min:1, max:2 },
+        { key:'material_singularity_shard', chance:0.05, min:1, max:1 }
+      ],
+      anims: { idle: { url: 'assets/seraph.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    voidfang: {
+      name: 'VOIDFANG', part: '🌑 Hide intact', emojiFallback: '🐆', icon: 'assets/voidfang.webp',
+      tier: 'S',
+      desc: 'The thing the Voidfang Carapace was torn from. Hunters who track it rarely agree on how many eyes it has, or whether it was ever really there at all.',
+      hp: 2400, atk: { min:22, max:32 }, def: 30, element: 'dark',
+      // weakness to Light (Dark and Light always hurt each other) comes from the elemental wheel
+      resist: { dark:45 },
+      goldMin: 240, goldMax: 320,
+      loot: [
+        { key:'material_monster_bone',      chance:1,    min:2, max:4 },
+        { key:'material_beast_hide',        chance:0.3,  min:1, max:2 },
+        { key:'material_singularity_shard', chance:0.15, min:1, max:2 }
+      ],
+      anims: { idle: { url: 'assets/voidfang.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
     flareclaw: {
       name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw_idle.webp',
