@@ -1171,6 +1171,7 @@
       <div class="tab active" data-category="monster">MONSTER</div>
       <div class="tab" data-category="weapon">WEAPON</div>
       <div class="tab" data-category="armor">ARMOR</div>
+      <div class="tab" data-category="accessory">ACCESSORY</div>
       <div class="tab" data-category="material">MATERIAL</div>
     </div>
     <div class="filter-row" id="codexFilters" style="display:none;">
@@ -1338,6 +1339,7 @@
       <div class="tab active" data-shop-category="potion">POTIONS</div>
       <div class="tab" data-shop-category="weapon">WEAPONS</div>
       <div class="tab" data-shop-category="armor">ARMOR</div>
+      <div class="tab" data-shop-category="accessory">ACCESSORY</div>
       <div class="tab" data-shop-category="material">MATERIALS</div>
     </div>
 
@@ -2510,7 +2512,7 @@
     // element filter chips only make sense for weapon/armor (6 elements each);
     // monster and material tabs hide the row and always show everything
     const filtersEl = document.getElementById('codexFilters');
-    const filterable = (codexCategory === 'weapon' || codexCategory === 'armor');
+    const filterable = (codexCategory === 'weapon' || codexCategory === 'armor' || codexCategory === 'accessory');
     filtersEl.style.display = filterable ? '' : 'none';
     if(filterable && codexFilter !== 'all'){
       entries = entries.filter(function(it){ return !!it.elem && it.elem.toLowerCase().indexOf(codexFilter) !== -1; });
@@ -4032,7 +4034,7 @@
     const list = document.getElementById('shopList');
     if(!list) return;
 
-    const isGearTab = currentShopCategory === 'weapon' || currentShopCategory === 'armor';
+    const isGearTab = currentShopCategory === 'weapon' || currentShopCategory === 'armor' || currentShopCategory === 'accessory';
     // Materials tab is a separate crystal-only exchange for scarce crafting
     // materials (the ones with low hunt drop chance), so grinding for a
     // specific material isn't the only option — it's priced in Crystal,
