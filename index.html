@@ -459,9 +459,9 @@
   }
 
   .quest-icon.asset-icon{
-    background-image: url('assets/grubling_idle.webp');
+    background-image: url('assets/grubling.webp');
     background-position: 0 0;
-    background-size: 294px 342px;
+    background-size: 256px 178px;
     background-repeat: no-repeat;
     image-rendering: pixelated;
   }
@@ -893,9 +893,8 @@
       "assets/armor_light_rare.webp","assets/armor_light_uncommon.webp","assets/armor_water_common.webp","assets/armor_water_epic.webp",
       "assets/armor_water_legendary.webp","assets/armor_water_rare.webp","assets/armor_water_uncommon.webp","assets/armor_wind_common.webp",
       "assets/armor_wind_epic.webp","assets/armor_wind_legendary.webp","assets/armor_wind_rare.webp","assets/armor_wind_uncommon.webp",
-      "assets/flareclaw_attack.webp","assets/flareclaw_defeat.webp","assets/flareclaw_hit.webp","assets/flareclaw_idle.webp",
-      "assets/gem_premium.webp","assets/gold_coin.webp","assets/grubling_attack.webp","assets/grubling_defeat.webp",
-      "assets/grubling_hit.webp","assets/grubling_idle.webp","assets/hero_avatar.webp","assets/icon_armor.webp",
+      "assets/flareclaw.webp",
+      "assets/gem_premium.webp","assets/gold_coin.webp","assets/grubling.webp","assets/hero_avatar.webp","assets/icon_armor.webp",
       "assets/icon_bestiary.webp","assets/icon_inventory.webp","assets/icon_quest.webp","assets/material_aquafin_membrane.webp",
       "assets/material_aquafin_scale.webp","assets/material_beast_hide.webp","assets/material_claw.webp","assets/material_ember_core.webp",
       "assets/material_grubling_shell.webp","assets/material_monster_bone.webp","assets/material_rockhide_core.webp",
@@ -3090,7 +3089,7 @@
 
   const MONSTERS = {
     grubling: {
-      name: 'GRUBLING', part: '🪨 Shell intact', emojiFallback: '🐛',
+      name: 'GRUBLING', part: '🪨 Shell intact', emojiFallback: '🐛', icon: 'assets/grubling.webp',
       tier: 'E',
       desc: 'A hardened larval pest that burrows beneath Emberfall\'s crop fields. Slow but stubborn, its shell secretes a mild toxin when threatened.',
       hp: 420, atk: { min:6, max:12 }, def: 6, element: 'earth', poisonChance: 0.2,
@@ -3102,12 +3101,7 @@
         { key:'material_grubling_shell', chance:1,    min:2, max:4 },
         { key:'material_monster_bone',   chance:0.3,  min:1, max:2 }
       ],
-      anims: {
-        idle:   { url: 'assets/grubling_idle.webp', frameW: 220, frameH: 256, total: 49, fps: 24, loop: true, positions: [[0,0],[220,0],[440,0],[660,0],[880,0],[1100,0],[1320,0],[0,256],[220,256],[440,256],[660,256],[880,256],[1100,256],[1320,256],[0,512],[220,512],[440,512],[660,512],[880,512],[1100,512],[1320,512],[0,768],[220,768],[440,768],[660,768],[880,768],[1100,768],[1320,768],[0,1024],[220,1024],[440,1024],[660,1024],[880,1024],[1100,1024],[1320,1024],[0,1280],[220,1280],[440,1280],[660,1280],[880,1280],[1100,1280],[1320,1280],[0,1536],[220,1536],[440,1536],[660,1536],[880,1536],[1100,1536],[1320,1536]] },
-        attack: { url: 'assets/grubling_attack.webp', frameW: 256, frameH: 123, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,123],[256,123],[512,123],[768,123],[1024,123],[1280,123],[1536,123],[0,246],[256,246],[512,246],[768,246],[1024,246],[1280,246],[1536,246],[0,369],[256,369],[512,369],[768,369],[1024,369],[1280,369],[1536,369],[0,492],[256,492],[512,492],[768,492],[1024,492],[1280,492],[1536,492],[0,615],[256,615],[512,615],[768,615],[1024,615],[1280,615],[1536,615],[0,738],[256,738],[512,738],[768,738],[1024,738],[1280,738],[1536,738]] },
-        hit:    { url: 'assets/grubling_hit.webp', frameW: 197, frameH: 256, total: 96, fps: 30, loop: false, positions: [[2,2],[203,2],[404,2],[605,2],[806,2],[1007,2],[1208,2],[1409,2],[1610,2],[1811,2],[2,262],[203,262],[404,262],[605,262],[806,262],[1007,262],[1208,262],[1409,262],[1610,262],[1811,262],[2,522],[203,522],[404,522],[605,522],[806,522],[1007,522],[1208,522],[1409,522],[1610,522],[1811,522],[2,782],[203,782],[404,782],[605,782],[806,782],[1007,782],[1208,782],[1409,782],[1610,782],[1811,782],[2,1042],[203,1042],[404,1042],[605,1042],[806,1042],[1007,1042],[1208,1042],[1409,1042],[1610,1042],[1811,1042],[2,1302],[203,1302],[404,1302],[605,1302],[806,1302],[1007,1302],[1208,1302],[1409,1302],[1610,1302],[1811,1302],[2,1562],[203,1562],[404,1562],[605,1562],[806,1562],[1007,1562],[1208,1562],[1409,1562],[1610,1562],[1811,1562],[2,1822],[203,1822],[404,1822],[605,1822],[806,1822],[1007,1822],[1208,1822],[1409,1822],[1610,1822],[1811,1822],[2,2082],[203,2082],[404,2082],[605,2082],[806,2082],[1007,2082],[1208,2082],[1409,2082],[1610,2082],[1811,2082],[2,2342],[203,2342],[404,2342],[605,2342],[806,2342],[1007,2342]] },
-        defeat: { url: 'assets/grubling_defeat.webp', frameW: 241, frameH: 256, total: 96, fps: 24, loop: false, positions: [[2,2],[247,2],[492,2],[737,2],[982,2],[1227,2],[1472,2],[1717,2],[1962,2],[2207,2],[2,262],[247,262],[492,262],[737,262],[982,262],[1227,262],[1472,262],[1717,262],[1962,262],[2207,262],[2,522],[247,522],[492,522],[737,522],[982,522],[1227,522],[1472,522],[1717,522],[1962,522],[2207,522],[2,782],[247,782],[492,782],[737,782],[982,782],[1227,782],[1472,782],[1717,782],[1962,782],[2207,782],[2,1042],[247,1042],[492,1042],[737,1042],[982,1042],[1227,1042],[1472,1042],[1717,1042],[1962,1042],[2207,1042],[2,1302],[247,1302],[492,1302],[737,1302],[982,1302],[1227,1302],[1472,1302],[1717,1302],[1962,1302],[2207,1302],[2,1562],[247,1562],[492,1562],[737,1562],[982,1562],[1227,1562],[1472,1562],[1717,1562],[1962,1562],[2207,1562],[2,1822],[247,1822],[492,1822],[737,1822],[982,1822],[1227,1822],[1472,1822],[1717,1822],[1962,1822],[2207,1822],[2,2082],[247,2082],[492,2082],[737,2082],[982,2082],[1227,2082],[1472,2082],[1717,2082],[1962,2082],[2207,2082],[2,2342],[247,2342],[492,2342],[737,2342],[982,2342],[1227,2342]] }
-      }
+      anims: { idle: { url: 'assets/grubling.webp', frameW: 256, frameH: 178, bgSize: '256px 178px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
     mudwisp: {
       name: 'MUDWISP', part: '🌑 Wisp-light intact', emojiFallback: '👻', icon: 'assets/mudwisp.webp',
@@ -3182,25 +3176,21 @@
       anims: { idle: { url: 'assets/voidfang.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
     flareclaw: {
-      name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw_idle.webp',
-      tier: 'B',
+      name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw.webp',
+      tier: 'S',
       desc: 'A molten-scaled drake that nests in the scorched ridges above Emberfall. Its breath can melt steel, and its temper is just as short.',
-      hp: 1392, atk: { min:14, max:23 }, def: 16, element: 'fire',
+      hp: 2500, atk: { min:24, max:34 }, def: 28, element: 'fire',
       // weakness to Water (Water beats Fire) comes from the elemental wheel
-      resist: { fire:40 },
-      goldMin: 140, goldMax: 200,
+      resist: { fire:55 },
+      goldMin: 250, goldMax: 330,
       loot: [
-        { key:'material_claw',       chance:1,    min:2, max:3 },
-        { key:'material_beast_hide', chance:0.25, min:1, max:2 },
-        { key:'material_scale',      chance:0.2,  min:1, max:1 },
-        { key:'material_ember_core', chance:0.06, min:1, max:1 }
+        { key:'material_claw',              chance:1,    min:3, max:5 },
+        { key:'material_beast_hide',        chance:0.25, min:1, max:2 },
+        { key:'material_scale',             chance:0.3,  min:1, max:2 },
+        { key:'material_ember_core',        chance:0.12, min:1, max:2 },
+        { key:'material_singularity_shard', chance:0.15, min:1, max:2 }
       ],
-      anims: {
-        idle:   { url: 'assets/flareclaw_idle.webp', frameW: 256, frameH: 249, total: 49, fps: 24, loop: true, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,249],[256,249],[512,249],[768,249],[1024,249],[1280,249],[1536,249],[0,498],[256,498],[512,498],[768,498],[1024,498],[1280,498],[1536,498],[0,747],[256,747],[512,747],[768,747],[1024,747],[1280,747],[1536,747],[0,996],[256,996],[512,996],[768,996],[1024,996],[1280,996],[1536,996],[0,1245],[256,1245],[512,1245],[768,1245],[1024,1245],[1280,1245],[1536,1245],[0,1494],[256,1494],[512,1494],[768,1494],[1024,1494],[1280,1494],[1536,1494]] },
-        attack: { url: 'assets/flareclaw_attack.webp', frameW: 256, frameH: 167, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,167],[256,167],[512,167],[768,167],[1024,167],[1280,167],[1536,167],[0,334],[256,334],[512,334],[768,334],[1024,334],[1280,334],[1536,334],[0,501],[256,501],[512,501],[768,501],[1024,501],[1280,501],[1536,501],[0,668],[256,668],[512,668],[768,668],[1024,668],[1280,668],[1536,668],[0,835],[256,835],[512,835],[768,835],[1024,835],[1280,835],[1536,835],[0,1002],[256,1002],[512,1002],[768,1002],[1024,1002],[1280,1002],[1536,1002]] },
-        hit:    { url: 'assets/flareclaw_hit.webp', frameW: 256, frameH: 169, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,169],[256,169],[512,169],[768,169],[1024,169],[1280,169],[1536,169],[0,338],[256,338],[512,338],[768,338],[1024,338],[1280,338],[1536,338],[0,507],[256,507],[512,507],[768,507],[1024,507],[1280,507],[1536,507],[0,676],[256,676],[512,676],[768,676],[1024,676],[1280,676],[1536,676],[0,845],[256,845],[512,845],[768,845],[1024,845],[1280,845],[1536,845],[0,1014],[256,1014],[512,1014],[768,1014],[1024,1014],[1280,1014],[1536,1014]] },
-        defeat: { url: 'assets/flareclaw_defeat.webp', frameW: 256, frameH: 184, total: 49, fps: 24, loop: false, positions: [[0,0],[256,0],[512,0],[768,0],[1024,0],[1280,0],[1536,0],[0,184],[256,184],[512,184],[768,184],[1024,184],[1280,184],[1536,184],[0,368],[256,368],[512,368],[768,368],[1024,368],[1280,368],[1536,368],[0,552],[256,552],[512,552],[768,552],[1024,552],[1280,552],[1536,552],[0,736],[256,736],[512,736],[768,736],[1024,736],[1280,736],[1536,736],[0,920],[256,920],[512,920],[768,920],[1024,920],[1280,920],[1536,920],[0,1104],[256,1104],[512,1104],[768,1104],[1024,1104],[1280,1104],[1536,1104]] }
-      }
+      anims: { idle: { url: 'assets/flareclaw.webp', frameW: 256, frameH: 234, bgSize: '256px 234px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
     rockhide:  { name: 'ROCKHIDE',  part: '🪨 Stone plating intact', emojiFallback: '🐗', icon: 'assets/rockhide.webp',
       tier: 'A',
@@ -3214,7 +3204,7 @@
         { key:'material_monster_bone',     chance:0.28, min:1, max:2 },
         { key:'material_rockhide_core',    chance:0.08, min:1, max:1 }
       ],
-      anims: { idle: { url: 'assets/rockhide.webp', frameW: 256, frameH: 263, bgSize: '256px 263px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
+      anims: { idle: { url: 'assets/rockhide.webp', frameW: 256, frameH: 196, bgSize: '256px 196px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     stormwing: { name: 'STORMWING', part: '💨 Wings intact',         emojiFallback: '🦅', icon: 'assets/stormwing.webp',
       tier: 'C',
       desc: 'A raptor that rides storm fronts down from the high peaks, folding its wings into razor-sharp gusts before it strikes. Grounded, it fights far less fiercely.',
@@ -3227,7 +3217,7 @@
         { key:'material_beast_hide',        chance:0.22, min:1, max:1 },
         { key:'material_stormwing_crystal', chance:0.15, min:1, max:1 }
       ],
-      anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 278, bgSize: '256px 278px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
+      anims: { idle: { url: 'assets/stormwing.webp', frameW: 256, frameH: 254, bgSize: '256px 254px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } },
     aquafin:   { name: 'AQUAFIN',   part: '💧 Fins intact',          emojiFallback: '🐸', icon: 'assets/aquafin.webp',
       tier: 'D',
       desc: 'A river-dwelling amphibian that lurks in the shallows near Emberfall\'s mill. Its bite carries a numbing venom, though its thin hide leaves it exposed.',
@@ -3240,7 +3230,7 @@
         { key:'material_monster_bone',     chance:0.22, min:1, max:1 },
         { key:'material_aquafin_membrane', chance:0.15, min:1, max:1 }
       ],
-      anims: { idle: { url: 'assets/aquafin.webp', frameW: 256, frameH: 194, bgSize: '256px 194px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } }
+      anims: { idle: { url: 'assets/aquafin.webp', frameW: 256, frameH: 196, bgSize: '256px 196px', total: 1, fps: 1, loop: true, positions: [[0,0]] } } }
   };
 
   // ================= SPRITE ANIMATOR (generic, dipakai semua monster) =================
