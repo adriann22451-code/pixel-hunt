@@ -765,6 +765,58 @@
   .craft-btn.disabled{ background:var(--panel); color:var(--bone-dim); border-color:var(--line); cursor:not-allowed; opacity:0.6; }
   .craft-btn.crafted{ background:var(--panel); color:var(--moss); border-color:var(--line); cursor:default; }
 
+  /* ================= CRAFTING ANIMATION ================= */
+  .craft-overlay{
+    position:absolute; inset:0; z-index:60;
+    background: rgba(6,4,3,0.92);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity 0.25s;
+  }
+  .craft-overlay.show{ opacity:1; pointer-events:auto; }
+  .craft-anim-icon-wrap{ position:relative; width:110px; height:110px; margin-bottom:6px; }
+  .craft-anim-icon{
+    width:100%; height:100%; background-size:contain; background-repeat:no-repeat; background-position:center;
+    image-rendering:pixelated; filter: brightness(1) drop-shadow(0 0 0 rgba(242,169,59,0));
+  }
+  .craft-anim-icon.strike{ animation: craftStrike 0.18s ease; }
+  @keyframes craftStrike{
+    0%{ transform: translateY(0) rotate(0deg); }
+    30%{ transform: translateY(3px) rotate(-3deg); }
+    60%{ transform: translateY(-2px) rotate(2deg); }
+    100%{ transform: translateY(0) rotate(0deg); }
+  }
+  .craft-anim-icon.done{ animation: craftDoneGlow 0.7s ease; }
+  @keyframes craftDoneGlow{
+    0%{ filter: brightness(1) drop-shadow(0 0 0 rgba(242,169,59,0)); }
+    40%{ filter: brightness(2.3) drop-shadow(0 0 20px rgba(242,169,59,0.9)); }
+    100%{ filter: brightness(1) drop-shadow(0 0 10px rgba(242,169,59,0.55)); }
+  }
+  .craft-anim-hammer{
+    position:absolute; top:-20px; right:-16px; font-size:30px; transform-origin:80% 85%;
+  }
+  .craft-anim-hammer.swing{ animation: craftHammerSwing 0.18s ease; }
+  @keyframes craftHammerSwing{
+    0%{ transform: rotate(0deg); } 40%{ transform: rotate(-48deg); } 70%{ transform: rotate(8deg); } 100%{ transform: rotate(0deg); }
+  }
+  .craft-anim-spark{ position:absolute; font-size:18px; opacity:0; pointer-events:none; }
+  .craft-anim-spark.pop{ animation: craftSparkPop 0.4s ease; }
+  @keyframes craftSparkPop{
+    0%{ opacity:0; transform: translate(0,0) scale(0.4); }
+    30%{ opacity:1; }
+    100%{ opacity:0; transform: translate(var(--sx,14px), var(--sy,-18px)) scale(1); }
+  }
+  .craft-anim-name{ margin-top:14px; font-family:'Press Start 2P', monospace; font-size:13px; color:var(--amber); text-shadow:2px 2px 0 #000; text-align:center; padding:0 20px; }
+  .craft-anim-status{ margin-top:8px; font-size:15px; color:var(--bone-dim); letter-spacing:1px; }
+  .craft-anim-bar-wrap{ width:200px; margin-top:20px; }
+  .craft-anim-bar-track{ height:14px; background:#000; border:2px solid var(--line); overflow:hidden; }
+  .craft-anim-bar-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--ember), var(--amber)); box-shadow:0 0 8px rgba(242,169,59,0.5); transition: width 0.18s ease; }
+  .craft-anim-done-badge{
+    margin-top:16px; font-family:'Press Start 2P', monospace; font-size:14px; color:var(--moss);
+    opacity:0; transform:scale(0.5);
+  }
+  .craft-anim-done-badge.show{ animation: craftBadgePop 0.4s ease forwards; }
+  @keyframes craftBadgePop{ 0%{ opacity:0; transform:scale(0.4);} 60%{ opacity:1; transform:scale(1.15);} 100%{ opacity:1; transform:scale(1);} }
+
   /* ---------- BOTTOM NAV ---------- */
   .bottom-nav{
     position:absolute; left:0; right:0; bottom:0; z-index:30;
@@ -1158,6 +1210,21 @@
     </div>
 
     <div class="craft-list" id="craftList"></div>
+
+    <div class="craft-overlay" id="craftOverlay">
+      <div class="craft-anim-icon-wrap">
+        <div class="craft-anim-icon" id="craftAnimIcon"></div>
+        <div class="craft-anim-hammer" id="craftAnimHammer">🔨</div>
+        <div class="craft-anim-spark" id="craftAnimSpark1" style="top:12%; left:-8%;">✨</div>
+        <div class="craft-anim-spark" id="craftAnimSpark2" style="top:58%; right:-12%;">✨</div>
+      </div>
+      <div class="craft-anim-name" id="craftAnimName">Item</div>
+      <div class="craft-anim-status" id="craftAnimStatus">Forging...</div>
+      <div class="craft-anim-bar-wrap">
+        <div class="craft-anim-bar-track"><div class="craft-anim-bar-fill" id="craftAnimBarFill"></div></div>
+      </div>
+      <div class="craft-anim-done-badge" id="craftAnimDoneBadge">✓ CRAFTED!</div>
+    </div>
 
     <div style="height:64px; flex-shrink:0;"></div>
   </div>
@@ -4030,19 +4097,75 @@
       if(!matItem || (matItem.qty || 0) < m.qty) return;
     }
 
-    playerGold -= recipe.gold;
-    recipe.materials.forEach(m => {
-      const matItem = ITEMS.material.find(x => x.key === m.key);
-      matItem.qty -= m.qty;
-    });
-    item.locked = false;
-    SFX.buy();
+    runCraftAnimation(item, () => {
+      playerGold -= recipe.gold;
+      recipe.materials.forEach(m => {
+        const matItem = ITEMS.material.find(x => x.key === m.key);
+        matItem.qty -= m.qty;
+      });
+      item.locked = false;
+      SFX.buy();
 
-    updateGoldChip();
-    renderCraftList();
-    // refresh whichever inventory tab is open so consumed materials / the new item show up right away
-    renderInventory(currentCategory);
-    saveGame();
+      updateGoldChip();
+      renderCraftList();
+      // refresh whichever inventory tab is open so consumed materials / the new item show up right away
+      renderInventory(currentCategory);
+      saveGame();
+    });
+  }
+
+  // plays a short hammer-forging animation (icon shakes, sparks pop, a progress
+  // bar fills over a few strikes), then fires onComplete — which is where the
+  // actual gold/material spend and item unlock happen, so the visible "craft"
+  // moment and the state change land together.
+  function runCraftAnimation(item, onComplete){
+    const overlay = document.getElementById('craftOverlay');
+    const iconEl = document.getElementById('craftAnimIcon');
+    const hammerEl = document.getElementById('craftAnimHammer');
+    const nameEl = document.getElementById('craftAnimName');
+    const statusEl = document.getElementById('craftAnimStatus');
+    const barFill = document.getElementById('craftAnimBarFill');
+    const doneBadge = document.getElementById('craftAnimDoneBadge');
+    const sparks = [document.getElementById('craftAnimSpark1'), document.getElementById('craftAnimSpark2')];
+
+    iconEl.style.backgroundImage = "url('" + item.img + "')";
+    iconEl.classList.remove('done', 'strike');
+    nameEl.textContent = item.name;
+    statusEl.textContent = 'Forging...';
+    barFill.style.width = '0%';
+    doneBadge.classList.remove('show');
+
+    overlay.classList.add('show');
+
+    const STRIKES = 4;
+    let strikeCount = 0;
+
+    function doStrike(){
+      strikeCount++;
+      iconEl.classList.remove('strike'); void iconEl.offsetWidth; iconEl.classList.add('strike');
+      hammerEl.classList.remove('swing'); void hammerEl.offsetWidth; hammerEl.classList.add('swing');
+      sparks.forEach((s, idx) => {
+        s.style.setProperty('--sx', (idx === 0 ? -1 : 1) * (12 + Math.random() * 10) + 'px');
+        s.style.setProperty('--sy', -(14 + Math.random() * 10) + 'px');
+        s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop');
+      });
+      barFill.style.width = Math.round((strikeCount / STRIKES) * 100) + '%';
+      SFX.swing();
+
+      if(strikeCount < STRIKES){
+        setTimeout(doStrike, 260);
+      } else {
+        setTimeout(() => {
+          statusEl.textContent = 'Complete!';
+          iconEl.classList.add('done');
+          doneBadge.classList.add('show');
+          onComplete();
+          setTimeout(() => overlay.classList.remove('show'), 750);
+        }, 180);
+      }
+    }
+
+    setTimeout(doStrike, 150);
   }
 
   document.querySelectorAll('#craftTabs .tab').forEach(function(tab){
