@@ -893,7 +893,7 @@
       "assets/armor_light_rare.webp","assets/armor_light_uncommon.webp","assets/armor_water_common.webp","assets/armor_water_epic.webp",
       "assets/armor_water_legendary.webp","assets/armor_water_rare.webp","assets/armor_water_uncommon.webp","assets/armor_wind_common.webp",
       "assets/armor_wind_epic.webp","assets/armor_wind_legendary.webp","assets/armor_wind_rare.webp","assets/armor_wind_uncommon.webp",
-      "assets/flareclaw.webp",
+      "assets/flareclaw.webp","assets/emberfang.webp","assets/sparkmite.webp","assets/gravemole.webp","assets/ripfin.webp","assets/duskhowl.webp",
       "assets/gem_premium.webp","assets/gold_coin.webp","assets/grubling.webp","assets/hero_avatar.webp","assets/icon_armor.webp",
       "assets/icon_bestiary.webp","assets/icon_inventory.webp","assets/icon_quest.webp","assets/material_aquafin_membrane.webp",
       "assets/material_aquafin_scale.webp","assets/material_beast_hide.webp","assets/material_claw.webp","assets/material_ember_core.webp",
@@ -3174,6 +3174,80 @@
         { key:'material_singularity_shard', chance:0.15, min:1, max:2 }
       ],
       anims: { idle: { url: 'assets/voidfang.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    emberfang: {
+      name: 'EMBERFANG', part: '🔥 Hide intact', emojiFallback: '🐺', icon: 'assets/emberfang.webp',
+      tier: 'B',
+      desc: 'A lean hound of cracked volcanic rock and living magma that dens in the cooling flows below Emberclaw Ridge. Smaller than a drake, no less eager to bite.',
+      hp: 1400, atk: { min:15, max:24 }, def: 15, element: 'fire',
+      // weakness to Water (Water beats Fire) comes from the elemental wheel
+      resist: { fire:38 },
+      goldMin: 145, goldMax: 205,
+      loot: [
+        { key:'material_claw',       chance:1,    min:2, max:4 },
+        { key:'material_beast_hide', chance:0.2,  min:1, max:1 },
+        { key:'material_scale',      chance:0.22, min:1, max:1 },
+        { key:'material_ember_core', chance:0.07, min:1, max:1 }
+      ],
+      anims: { idle: { url: 'assets/emberfang.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    sparkmite: {
+      name: 'SPARKMITE', part: '💨 Wings intact', emojiFallback: '🪰', icon: 'assets/sparkmite.webp',
+      tier: 'E',
+      desc: "A chitinous insect that nests in storm-struck timber, its wings buzzing faster than the eye can track. Alone it's a nuisance — a swarm of them has grounded hunters twice its size.",
+      hp: 380, atk: { min:7, max:14 }, def: 4, element: 'wind',
+      // weakness to Earth (Earth beats Wind) comes from the elemental wheel
+      resist: { wind:20 },
+      goldMin: 45, goldMax: 70,
+      loot: [
+        { key:'material_monster_bone',      chance:1,    min:1, max:2 },
+        { key:'material_stormwing_feather', chance:0.15, min:1, max:1 }
+      ],
+      anims: { idle: { url: 'assets/sparkmite.webp', frameW: 256, frameH: 259, bgSize: '256px 259px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    gravemole: {
+      name: 'GRAVEMOLE', part: '🪨 Hide intact', emojiFallback: '🦫', icon: 'assets/gravemole.webp',
+      tier: 'D',
+      desc: "A thickset burrower with shovel-wide claws and a hide cracked like dry earth. It's blind, but feels every footstep for miles before you ever see it move.",
+      hp: 780, atk: { min:10, max:16 }, def: 12, element: 'earth',
+      // weakness to Fire (Fire beats Earth) comes from the elemental wheel
+      resist: { earth:32 },
+      goldMin: 100, goldMax: 148,
+      loot: [
+        { key:'material_monster_bone',     chance:1,    min:1, max:3 },
+        { key:'material_beast_hide',       chance:0.15, min:1, max:1 },
+        { key:'material_rockhide_plating', chance:0.15, min:1, max:1 }
+      ],
+      anims: { idle: { url: 'assets/gravemole.webp', frameW: 256, frameH: 219, bgSize: '256px 219px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    ripfin: {
+      name: 'RIPFIN', part: '💧 Fins intact', emojiFallback: '🐍', icon: 'assets/ripfin.webp',
+      tier: 'C',
+      desc: 'A serrated river-eel that hunts in the fast water below the falls, striking from a coil before its prey ever sees the current move.',
+      hp: 1000, atk: { min:14, max:22 }, def: 10, element: 'water',
+      // weakness to Wind (Wind beats Water) comes from the elemental wheel
+      resist: { water:32 },
+      goldMin: 118, goldMax: 168,
+      loot: [
+        { key:'material_monster_bone',      chance:1,    min:1, max:2 },
+        { key:'material_aquafin_scale',     chance:0.2,  min:1, max:2 },
+        { key:'material_aquafin_membrane',  chance:0.1,  min:1, max:1 }
+      ],
+      anims: { idle: { url: 'assets/ripfin.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
+    },
+    duskhowl: {
+      name: 'DUSKHOWL', part: '🌑 Hide intact', emojiFallback: '🐺', icon: 'assets/duskhowl.webp',
+      tier: 'B',
+      desc: 'A gaunt wolf of smoke and old bone that hunts along Emberfall\'s tree line at dusk. Its howl carries no sound, only a cold that settles in the chest.',
+      hp: 1350, atk: { min:16, max:25 }, def: 13, element: 'dark',
+      // weakness to Light (Dark and Light always hurt each other) comes from the elemental wheel
+      resist: { dark:38 },
+      goldMin: 140, goldMax: 200,
+      loot: [
+        { key:'material_monster_bone', chance:1,    min:2, max:3 },
+        { key:'material_beast_hide',   chance:0.25, min:1, max:2 }
+      ],
+      anims: { idle: { url: 'assets/duskhowl.webp', frameW: 256, frameH: 192, bgSize: '256px 192px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
     flareclaw: {
       name: 'RED FLARECLAW', part: '🔥 Scales intact', emojiFallback: '🐉', icon: 'assets/flareclaw.webp',
