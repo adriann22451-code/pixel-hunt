@@ -827,6 +827,8 @@
   (function(){
     var ASSETS = [
       "assets/accessory_hunters_ring.webp","assets/accessory_lucky_charm.webp","assets/accessory_void_amulet.webp",
+      "assets/accessory_fire_common.webp","assets/accessory_fire_uncommon.webp","assets/accessory_fire_rare.webp",
+      "assets/accessory_fire_epic.webp","assets/accessory_fire_legendary.webp",
       "assets/aquafin.webp","assets/armor_dark_common.webp","assets/armor_dark_epic.webp","assets/armor_dark_legendary.webp",
       "assets/armor_dark_rare.webp","assets/armor_dark_uncommon.webp","assets/armor_earth_common.webp","assets/armor_earth_epic.webp",
       "assets/armor_earth_legendary.webp","assets/armor_earth_rare.webp","assets/armor_earth_uncommon.webp","assets/armor_fire_common.webp",
@@ -1670,7 +1672,12 @@
       { key:'talisman_lightning',name:'Radiant Talisman',sub:'Talisman', icon:'🧿', img:'assets/talisman_lightning.webp',rarity:'epic',      atk:'—', elem:'Light Res +18', desc:'Glows faintly, as if holding back the sun itself. Craft it from hunted materials.', locked:true },
       { key:'accessory_hunters_ring', name:"Hunter's Ring", sub:'Ring', icon:'💍', img:'assets/accessory_hunters_ring.webp', rarity:'common', atk:'—', elem:'HP +10', desc:'A worn bronze ring passed down between hunters. Nothing special, but reliable. Starter gear — claim it from your Inbox.', locked:true },
       { key:'accessory_lucky_charm', name:'Lucky Charm Pendant', sub:'Pendant', icon:'🍀', img:'assets/accessory_lucky_charm.webp', rarity:'rare', atk:'—', elem:'Luck +10', desc:'A carved wooden clover on a leather cord. Hunters swear it works.', locked:true },
-      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Amulet', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'HP +20 · Dark +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:true }
+      { key:'accessory_void_amulet', name:'Void Amulet', sub:'Amulet', icon:'🔮', img:'assets/accessory_void_amulet.webp', rarity:'legendary', atk:'—', elem:'HP +20 · Dark +25', desc:'Matches the Voidfang Carapace. The gem seems to watch you back.', locked:true },
+      { key:'accessory_fire_common', name:'Ember Ring', sub:'Ring', icon:'🔥', img:'assets/accessory_fire_common.webp', rarity:'common', atk:'—', elem:'Fire Res +6', desc:'A simple band veined with dormant lava, cool to the touch until it senses a fight.', shopPrice:90, locked:true },
+      { key:'accessory_fire_uncommon', name:'Ember Signet', sub:'Ring', icon:'🔥', img:'assets/accessory_fire_uncommon.webp', rarity:'uncommon', atk:'—', elem:'Fire Res +10', desc:"A clawed signet ring set with a burning ruby, said to steady a hunter's resolve.", shopPrice:160, locked:true },
+      { key:'accessory_fire_rare', name:'Ember Charm', sub:'Bracelet', icon:'🔥', img:'assets/accessory_fire_rare.webp', rarity:'rare', atk:'—', elem:'Fire Res +14 · HP +8', desc:'A bracelet of cracked obsidian beads strung with a smoldering sigil charm. Craft it from hunted materials.', locked:true },
+      { key:'accessory_fire_epic', name:'Ember Pendant', sub:'Pendant', icon:'🔥', img:'assets/accessory_fire_epic.webp', rarity:'epic', atk:'—', elem:'Fire Res +20 · HP +14', desc:'A teardrop ember sealed in old iron, swinging faintly warm on its chain. Craft it from hunted materials.', locked:true },
+      { key:'accessory_fire_legendary', name:'Heart of the Last Ember', sub:'Amulet', icon:'🔥', img:'assets/accessory_fire_legendary.webp', rarity:'legendary', atk:'—', elem:'Fire Res +28 · HP +20', desc:'Matches the Flareking\'s Carapace. Said to be the final ember of a Flareclaw king, still beating. Craft it from hunted materials.', locked:true }
     ],
     material: [
       { key:'material_claw',       name:'Flareclaw Claw',  sub:'Monster Material', icon:'🦴', img:'assets/material_claw.webp',       rarity:'common', atk:'—', elem:'—', qty:12, desc:'A sharp claw shed by a Flareclaw. Used to forge fire-aligned weapons.', locked:false },
@@ -2164,6 +2171,15 @@
     accessory_void_amulet: { category:'accessory', gold:400, materials:[
       { key:'material_singularity_shard', qty:2 },
       { key:'material_monster_bone',      qty:5 }
+    ]},
+    accessory_fire_rare: { category:'accessory', gold:70, materials:[
+      { key:'material_claw',  qty:4 }, { key:'material_scale', qty:1 }
+    ]},
+    accessory_fire_epic: { category:'accessory', gold:150, materials:[
+      { key:'material_scale', qty:2 }, { key:'material_ember_core', qty:1 }
+    ]},
+    accessory_fire_legendary: { category:'accessory', gold:320, materials:[
+      { key:'material_ember_core', qty:2 }, { key:'material_scale', qty:2 }, { key:'material_singularity_shard', qty:1 }
     ]},
 
     // ---- element weapon lines: rare/epic/legendary tiers, hunted-material gated ----
