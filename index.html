@@ -132,7 +132,7 @@
 
   /* ---------- image-based icons (replaces emoji once real art exists) ---------- */
   .icon-img{ display:inline-block; width:1em; height:1em; background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; vertical-align:middle; }
-  .quest-icon.monster-art{ background-size:cover; background-position:center; background-repeat:no-repeat; image-rendering:pixelated; }
+  .quest-icon.monster-art{ background-size:contain; background-position:center; background-repeat:no-repeat; image-rendering:pixelated; }
   .quest-icon{ position:relative; }
   .tier-badge{
     position:absolute; top:-4px; left:-4px; z-index:2;
@@ -244,7 +244,7 @@
   .featured .tag{ display:inline-block; font-family:'Press Start 2P', monospace; font-size:8px; color:var(--blood); background: rgba(156,47,31,0.15); border:1px solid var(--blood); padding:3px 6px; margin-bottom:8px; }
   .featured-row{ display:flex; align-items:center; gap:12px; }
   .featured-monster{ font-size:48px; filter: drop-shadow(0 0 10px rgba(224,105,42,0.4)); width:72px; height:72px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-  .featured-monster.monster-art{ background-size:cover; background-position:center; background-repeat:no-repeat; image-rendering:pixelated; font-size:0; border:2px solid var(--line); }
+  .featured-monster.monster-art{ background-size:contain; background-position:center; background-repeat:no-repeat; image-rendering:pixelated; font-size:0; border:2px solid var(--line); }
   .featured-info{ flex:1; }
   .featured-name{ font-family:'Press Start 2P', monospace; font-size:13px; color:var(--bone); }
   .featured-elem{ font-size:16px; color:var(--ember); margin-top:4px; }
@@ -686,7 +686,7 @@
   .reward-monster{ font-size:70px; margin-top:14px; filter: drop-shadow(0 0 16px rgba(224,105,42,0.3)); }
   .reward-monster.monster-art{
     width:120px; height:120px; margin:14px auto 0 auto; font-size:0;
-    background-size:cover; background-position:center; background-repeat:no-repeat;
+    background-size:contain; background-position:center; background-repeat:no-repeat;
     image-rendering:pixelated;
   }
 
