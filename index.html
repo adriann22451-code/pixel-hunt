@@ -2232,51 +2232,67 @@
   // each entry: which category the crafted item lives in, its material cost, and a gold cost.
   // craft() below checks these against ITEMS[category] stock before it lets you build anything.
   const RECIPES = {
-    weapon_mystery: { category:'weapon', gold:500, materials:[
+    // The ultimate weapon now genuinely asks for "a material from Voidfang" (its own
+    // flavor text) plus Seraph's — one legendary trophy from all six elements.
+    weapon_mystery: { category:'weapon', gold:800, materials:[
       { key:'material_singularity_shard', qty:5 },
       { key:'material_ember_core',        qty:1 },
       { key:'material_rockhide_core',     qty:1 },
       { key:'material_stormwing_crystal', qty:1 },
-      { key:'material_aquafin_membrane',  qty:1 }
+      { key:'material_aquafin_membrane',  qty:1 },
+      { key:'material_voidfang_claw',     qty:1 },
+      { key:'material_seraph_feather',    qty:1 }
     ]},
+    // ---- dark gear: Mudwisp/Duskhowl/Voidfang chain (Shadow Pelt -> Void Ichor -> Voidfang Claw) ----
     armor_dark_rare: { category:'armor', gold:130, materials:[
-      { key:'material_monster_bone', qty:5 }, { key:'material_beast_hide', qty:1 }
+      { key:'material_shadow_pelt', qty:5 }, { key:'material_monster_bone', qty:2 }
     ]},
     armor_dark_epic: { category:'armor', gold:260, materials:[
-      { key:'material_beast_hide', qty:3 }, { key:'material_grubling_shell', qty:3 }
+      { key:'material_void_ichor', qty:2 }, { key:'material_shadow_pelt', qty:3 }
     ]},
     armor_dark_legendary: { category:'armor', gold:600, materials:[
-      { key:'material_singularity_shard', qty:3 },
-      { key:'material_monster_bone',      qty:5 },
-      { key:'material_beast_hide',        qty:5 }
+      { key:'material_voidfang_claw',      qty:1 },
+      { key:'material_void_ichor',         qty:2 },
+      { key:'material_singularity_shard',  qty:2 }
     ]},
+    // ---- light gear: Lumenmoth/Seraph chain (Lumen Dust -> Radiant Shard -> Seraph Feather) ----
     armor_light_rare: { category:'armor', gold:130, materials:[
-      { key:'material_grubling_shell', qty:5 }, { key:'material_monster_bone', qty:1 }
+      { key:'material_lumen_dust', qty:5 }, { key:'material_monster_bone', qty:2 }
     ]},
     armor_light_epic: { category:'armor', gold:260, materials:[
-      { key:'material_monster_bone', qty:3 }, { key:'material_beast_hide', qty:3 }
+      { key:'material_radiant_shard', qty:2 }, { key:'material_lumen_dust', qty:3 }
     ]},
     armor_light_legendary: { category:'armor', gold:500, materials:[
-      { key:'material_grubling_shell', qty:3 }, { key:'material_monster_bone', qty:3 }, { key:'material_singularity_shard', qty:2 }
+      { key:'material_seraph_feather',    qty:1 },
+      { key:'material_radiant_shard',     qty:2 },
+      { key:'material_singularity_shard', qty:2 }
     ]},
     talisman_fire: { category:'accessory', gold:80, materials:[
-      { key:'material_claw',  qty:3 },
-      { key:'material_scale', qty:1 }
+      { key:'material_claw',           qty:2 },
+      { key:'material_emberfang_fang', qty:1 },
+      { key:'material_scale',          qty:1 }
     ]},
     talisman_water: { category:'accessory', gold:80, materials:[
-      { key:'material_aquafin_scale',    qty:3 },
+      { key:'material_aquafin_scale',    qty:2 },
+      { key:'material_ripfin_fang',      qty:2 },
       { key:'material_aquafin_membrane', qty:1 }
     ]},
     talisman_wind: { category:'accessory', gold:80, materials:[
-      { key:'material_stormwing_feather', qty:3 },
+      { key:'material_stormwing_feather', qty:2 },
+      { key:'material_sparkmite_dust',    qty:1 },
       { key:'material_stormwing_crystal', qty:1 }
     ]},
     talisman_earth: { category:'accessory', gold:80, materials:[
-      { key:'material_rockhide_plating', qty:3 },
+      { key:'material_rockhide_plating', qty:2 },
+      { key:'material_gravemole_claw',   qty:1 },
       { key:'material_rockhide_core',    qty:1 }
     ]},
+    // Radiant Talisman grants Light Res but was always forged from Stormwing storm-material —
+    // now it blends in Lumen Dust too, so the name/effect actually matches an ingredient.
     talisman_lightning: { category:'accessory', gold:120, materials:[
-      { key:'material_stormwing_feather', qty:4 },
+      { key:'material_stormwing_feather', qty:2 },
+      { key:'material_sparkmite_dust',    qty:2 },
+      { key:'material_lumen_dust',        qty:2 },
       { key:'material_stormwing_crystal', qty:2 }
     ]},
     accessory_lucky_charm: { category:'accessory', gold:60, materials:[
@@ -2284,11 +2300,12 @@
       { key:'material_beast_hide',   qty:2 }
     ]},
     accessory_void_amulet: { category:'accessory', gold:400, materials:[
-      { key:'material_singularity_shard', qty:2 },
-      { key:'material_monster_bone',      qty:5 }
+      { key:'material_voidfang_claw',     qty:1 },
+      { key:'material_void_ichor',        qty:2 },
+      { key:'material_singularity_shard', qty:1 }
     ]},
     accessory_fire_rare: { category:'accessory', gold:70, materials:[
-      { key:'material_claw',  qty:4 }, { key:'material_scale', qty:1 }
+      { key:'material_claw', qty:2 }, { key:'material_emberfang_fang', qty:2 }, { key:'material_scale', qty:1 }
     ]},
     accessory_fire_epic: { category:'accessory', gold:150, materials:[
       { key:'material_scale', qty:2 }, { key:'material_ember_core', qty:1 }
@@ -2297,7 +2314,7 @@
       { key:'material_ember_core', qty:2 }, { key:'material_scale', qty:2 }, { key:'material_singularity_shard', qty:1 }
     ]},
     accessory_water_rare: { category:'accessory', gold:70, materials:[
-      { key:'material_aquafin_scale', qty:4 }, { key:'material_aquafin_membrane', qty:1 }
+      { key:'material_aquafin_scale', qty:2 }, { key:'material_ripfin_fang', qty:2 }, { key:'material_aquafin_membrane', qty:1 }
     ]},
     accessory_water_epic: { category:'accessory', gold:150, materials:[
       { key:'material_aquafin_membrane', qty:2 }, { key:'material_monster_bone', qty:1 }
@@ -2306,7 +2323,7 @@
       { key:'material_aquafin_membrane', qty:2 }, { key:'material_beast_hide', qty:2 }, { key:'material_singularity_shard', qty:1 }
     ]},
     accessory_wind_rare: { category:'accessory', gold:70, materials:[
-      { key:'material_stormwing_feather', qty:4 }, { key:'material_stormwing_crystal', qty:1 }
+      { key:'material_stormwing_feather', qty:2 }, { key:'material_sparkmite_dust', qty:2 }, { key:'material_stormwing_crystal', qty:1 }
     ]},
     accessory_wind_epic: { category:'accessory', gold:150, materials:[
       { key:'material_stormwing_crystal', qty:2 }, { key:'material_monster_bone', qty:1 }
@@ -2315,7 +2332,7 @@
       { key:'material_stormwing_crystal', qty:2 }, { key:'material_beast_hide', qty:2 }, { key:'material_singularity_shard', qty:1 }
     ]},
     accessory_earth_rare: { category:'accessory', gold:70, materials:[
-      { key:'material_rockhide_plating', qty:4 }, { key:'material_rockhide_core', qty:1 }
+      { key:'material_rockhide_plating', qty:2 }, { key:'material_gravemole_claw', qty:1 }, { key:'material_thornmaw_thorn', qty:1 }, { key:'material_rockhide_core', qty:1 }
     ]},
     accessory_earth_epic: { category:'accessory', gold:150, materials:[
       { key:'material_rockhide_core', qty:2 }, { key:'material_monster_bone', qty:1 }
@@ -2325,12 +2342,12 @@
     ]},
 
     // ---- element weapon lines: rare/epic/legendary tiers, hunted-material gated ----
-    // Fire, water, wind and earth use materials dropped by their matching monster
-    // (Flareclaw/Aquafin/Stormwing/Rockhide). Dark and light have no dedicated
-    // monster in this build yet, so their gear leans on the universal drops
-    // (bone/hide/shell) plus the rare Singularity Shard for legendary tier.
+    // Fire, water, wind and earth spread their rare tier across every monster of that
+    // element (not just the flagship one), then narrow to the flagship's rarer drop
+    // for epic/legendary. Dark and light now have their own full chain too, built
+    // from Mudwisp/Duskhowl/Voidfang and Lumenmoth/Seraph materials.
     weapon_fire_rare: { category:'weapon', gold:140, materials:[
-      { key:'material_claw',  qty:6 }, { key:'material_scale', qty:2 }
+      { key:'material_claw', qty:3 }, { key:'material_emberfang_fang', qty:3 }, { key:'material_scale', qty:2 }
     ]},
     weapon_fire_epic: { category:'weapon', gold:280, materials:[
       { key:'material_scale', qty:4 }, { key:'material_ember_core', qty:1 }
@@ -2339,7 +2356,7 @@
       { key:'material_ember_core', qty:3 }, { key:'material_scale', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]},
     weapon_water_rare: { category:'weapon', gold:140, materials:[
-      { key:'material_aquafin_scale', qty:6 }, { key:'material_aquafin_membrane', qty:2 }
+      { key:'material_aquafin_scale', qty:3 }, { key:'material_ripfin_fang', qty:3 }, { key:'material_aquafin_membrane', qty:2 }
     ]},
     weapon_water_epic: { category:'weapon', gold:280, materials:[
       { key:'material_aquafin_membrane', qty:4 }, { key:'material_monster_bone', qty:4 }
@@ -2348,7 +2365,7 @@
       { key:'material_aquafin_membrane', qty:4 }, { key:'material_beast_hide', qty:4 }, { key:'material_singularity_shard', qty:2 }
     ]},
     weapon_wind_rare: { category:'weapon', gold:140, materials:[
-      { key:'material_stormwing_feather', qty:6 }, { key:'material_stormwing_crystal', qty:2 }
+      { key:'material_stormwing_feather', qty:3 }, { key:'material_sparkmite_dust', qty:3 }, { key:'material_stormwing_crystal', qty:2 }
     ]},
     weapon_wind_epic: { category:'weapon', gold:280, materials:[
       { key:'material_stormwing_crystal', qty:4 }, { key:'material_monster_bone', qty:4 }
@@ -2357,7 +2374,7 @@
       { key:'material_stormwing_crystal', qty:4 }, { key:'material_beast_hide', qty:4 }, { key:'material_singularity_shard', qty:2 }
     ]},
     weapon_earth_rare: { category:'weapon', gold:140, materials:[
-      { key:'material_rockhide_plating', qty:7 }, { key:'material_monster_bone', qty:3 }
+      { key:'material_rockhide_plating', qty:4 }, { key:'material_thornmaw_thorn', qty:2 }, { key:'material_gravemole_claw', qty:2 }
     ]},
     weapon_earth_epic: { category:'weapon', gold:280, materials:[
       { key:'material_rockhide_core', qty:2 }, { key:'material_rockhide_plating', qty:4 }
@@ -2366,27 +2383,27 @@
       { key:'material_rockhide_core', qty:3 }, { key:'material_beast_hide', qty:4 }, { key:'material_singularity_shard', qty:2 }
     ]},
     weapon_dark_rare: { category:'weapon', gold:160, materials:[
-      { key:'material_monster_bone', qty:6 }, { key:'material_beast_hide', qty:4 }
+      { key:'material_shadow_pelt', qty:6 }, { key:'material_monster_bone', qty:3 }
     ]},
     weapon_dark_epic: { category:'weapon', gold:300, materials:[
-      { key:'material_beast_hide', qty:6 }, { key:'material_grubling_shell', qty:6 }
+      { key:'material_void_ichor', qty:3 }, { key:'material_shadow_pelt', qty:4 }
     ]},
     weapon_dark_legendary: { category:'weapon', gold:600, materials:[
-      { key:'material_monster_bone', qty:6 }, { key:'material_beast_hide', qty:6 }, { key:'material_singularity_shard', qty:3 }
+      { key:'material_voidfang_claw', qty:1 }, { key:'material_void_ichor', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]},
     weapon_light_rare: { category:'weapon', gold:160, materials:[
-      { key:'material_grubling_shell', qty:6 }, { key:'material_monster_bone', qty:4 }
+      { key:'material_lumen_dust', qty:6 }, { key:'material_monster_bone', qty:3 }
     ]},
     weapon_light_epic: { category:'weapon', gold:300, materials:[
-      { key:'material_monster_bone', qty:6 }, { key:'material_beast_hide', qty:6 }
+      { key:'material_radiant_shard', qty:3 }, { key:'material_lumen_dust', qty:4 }
     ]},
     weapon_light_legendary: { category:'weapon', gold:600, materials:[
-      { key:'material_grubling_shell', qty:6 }, { key:'material_monster_bone', qty:6 }, { key:'material_singularity_shard', qty:3 }
+      { key:'material_seraph_feather', qty:1 }, { key:'material_radiant_shard', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]},
 
     // ---- element armor lines (fire/water/wind/earth/dark/light — full set) ----
     armor_fire_rare: { category:'armor', gold:130, materials:[
-      { key:'material_claw',  qty:5 }, { key:'material_scale', qty:1 }
+      { key:'material_claw', qty:3 }, { key:'material_emberfang_fang', qty:2 }, { key:'material_scale', qty:1 }
     ]},
     armor_fire_epic: { category:'armor', gold:260, materials:[
       { key:'material_scale', qty:3 }, { key:'material_ember_core', qty:1 }
@@ -2395,7 +2412,7 @@
       { key:'material_ember_core', qty:2 }, { key:'material_scale', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]},
     armor_water_rare: { category:'armor', gold:130, materials:[
-      { key:'material_aquafin_scale', qty:5 }, { key:'material_aquafin_membrane', qty:1 }
+      { key:'material_aquafin_scale', qty:3 }, { key:'material_ripfin_fang', qty:3 }, { key:'material_aquafin_membrane', qty:1 }
     ]},
     armor_water_epic: { category:'armor', gold:260, materials:[
       { key:'material_aquafin_membrane', qty:3 }, { key:'material_monster_bone', qty:3 }
@@ -2404,7 +2421,7 @@
       { key:'material_aquafin_membrane', qty:3 }, { key:'material_beast_hide', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]},
     armor_wind_rare: { category:'armor', gold:130, materials:[
-      { key:'material_stormwing_feather', qty:5 }, { key:'material_stormwing_crystal', qty:1 }
+      { key:'material_stormwing_feather', qty:3 }, { key:'material_sparkmite_dust', qty:2 }, { key:'material_stormwing_crystal', qty:1 }
     ]},
     armor_wind_epic: { category:'armor', gold:260, materials:[
       { key:'material_stormwing_crystal', qty:3 }, { key:'material_monster_bone', qty:3 }
@@ -2413,7 +2430,7 @@
       { key:'material_stormwing_crystal', qty:3 }, { key:'material_beast_hide', qty:3 }, { key:'material_singularity_shard', qty:2 }
     ]},
     armor_earth_rare: { category:'armor', gold:130, materials:[
-      { key:'material_rockhide_plating', qty:5 }, { key:'material_rockhide_core', qty:1 }
+      { key:'material_rockhide_plating', qty:3 }, { key:'material_thornmaw_thorn', qty:2 }, { key:'material_gravemole_claw', qty:1 }, { key:'material_rockhide_core', qty:1 }
     ]},
     armor_earth_epic: { category:'armor', gold:260, materials:[
       { key:'material_rockhide_core', qty:3 }, { key:'material_monster_bone', qty:3 }
