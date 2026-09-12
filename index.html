@@ -3524,6 +3524,7 @@
     list.querySelectorAll('[data-goto]').forEach(el=>{
       el.addEventListener('click', ()=>{
         loadMonster(el.dataset.monster || 'grubling');
+        resetCombat(); // sync HP/stamina bars + numbers to this monster's real stats
         goTo(el.dataset.goto);
       });
     });
