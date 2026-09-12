@@ -1796,7 +1796,18 @@
       { key:'material_grubling_shell',   name:'Grubling Shell Fragment', sub:'Monster Material', icon:'🐛', img:'assets/material_grubling_shell.webp', rarity:'common', atk:'—', elem:'—', qty:15, desc:'A cracked shell fragment. The most common material a hunter finds.', locked:false },
       { key:'material_monster_bone',     name:'Monster Bone',       sub:'Monster Material', icon:'🦴', img:'assets/material_monster_bone.webp',    rarity:'common', atk:'—', elem:'—', qty:10, desc:'A weathered bone fragment. Basic crafting material for most gear.', locked:false },
       { key:'material_beast_hide',       name:'Beast Hide',         sub:'Monster Material', icon:'🟤', img:'assets/material_beast_hide.webp',       rarity:'common', atk:'—', elem:'—', qty:6, desc:'A folded piece of thick hide, still smelling faintly of the hunt.', locked:false },
-      { key:'material_singularity_shard',name:'Singularity Shard',  sub:'Epic Material',    icon:'🌌', img:'assets/material_singularity_shard.webp',rarity:'legendary', atk:'—', elem:'—', qty:1, crystalPrice:12, desc:'A fragment that seems to fold light around itself. Origin unknown.', locked:false }
+      { key:'material_singularity_shard',name:'Singularity Shard',  sub:'Epic Material',    icon:'🌌', img:'assets/material_singularity_shard.webp',rarity:'legendary', atk:'—', elem:'—', qty:1, crystalPrice:12, desc:'A fragment that seems to fold light around itself. Origin unknown.', locked:false },
+      { key:'material_shadow_pelt',      name:'Shadow Pelt',        sub:'Monster Material', icon:'🌑', img:'assets/material_shadow_pelt.webp',      rarity:'common',    atk:'—', elem:'—', qty:8, desc:'A torn patch of pelt still cold to the touch, crackling faintly with dark static.', locked:false },
+      { key:'material_void_ichor',       name:'Void Ichor',         sub:'Rare Material',    icon:'🧪', img:'assets/material_void_ichor.webp',       rarity:'rare',       atk:'—', elem:'—', qty:2, crystalPrice:3, desc:'A vial of inky liquid that seems to hold a tiny collapsing galaxy.', locked:false },
+      { key:'material_voidfang_claw',    name:'Voidfang Claw',      sub:'Epic Material',    icon:'🖤', img:'assets/material_voidfang_claw.webp',    rarity:'legendary', atk:'—', elem:'—', qty:1, crystalPrice:12, desc:"Torn from the thing itself. It's colder than it has any right to be.", locked:false },
+      { key:'material_lumen_dust',       name:'Lumen Dust',         sub:'Monster Material', icon:'✨', img:'assets/material_lumen_dust.webp',       rarity:'common',    atk:'—', elem:'—', qty:8, desc:'Fine glowing dust shed from moonlit wings.', locked:false },
+      { key:'material_radiant_shard',    name:'Radiant Shard',      sub:'Rare Material',    icon:'🔆', img:'assets/material_radiant_shard.webp',    rarity:'rare',       atk:'—', elem:'—', qty:2, crystalPrice:3, desc:'A shard of fused light, warm to the touch even in shadow.', locked:false },
+      { key:'material_seraph_feather',   name:'Seraph Feather',     sub:'Epic Material',    icon:'🕊️', img:'assets/material_seraph_feather.webp',   rarity:'legendary', atk:'—', elem:'—', qty:1, crystalPrice:12, desc:'A single feather still holding onto its holy light.', locked:false },
+      { key:'material_thornmaw_thorn',   name:'Thornmaw Bramble Thorn', sub:'Monster Material', icon:'🌿', img:'assets/material_thornmaw_thorn.webp', rarity:'common', atk:'—', elem:'—', qty:9, desc:'A woody thorn broken from a bark-plated hide, sap still oozing at the base.', locked:false },
+      { key:'material_gravemole_claw',   name:'Gravemole Claw',     sub:'Monster Material', icon:'🪨', img:'assets/material_gravemole_claw.webp',   rarity:'common',    atk:'—', elem:'—', qty:9, desc:'A shovel-wide digging claw, dirt still packed into the ridges.', locked:false },
+      { key:'material_ripfin_fang',      name:'Ripfin Fang',        sub:'Monster Material', icon:'🦷', img:'assets/material_ripfin_fang.webp',      rarity:'common',    atk:'—', elem:'—', qty:9, desc:'A serrated fang, still slick with river water.', locked:false },
+      { key:'material_sparkmite_dust',   name:'Sparkmite Static Dust', sub:'Monster Material', icon:'💨', img:'assets/material_sparkmite_dust.webp', rarity:'common', atk:'—', elem:'—', qty:9, desc:'Wing fragments that crackle faintly with static charge.', locked:false },
+      { key:'material_emberfang_fang',   name:'Emberfang Fang',     sub:'Monster Material', icon:'🦴', img:'assets/material_emberfang_fang.webp',   rarity:'common',    atk:'—', elem:'—', qty:9, desc:'A canine fang still smoldering faintly with inner heat.', locked:false }
     ],
     potion: [
       { key:'potion_health',         name:'Health Potion',           sub:'Recovery Item', icon:'🧪', img:'assets/potion_health.webp',         rarity:'common',    atk:'—', elem:'—', qty:5, shopPrice:28,  desc:'Restores a moderate amount of health. Every hunter carries a few.', locked:false },
@@ -3144,6 +3155,7 @@
       goldMin: 42, goldMax: 68,
       loot: [
         { key:'material_monster_bone',   chance:1,   min:1, max:2 },
+        { key:'material_shadow_pelt',    chance:0.5, min:1, max:2 },
         { key:'material_grubling_shell', chance:0.2, min:1, max:2 }
       ],
       anims: { idle: { url: 'assets/mudwisp.webp', frameW: 256, frameH: 257, bgSize: '256px 257px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
@@ -3158,7 +3170,9 @@
       goldMin: 100, goldMax: 145,
       loot: [
         { key:'material_monster_bone', chance:1,    min:1, max:2 },
-        { key:'material_beast_hide',   chance:0.2,  min:1, max:1 }
+        { key:'material_lumen_dust',   chance:0.5,  min:1, max:2 },
+        { key:'material_beast_hide',   chance:0.2,  min:1, max:1 },
+        { key:'material_radiant_shard', chance:0.06, min:1, max:1 }
       ],
       anims: { idle: { url: 'assets/lumenmoth.webp', frameW: 256, frameH: 246, bgSize: '256px 246px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
@@ -3171,8 +3185,9 @@
       resist: { earth:35 },
       goldMin: 120, goldMax: 170,
       loot: [
-        { key:'material_monster_bone', chance:1,    min:1, max:2 },
-        { key:'material_beast_hide',   chance:0.25, min:1, max:2 }
+        { key:'material_thornmaw_thorn', chance:1,    min:2, max:4 },
+        { key:'material_monster_bone',   chance:1,    min:1, max:2 },
+        { key:'material_beast_hide',     chance:0.25, min:1, max:2 }
       ],
       anims: { idle: { url: 'assets/thornmaw.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
@@ -3186,7 +3201,10 @@
       goldMin: 160, goldMax: 220,
       loot: [
         { key:'material_monster_bone',      chance:1,    min:2, max:3 },
+        { key:'material_lumen_dust',        chance:0.6,  min:1, max:2 },
+        { key:'material_radiant_shard',     chance:0.25, min:1, max:2 },
         { key:'material_beast_hide',        chance:0.3,  min:1, max:2 },
+        { key:'material_seraph_feather',    chance:0.08, min:1, max:1 },
         { key:'material_singularity_shard', chance:0.05, min:1, max:1 }
       ],
       anims: { idle: { url: 'assets/seraph.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
@@ -3201,7 +3219,10 @@
       goldMin: 240, goldMax: 320,
       loot: [
         { key:'material_monster_bone',      chance:1,    min:2, max:4 },
+        { key:'material_shadow_pelt',       chance:0.6,  min:1, max:2 },
+        { key:'material_void_ichor',        chance:0.25, min:1, max:2 },
         { key:'material_beast_hide',        chance:0.3,  min:1, max:2 },
+        { key:'material_voidfang_claw',     chance:0.08, min:1, max:1 },
         { key:'material_singularity_shard', chance:0.15, min:1, max:2 }
       ],
       anims: { idle: { url: 'assets/voidfang.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
@@ -3215,10 +3236,11 @@
       resist: { fire:38 },
       goldMin: 145, goldMax: 205,
       loot: [
-        { key:'material_claw',       chance:1,    min:2, max:4 },
-        { key:'material_beast_hide', chance:0.2,  min:1, max:1 },
-        { key:'material_scale',      chance:0.22, min:1, max:1 },
-        { key:'material_ember_core', chance:0.07, min:1, max:1 }
+        { key:'material_claw',          chance:1,    min:2, max:4 },
+        { key:'material_emberfang_fang', chance:0.5, min:1, max:2 },
+        { key:'material_beast_hide',    chance:0.2,  min:1, max:1 },
+        { key:'material_scale',         chance:0.22, min:1, max:1 },
+        { key:'material_ember_core',    chance:0.07, min:1, max:1 }
       ],
       anims: { idle: { url: 'assets/emberfang.webp', frameW: 256, frameH: 256, bgSize: '256px 256px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
     },
@@ -3231,6 +3253,7 @@
       resist: { wind:20 },
       goldMin: 45, goldMax: 70,
       loot: [
+        { key:'material_sparkmite_dust',    chance:1,    min:1, max:3 },
         { key:'material_monster_bone',      chance:1,    min:1, max:2 },
         { key:'material_stormwing_feather', chance:0.15, min:1, max:1 }
       ],
@@ -3245,6 +3268,7 @@
       resist: { earth:32 },
       goldMin: 100, goldMax: 148,
       loot: [
+        { key:'material_gravemole_claw',   chance:1,    min:1, max:3 },
         { key:'material_monster_bone',     chance:1,    min:1, max:3 },
         { key:'material_beast_hide',       chance:0.15, min:1, max:1 },
         { key:'material_rockhide_plating', chance:0.15, min:1, max:1 }
@@ -3260,6 +3284,7 @@
       resist: { water:32 },
       goldMin: 118, goldMax: 168,
       loot: [
+        { key:'material_ripfin_fang',       chance:1,    min:1, max:3 },
         { key:'material_monster_bone',      chance:1,    min:1, max:2 },
         { key:'material_aquafin_scale',     chance:0.2,  min:1, max:2 },
         { key:'material_aquafin_membrane',  chance:0.1,  min:1, max:1 }
@@ -3276,6 +3301,8 @@
       goldMin: 140, goldMax: 200,
       loot: [
         { key:'material_monster_bone', chance:1,    min:2, max:3 },
+        { key:'material_shadow_pelt',  chance:0.55, min:1, max:2 },
+        { key:'material_void_ichor',   chance:0.15, min:1, max:1 },
         { key:'material_beast_hide',   chance:0.25, min:1, max:2 }
       ],
       anims: { idle: { url: 'assets/duskhowl.webp', frameW: 256, frameH: 192, bgSize: '256px 192px', total: 1, fps: 1, loop: true, positions: [[0,0]] } }
