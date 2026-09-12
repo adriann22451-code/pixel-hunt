@@ -443,14 +443,16 @@
 
   .combat-arena{
     position:relative; flex:1;
-    display:flex; align-items:center; justify-content:center;
     z-index:3;
   }
   .arena-monster{
+    position:absolute; right:6%; bottom:14%; z-index:3;
     font-size:110px;
     filter: drop-shadow(0 0 24px rgba(224,105,42,0.35));
     transition: transform 0.08s ease;
     user-select:none;
+    display:flex; align-items:flex-end; justify-content:center;
+    overflow:visible;
   }
   .arena-monster.hit{ animation: monsterHit 0.25s ease; }
   @keyframes monsterHit{ 0%{ transform: translateX(0) scale(1);} 30%{ transform: translateX(-6px) scale(0.97);} 60%{ transform: translateX(4px);} 100%{ transform: translateX(0) scale(1);} }
@@ -458,9 +460,10 @@
   .arena-monster-sprite{
     background-repeat: no-repeat;
     image-rendering: pixelated;
-    transform: scale(1.25);
+    transform: scale(0.62);
     transform-origin: bottom center;
     filter: drop-shadow(0 0 22px rgba(224,105,42,0.3));
+    max-width:100%;
   }
 
   .quest-icon.asset-icon{
@@ -3835,8 +3838,8 @@
     const pop = document.createElement('div');
     pop.className = 'dmg-pop' + (crit ? ' crit' : '') + (superEffective ? ' super' : '');
     pop.textContent = '-' + amount;
-    pop.style.left = (44 + Math.random()*12) + '%';
-    pop.style.top = (36 + Math.random()*8) + '%';
+    pop.style.left = (62 + Math.random()*12) + '%';
+    pop.style.top = (52 + Math.random()*8) + '%';
     combatArena.appendChild(pop);
     setTimeout(()=> pop.remove(), sp(700));
 
