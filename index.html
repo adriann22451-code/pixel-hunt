@@ -740,6 +740,27 @@
   .shop-buy-btn .shop-buy-currency{ width:11px; height:11px; margin-left:2px; }
   .shop-buy-btn.disabled{ opacity:0.4; cursor:default; }
   .shop-buy-btn.owned{ background:var(--panel); color:var(--bone-dim); cursor:default; }
+
+  /* ---------- shop purchase feedback: toast + icon pop ---------- */
+  .shop-buy-toast{
+    position:absolute; top:100px; left:14px; right:14px; z-index:60;
+    background:var(--panel-2); border:2px solid var(--moss); padding:10px 12px;
+    display:flex; align-items:center; gap:10px;
+    opacity:0; pointer-events:none; transform:translateY(-10px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    box-shadow:0 6px 16px rgba(0,0,0,0.5);
+  }
+  .shop-buy-toast.show{ opacity:1; transform:translateY(0); }
+  .shop-buy-toast .sbt-icon{ width:30px; height:30px; flex-shrink:0; background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
+  .shop-buy-toast .sbt-body{ flex:1; }
+  .shop-buy-toast .sbt-title{ font-family:'Press Start 2P', monospace; font-size:9px; color:var(--moss); margin-bottom:4px; }
+  .shop-buy-toast .sbt-desc{ font-size:13px; color:var(--bone-dim); }
+  .shop-card.just-bought .shop-icon{ animation: shopIconPop 0.4s ease; }
+  @keyframes shopIconPop{
+    0%{ transform:scale(1); filter:brightness(1); }
+    35%{ transform:scale(1.28); filter:brightness(1.6) drop-shadow(0 0 10px var(--moss)); }
+    100%{ transform:scale(1); filter:brightness(1); }
+  }
   .craft-card{ background:var(--panel-2); border:2px solid var(--rc, var(--line)); box-shadow:0 0 8px -2px var(--rc, transparent); padding:10px; display:flex; flex-direction:column; gap:8px; }
   .craft-card-head{ display:flex; align-items:center; gap:10px; }
   .craft-icon{ width:46px; height:46px; flex-shrink:0; background:var(--void); border:2px solid var(--rc, var(--common)); background-size:contain; background-repeat:no-repeat; background-position:center; image-rendering:pixelated; }
@@ -1421,6 +1442,14 @@
       </div>
       <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gold_coin.webp')"></span><span id="shopGoldAmount">245</span></div>
       <div class="chip"><span class="icon icon-img" style="background-image:url('assets/gem_premium.webp')"></span><span id="shopCrystalAmount">12</span></div>
+    </div>
+
+    <div class="shop-buy-toast" id="shopBuyToast">
+      <div class="sbt-icon" id="shopBuyToastIcon"></div>
+      <div class="sbt-body">
+        <div class="sbt-title">✓ PURCHASED</div>
+        <div class="sbt-desc" id="shopBuyToastDesc"></div>
+      </div>
     </div>
 
     <div class="tabs" id="shopTabs">
@@ -4562,7 +4591,7 @@
       const subText = isGearTab ? (it.sub + ' · ' + (it.elem || '—')) : it.desc;
       const qtyText = (!isGearTab && typeof it.qty === 'number') ? ('Owned: ' + it.qty) : '';
 
-      html += '<div class="shop-card rar-' + it.rarity + '">'
+      html += '<div class="shop-card rar-' + it.rarity + '" data-key="' + it.key + '">'
         + '<div class="shop-icon" style="background-image:url(\'' + it.img + '\')"></div>'
         + '<div class="shop-mid"><div class="shop-name">' + it.name + '</div><div class="shop-sub">' + subText + '</div>' + (qtyText ? '<div class="shop-qty">' + qtyText + '</div>' : '') + '</div>'
         + btnHtml
@@ -4574,6 +4603,18 @@
     list.querySelectorAll('[data-shop-key]:not(.disabled)').forEach(btn=>{
       btn.addEventListener('click', ()=> buyShopItem(btn.dataset.shopKey));
     });
+  }
+
+  // ---------- shop purchase feedback: toast + a quick pop on the bought icon ----------
+  let shopBuyToastTimer = null;
+  function showShopBuyToast(item, isGear){
+    const toast = document.getElementById('shopBuyToast');
+    if(!toast) return;
+    document.getElementById('shopBuyToastIcon').style.backgroundImage = "url('" + item.img + "')";
+    document.getElementById('shopBuyToastDesc').textContent = item.name + (isGear ? ' unlocked!' : ' +1 added to inventory');
+    toast.classList.add('show');
+    clearTimeout(shopBuyToastTimer);
+    shopBuyToastTimer = setTimeout(()=> toast.classList.remove('show'), 1800);
   }
 
   // handles both purchase types: consumables just add to qty and stay
@@ -4604,12 +4645,22 @@
       item.qty = (item.qty || 0) + 1;
     }
     SFX.buy();
+    showShopBuyToast(item, isGear);
 
     updateGoldChip();
     updateCrystalChip();
     renderShop();
     renderInventory(currentCategory);
     saveGame();
+
+    // brief pop/flash on the card icon so the purchase feels tactile, not
+    // just a silent list refresh — renderShop() just rebuilt the DOM, so
+    // grab the fresh card node and trigger it after this frame
+    const card = document.querySelector('.shop-card[data-key="' + key + '"]');
+    if(card){
+      card.classList.remove('just-bought'); void card.offsetWidth; card.classList.add('just-bought');
+      setTimeout(()=> card.classList.remove('just-bought'), 450);
+    }
   }
 
   document.querySelectorAll('[data-shop-category]').forEach(tab=>{
