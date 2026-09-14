@@ -1185,6 +1185,7 @@
       <div class="tab" data-category="armor">ARMOR</div>
       <div class="tab" data-category="accessory">ACCESSORIES</div>
       <div class="tab" data-category="material">MATERIALS</div>
+      <div class="tab" data-category="scroll">SCROLLS</div>
       <div class="tab" data-category="potion">POTIONS</div>
     </div>
 
@@ -1427,6 +1428,7 @@
       <div class="tab" data-shop-category="weapon">WEAPONS</div>
       <div class="tab" data-shop-category="armor">ARMOR</div>
       <div class="tab" data-shop-category="accessory">ACCESSORY</div>
+      <div class="tab" data-shop-category="scroll">SCROLLS</div>
       <div class="tab" data-shop-category="material">MATERIALS</div>
     </div>
 
@@ -1816,6 +1818,21 @@
       { key:'potion_antidote',       name:'Antidote',                sub:'Recovery Item', icon:'🧪', img:'assets/potion_antidote.webp',        rarity:'common',    atk:'—', elem:'—', qty:4, shopPrice:32,  desc:'Cures poison. Best swallowed quickly, before asking questions.', locked:false },
       { key:'potion_elemental_resist', name:'Elemental Resist Tonic',sub:'Buff Item',     icon:'🧪', img:'assets/potion_elemental_resist.webp', rarity:'epic',     atk:'—', elem:'—', qty:2, shopPrice:150, desc:'Grants temporary resistance to all elemental damage.', locked:false },
       { key:'potion_phoenix',        name:'Phoenix Draught',         sub:'Revival Item',  icon:'🧪', img:'assets/potion_phoenix.webp',         rarity:'legendary', atk:'—', elem:'—', qty:1, shopPrice:400, desc:'Revives a fallen hunter on the spot. Said to taste like ash and gold.', locked:false }
+    ],
+    // one-time-unlock shop items (same pattern as common/uncommon gear): buy once,
+    // and it permanently unlocks every craft recipe of the matching rarity tier.
+    // Rare/Epic/Legendary scrolls gate the actual RECIPES below (rare, epic and
+    // legendary gear is craft-only, so those tiers need their scroll unlocked
+    // before the CRAFT button in screen-craft will light up). Common/Uncommon
+    // scrolls are sold for collection/economy completeness — nothing is
+    // craft-gated at those two tiers yet since all common/uncommon gear is
+    // bought outright in the shop rather than crafted.
+    scroll: [
+      { key:'recipe_scroll_common',    name:'Common Recipe Scroll',    sub:'Recipe Scroll', icon:'📜', img:'assets/recipe_scroll_common.webp',    rarity:'common',    atk:'—', elem:'—', qty:0, shopPrice:15,  desc:'A plain scroll, tied off with rough twine. Consumed the moment you use it to craft.', locked:false },
+      { key:'recipe_scroll_uncommon',  name:'Uncommon Recipe Scroll',  sub:'Recipe Scroll', icon:'📜', img:'assets/recipe_scroll_uncommon.webp',  rarity:'uncommon',  atk:'—', elem:'—', qty:0, shopPrice:35,  desc:'Sealed with a small leaf-pressed wax stamp. Consumed the moment you use it to craft.', locked:false },
+      { key:'recipe_scroll_rare',      name:'Rare Recipe Scroll',      sub:'Recipe Scroll', icon:'📜', img:'assets/recipe_scroll_rare.webp',      rarity:'rare',      atk:'—', elem:'—', qty:0, shopPrice:90,  desc:'Bound in a cool blue ribbon, its rune-lines still faintly glowing. Consumed the moment you use it to craft.', locked:false },
+      { key:'recipe_scroll_epic',      name:'Epic Recipe Scroll',      sub:'Recipe Scroll', icon:'📜', img:'assets/recipe_scroll_epic.webp',      rarity:'epic',      atk:'—', elem:'—', qty:0, shopPrice:200, desc:'Clamped in dark iron, sealed with a humming violet sigil. Consumed the moment you use it to craft.', locked:false },
+      { key:'recipe_scroll_legendary', name:'Legendary Recipe Scroll', sub:'Recipe Scroll', icon:'📜', img:'assets/recipe_scroll_legendary.webp', rarity:'legendary', atk:'—', elem:'—', qty:0, shopPrice:450, desc:'Bound in gold filigree, sealed with a radiant sun sigil. Consumed the moment you use it to craft.', locked:false }
     ]
   };
 
@@ -2437,6 +2454,83 @@
     ]},
     armor_earth_legendary: { category:'armor', gold:500, materials:[
       { key:'material_rockhide_core', qty:3 }, { key:'material_beast_hide', qty:3 }, { key:'material_singularity_shard', qty:2 }
+    ]},
+
+    // ---- common/uncommon weapon+armor lines: the cheap, hunt-fed alternative to ----
+    // ---- just buying them outright in the Shop. Same items either way — this ----
+    // just gives players the choice: spend gold for convenience, or spend a ----
+    // Common/Uncommon Recipe Scroll + a handful of basic hunt materials instead. ----
+    weapon_fire_common: { category:'weapon', gold:40, materials:[
+      { key:'material_claw', qty:2 }, { key:'material_monster_bone', qty:2 }
+    ]},
+    weapon_fire_uncommon: { category:'weapon', gold:90, materials:[
+      { key:'material_claw', qty:3 }, { key:'material_emberfang_fang', qty:2 }, { key:'material_monster_bone', qty:1 }
+    ]},
+    weapon_water_common: { category:'weapon', gold:40, materials:[
+      { key:'material_aquafin_scale', qty:2 }, { key:'material_monster_bone', qty:2 }
+    ]},
+    weapon_water_uncommon: { category:'weapon', gold:90, materials:[
+      { key:'material_aquafin_scale', qty:3 }, { key:'material_ripfin_fang', qty:2 }, { key:'material_monster_bone', qty:1 }
+    ]},
+    weapon_wind_common: { category:'weapon', gold:40, materials:[
+      { key:'material_stormwing_feather', qty:2 }, { key:'material_monster_bone', qty:2 }
+    ]},
+    weapon_wind_uncommon: { category:'weapon', gold:90, materials:[
+      { key:'material_stormwing_feather', qty:3 }, { key:'material_sparkmite_dust', qty:2 }, { key:'material_monster_bone', qty:1 }
+    ]},
+    weapon_earth_common: { category:'weapon', gold:40, materials:[
+      { key:'material_rockhide_plating', qty:2 }, { key:'material_monster_bone', qty:2 }
+    ]},
+    weapon_earth_uncommon: { category:'weapon', gold:90, materials:[
+      { key:'material_rockhide_plating', qty:2 }, { key:'material_thornmaw_thorn', qty:2 }, { key:'material_gravemole_claw', qty:1 }
+    ]},
+    weapon_dark_common: { category:'weapon', gold:40, materials:[
+      { key:'material_shadow_pelt', qty:1 }, { key:'material_monster_bone', qty:3 }
+    ]},
+    weapon_dark_uncommon: { category:'weapon', gold:90, materials:[
+      { key:'material_shadow_pelt', qty:3 }, { key:'material_monster_bone', qty:2 }
+    ]},
+    weapon_light_common: { category:'weapon', gold:40, materials:[
+      { key:'material_lumen_dust', qty:1 }, { key:'material_monster_bone', qty:3 }
+    ]},
+    weapon_light_uncommon: { category:'weapon', gold:90, materials:[
+      { key:'material_lumen_dust', qty:3 }, { key:'material_monster_bone', qty:2 }
+    ]},
+    armor_fire_common: { category:'armor', gold:35, materials:[
+      { key:'material_claw', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_fire_uncommon: { category:'armor', gold:80, materials:[
+      { key:'material_claw', qty:2 }, { key:'material_emberfang_fang', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_water_common: { category:'armor', gold:35, materials:[
+      { key:'material_aquafin_scale', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_water_uncommon: { category:'armor', gold:80, materials:[
+      { key:'material_aquafin_scale', qty:2 }, { key:'material_ripfin_fang', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_wind_common: { category:'armor', gold:35, materials:[
+      { key:'material_stormwing_feather', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_wind_uncommon: { category:'armor', gold:80, materials:[
+      { key:'material_stormwing_feather', qty:2 }, { key:'material_sparkmite_dust', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_earth_common: { category:'armor', gold:35, materials:[
+      { key:'material_rockhide_plating', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_earth_uncommon: { category:'armor', gold:80, materials:[
+      { key:'material_rockhide_plating', qty:2 }, { key:'material_gravemole_claw', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_dark_common: { category:'armor', gold:35, materials:[
+      { key:'material_shadow_pelt', qty:1 }, { key:'material_monster_bone', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_dark_uncommon: { category:'armor', gold:80, materials:[
+      { key:'material_shadow_pelt', qty:3 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_light_common: { category:'armor', gold:35, materials:[
+      { key:'material_lumen_dust', qty:1 }, { key:'material_monster_bone', qty:2 }, { key:'material_beast_hide', qty:1 }
+    ]},
+    armor_light_uncommon: { category:'armor', gold:80, materials:[
+      { key:'material_lumen_dust', qty:3 }, { key:'material_beast_hide', qty:1 }
     ]}
   };
 
@@ -4277,7 +4371,21 @@
       const alreadyCrafted = !item.locked;
       let canCraft = playerGold >= recipe.gold;
 
+      // Every recipe now needs 1 Recipe Scroll of the matching rarity, consumed
+      // on craft (bought from the Shop's Scrolls tab, stacks like a potion).
+      const scrollItem = (ITEMS.scroll || []).find(s => s.rarity === item.rarity);
+      const scrollOwned = scrollItem ? (scrollItem.qty || 0) : 0;
+      const scrollOk = scrollOwned >= 1;
+      if(!scrollOk) canCraft = false;
+
       let matsHtml = '';
+      if(scrollItem){
+        matsHtml += '<div class="craft-mat-row">'
+          + '<div class="mat-icon" style="background-image:url(\'' + scrollItem.img + '\')"></div>'
+          + '<div class="mat-name">' + scrollItem.name + '</div>'
+          + '<div class="mat-count ' + (scrollOk ? 'ok' : 'short') + '">' + scrollOwned + '/1</div>'
+          + '</div>';
+      }
       recipe.materials.forEach(m => {
         const matItem = ITEMS.material.find(i => i.key === m.key);
         const owned = matItem ? (matItem.qty || 0) : 0;
@@ -4311,15 +4419,18 @@
     });
   }
 
-  // spends the gold + materials and flips the item's locked flag off — only
-  // runs if every requirement in the recipe is actually met (checked again here,
-  // not just trusted from the disabled-button state, in case anything changed)
+  // spends the gold + materials + 1 matching Recipe Scroll, then flips the
+  // item's locked flag off — only runs if every requirement in the recipe is
+  // actually met (checked again here, not just trusted from the disabled-button
+  // state, in case anything changed)
   function craftItem(key){
     const recipe = RECIPES[key];
     if(!recipe) return;
     const item = (ITEMS[recipe.category] || []).find(i => i.key === key);
     if(!item || !item.locked) return;
     if(playerGold < recipe.gold) return;
+    const scrollItem = (ITEMS.scroll || []).find(s => s.rarity === item.rarity);
+    if(!scrollItem || (scrollItem.qty || 0) < 1) return;
     for(let i=0; i<recipe.materials.length; i++){
       const m = recipe.materials[i];
       const matItem = ITEMS.material.find(x => x.key === m.key);
@@ -4332,6 +4443,7 @@
         const matItem = ITEMS.material.find(x => x.key === m.key);
         matItem.qty -= m.qty;
       });
+      scrollItem.qty -= 1;
       item.locked = false;
       SFX.buy();
 
@@ -4419,13 +4531,19 @@
     if(!list) return;
 
     const isGearTab = currentShopCategory === 'weapon' || currentShopCategory === 'armor' || currentShopCategory === 'accessory';
+    // Scrolls are consumable now (qty-based, just like potions) — spent one
+    // at a time when crafting, so the Scrolls tab behaves like the Potions
+    // tab: buy repeatedly, no permanent "OWNED" state.
+    const isOneTimeTab = isGearTab;
     // Materials tab is a separate crystal-only exchange for scarce crafting
     // materials (the ones with low hunt drop chance), so grinding for a
     // specific material isn't the only option — it's priced in Crystal,
     // not Gold, everything else below still uses Gold as before.
     const isCrystalTab = currentShopCategory === 'material';
     // shop only stocks potions (any rarity) plus common/uncommon gear —
-    // rare, epic and legendary gear is craft-only (see screen-craft)
+    // rare, epic and legendary gear is craft-only (see screen-craft).
+    // Scrolls are exempt from that rarity cap since all 5 scroll tiers are
+    // meant to be shop-purchasable.
     const items = isCrystalTab
       ? (ITEMS.material || []).filter(it => typeof it.crystalPrice === 'number')
       : (ITEMS[currentShopCategory] || []).filter(it =>
@@ -4434,7 +4552,7 @@
 
     let html = '';
     items.forEach(it => {
-      const owned = isGearTab && !it.locked;
+      const owned = isOneTimeTab && !it.locked;
       const price = isCrystalTab ? it.crystalPrice : it.shopPrice;
       const currencyIcon = isCrystalTab ? 'assets/gem_premium.webp' : 'assets/gold_coin.webp';
       const canAfford = (isCrystalTab ? playerCrystal : playerGold) >= price;
